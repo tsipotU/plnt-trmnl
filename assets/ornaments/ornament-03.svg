@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <!-- Fern frond, symmetric -->
+  <g stroke="#2a2a2a" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Central rachis -->
+    <path d="M200 190 L200 20"/>
+    <!-- Left pinnae (leaflets) -->
+    <path d="M200 170 C180 162 160 158 148 160"/>
+    <path d="M200 148 C178 138 155 130 140 130"/>
+    <path d="M200 126 C176 114 150 104 134 100"/>
+    <path d="M200 104 C174 90 146 78 128 72"/>
+    <path d="M200 82 C172 66 142 52 122 44"/>
+    <path d="M200 60 C174 42 146 28 128 20"/>
+    <!-- Right pinnae (leaflets) -->
+    <path d="M200 170 C220 162 240 158 252 160"/>
+    <path d="M200 148 C222 138 245 130 260 130"/>
+    <path d="M200 126 C224 114 250 104 266 100"/>
+    <path d="M200 104 C226 90 254 78 272 72"/>
+    <path d="M200 82 C228 66 258 52 278 44"/>
+    <path d="M200 60 C226 42 254 28 272 20"/>
+  </g>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <!-- Simple five-petal flower with stem and leaves -->
+  <g stroke="#2a2a2a" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Stem -->
+    <path d="M200 190 L200 120"/>
+    <!-- Left leaf on stem -->
+    <path d="M200 160 C185 148 172 140 168 130 C172 128 180 132 200 155"/>
+    <!-- Right leaf on stem -->
+    <path d="M200 155 C215 143 228 135 232 125 C228 123 220 127 200 150"/>
+    <!-- Flower petals (5) -->
+    <path d="M200 120 C196 100 188 88 180 82 C176 90 178 102 200 118"/>
+    <path d="M200 120 C210 102 218 92 226 88 C228 96 224 108 200 120"/>
+    <path d="M200 120 C182 112 170 118 162 126 C168 132 180 132 200 120"/>
+    <path d="M200 120 C218 112 230 118 238 126 C232 132 220 132 200 120"/>
+    <path d="M200 120 C196 104 200 90 200 80 C204 88 206 102 200 120"/>
+    <!-- Center circle -->
+    <circle cx="200" cy="110" r="8"/>
+  </g>
+</svg>

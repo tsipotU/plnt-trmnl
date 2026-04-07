@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <!-- Branch with multiple leaves -->
+  <g stroke="#2a2a2a" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main branch -->
+    <path d="M60 180 C100 160 140 130 200 100 C260 70 310 50 360 30"/>
+    <!-- Branch 1 left -->
+    <path d="M100 162 C88 145 80 125 85 108"/>
+    <!-- Leaf on branch 1 -->
+    <path d="M85 108 C72 96 66 80 72 66 C78 58 88 62 90 74 C92 86 88 100 85 108"/>
+    <!-- Branch 2 right -->
+    <path d="M155 128 C165 110 175 92 172 75"/>
+    <!-- Leaf on branch 2 -->
+    <path d="M172 75 C178 58 188 44 198 44 C204 52 200 66 192 76 C184 86 176 80 172 75"/>
+    <!-- Branch 3 left -->
+    <path d="M225 95 C218 76 218 56 224 40"/>
+    <!-- Leaf on branch 3 -->
+    <path d="M224 40 C218 24 220 8 228 4 C236 6 238 22 232 36 C228 46 226 44 224 40"/>
+    <!-- Branch 4 right -->
+    <path d="M290 62 C298 44 308 28 320 20"/>
+    <!-- Leaf on branch 4 -->
+    <path d="M320 20 C328 8 340 2 348 6 C350 14 342 26 330 30 C322 32 320 26 320 20"/>
+    <!-- Small leaves directly on main branch -->
+    <path d="M130 140 C120 128 118 114 126 104 C130 104 134 110 134 120 C134 130 132 138 130 140"/>
+    <path d="M260 78 C268 64 272 50 266 38 C260 36 254 44 256 56 C258 68 260 76 260 78"/>
+  </g>
+</svg>

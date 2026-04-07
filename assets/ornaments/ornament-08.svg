@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <!-- Grass / reed cluster -->
+  <g stroke="#2a2a2a" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Tall center blade -->
+    <path d="M200 190 C198 150 196 100 200 20"/>
+    <!-- Left-leaning blades -->
+    <path d="M190 190 C184 150 172 100 160 30"/>
+    <path d="M178 190 C168 155 148 110 128 45"/>
+    <path d="M165 190 C150 158 124 115 96 60"/>
+    <!-- Right-leaning blades -->
+    <path d="M210 190 C216 150 228 100 240 30"/>
+    <path d="M222 190 C232 155 252 110 272 45"/>
+    <path d="M235 190 C250 158 276 115 304 60"/>
+    <!-- Seed heads at tips -->
+    <ellipse cx="200" cy="20" rx="4" ry="10" transform="rotate(-2 200 20)"/>
+    <ellipse cx="160" cy="30" rx="3" ry="8" transform="rotate(-15 160 30)"/>
+    <ellipse cx="128" cy="45" rx="3" ry="8" transform="rotate(-25 128 45)"/>
+    <ellipse cx="96" cy="60" rx="3" ry="7" transform="rotate(-35 96 60)"/>
+    <ellipse cx="240" cy="30" rx="3" ry="8" transform="rotate(15 240 30)"/>
+    <ellipse cx="272" cy="45" rx="3" ry="8" transform="rotate(25 272 45)"/>
+    <ellipse cx="304" cy="60" rx="3" ry="7" transform="rotate(35 304 60)"/>
+  </g>
+</svg>

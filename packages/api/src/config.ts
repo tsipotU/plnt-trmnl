@@ -2,6 +2,7 @@ export interface Config {
   port: number;
   databasePath: string;
   backupDir: string;
+  assetsDir: string;
   calibrationDeadlineHour: number;
   n8nWebhookUrl: string;
   n8nMaxRetries: number;
@@ -25,6 +26,7 @@ export function loadConfig(): Config {
     port: parseInt(process.env.PORT_API || '3900', 10),
     databasePath: required('DATABASE_PATH'),
     backupDir: process.env.BACKUP_DIR || '/backups',
+    assetsDir: process.env.ASSETS_DIR || '/app/assets',
     calibrationDeadlineHour: parseInt(process.env.CALIBRATION_DEADLINE_HOUR || '12', 10),
     n8nWebhookUrl: required('N8N_ENRICHMENT_WEBHOOK_URL'),
     n8nMaxRetries: parseInt(process.env.N8N_ENRICHMENT_MAX_RETRIES || '10', 10),
