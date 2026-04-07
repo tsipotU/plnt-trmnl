@@ -9,7 +9,7 @@ export async function pushToTrmnl(
   apiKey: string,
   pluginUuid: string,
 ): Promise<PushResult> {
-  const url = `https://usetrmnl.com/api/custom_plugins/${pluginUuid}/push`;
+  const url = `https://usetrmnl.com/api/custom_plugins/${pluginUuid}`;
 
   try {
     const response = await fetch(url, {

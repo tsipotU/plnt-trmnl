@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: new URL('../../../.env', import.meta.url).pathname });
 import express from 'express';
 import { loadRendererConfig } from './config.js';
 import { startRenderCron, performDailyRender } from './cron.js';
