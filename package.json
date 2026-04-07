@@ -1,0 +1,16 @@
+{
+  "name": "plant-trmnl",
+  "private": true,
+  "workspaces": ["packages/api", "packages/renderer"],
+  "scripts": {
+    "dev:api": "npm -w packages/api run dev",
+    "dev:renderer": "npm -w packages/renderer run dev",
+    "test": "npm -w packages/api test && npm -w packages/renderer test",
+    "test:api": "npm -w packages/api test",
+    "test:renderer": "npm -w packages/renderer test",
+    "build": "npm -w packages/api run build && npm -w packages/renderer run build",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  }
+}
