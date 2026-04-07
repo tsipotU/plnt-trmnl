@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import type Database from 'better-sqlite3';
 import { calculateNextWaterDate, calculateRepotAdjustment } from '../scheduling/engine.js';
 import { logEvent } from '../database/event-log.js';
+import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
 
 export function createPlantsRouter(db: Database.Database): Router {
   const router = Router();
@@ -61,8 +62,31 @@ export function createPlantsRouter(db: Database.Database): Router {
       notes ?? null
     );
 
-    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(result.lastInsertRowid);
+    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(result.lastInsertRowid) as Record<string, unknown>;
     res.status(201).json(plant);
+
+    // Fire Claude enrichment in the background (don't block the response)
+    const plantId = result.lastInsertRowid as number;
+    enrichPlantWithClaude(db, plantId, {
+      name,
+      potSizeCm: potSizeCm ?? null,
+      plantSize: plantSize ?? null,
+      location: location ?? null,
+      lightLevel: lightLevel ?? null,
+    }).catch(() => { /* logged inside enrichPlantWithClaude */ });
+  });
+
+  // GET /api/plants/:id/enrichment-status — poll for enrichment completion
+  router.get('/:id/enrichment-status', (req: Request, res: Response) => {
+    const plant = db.prepare(
+      `SELECT id, enrichment_status, species, base_interval, water_description FROM plants WHERE id = ?`
+    ).get(req.params.id) as Record<string, unknown> | undefined;
+
+    if (!plant) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+    res.json(plant);
   });
 
   // PUT /api/plants/:id — update plant fields

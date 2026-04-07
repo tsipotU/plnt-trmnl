@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import type Database from 'better-sqlite3';
 import { logEvent } from '../database/event-log.js';
+import { updateCareForCondition } from '../enrichment/claude-enrich.js';
 
 export function createConditionsRouter(db: Database.Database): Router {
   const router = Router();
@@ -65,6 +66,11 @@ export function createConditionsRouter(db: Database.Database): Router {
     ).get(result.lastInsertRowid);
 
     res.status(201).json(condition);
+
+    // Ask Claude to update care instructions based on this condition (background)
+    updateCareForCondition(db, plantId, conditionName).catch(() => {
+      /* logged inside updateCareForCondition */
+    });
   });
 
   // POST /api/conditions/:id/resolve — resolve a condition
