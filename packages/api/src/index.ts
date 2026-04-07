@@ -2,9 +2,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
+import cron from 'node-cron';
 import { loadConfig } from './config.js';
 import { createDatabase } from './database/connection.js';
 import { seedFacts } from './database/seed.js';
+import { performBackup } from './database/backup.js';
 import { createPlantsRouter } from './routes/plants.js';
 import { createCalibrationRouter } from './routes/calibration.js';
 import { createConditionsRouter } from './routes/conditions.js';
@@ -52,6 +54,16 @@ app.use(express.static(clientPath));
 // Client-side routing fallback — must be last
 app.get('*', (_req, res) => {
   res.sendFile(path.join(clientPath, 'index.html'));
+});
+
+// Daily backup at midnight
+cron.schedule('0 0 * * *', async () => {
+  try {
+    const backupPath = await performBackup(db, config.backupDir);
+    console.log(`Backup created: ${backupPath}`);
+  } catch (err) {
+    console.error('Backup failed:', err);
+  }
 });
 
 app.listen(config.port, () => {
