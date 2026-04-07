@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
-const RENDERER_URL = 'http://localhost:3901';
+// Proxy through API to avoid CORS issues
+const RENDERER_URL = '/api/trmnl';
 
 export function TrmnlPreview() {
   const [html, setHtml] = useState<string | null>(null);

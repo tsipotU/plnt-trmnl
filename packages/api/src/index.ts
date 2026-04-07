@@ -54,6 +54,28 @@ app.use(
 app.use('/api/vacation', createVacationRouter(db));
 app.use('/api/enrichment', createEnrichmentRouter(db));
 
+// Proxy renderer endpoints (avoids CORS from browser → renderer direct)
+const rendererUrl = process.env.API_INTERNAL_URL?.replace(':3900', ':3901') || 'http://localhost:3901';
+app.get('/api/trmnl/preview', async (_req, res) => {
+  try {
+    const resp = await fetch(`${rendererUrl}/preview`);
+    if (!resp.ok) return res.status(resp.status).json({ error: `Renderer: ${resp.status}` });
+    const html = await resp.text();
+    res.type('html').send(html);
+  } catch {
+    res.status(502).json({ error: 'Cannot reach renderer' });
+  }
+});
+app.post('/api/trmnl/render', async (_req, res) => {
+  try {
+    const resp = await fetch(`${rendererUrl}/render`, { method: 'POST' });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch {
+    res.status(502).json({ error: 'Cannot reach renderer' });
+  }
+});
+
 // Static client files (built output from packages/api/client)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const clientPath = path.join(__dirname, '..', 'dist', 'client');
