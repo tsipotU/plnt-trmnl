@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <!-- Three-stem bouquet: tulip, fern tip, round leaf -->
+  <g stroke="#2a2a2a" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left stem: simple rounded leaf -->
+    <path d="M155 185 C150 155 142 125 140 100"/>
+    <path d="M140 100 C125 75 110 55 118 35 C126 20 140 25 148 42 C156 58 152 80 140 100"/>
+    <path d="M140 100 L140 40"/>
+    <!-- Center stem: tulip bud -->
+    <path d="M200 185 L200 120"/>
+    <!-- Tulip petals -->
+    <path d="M200 120 C194 105 190 88 192 72 C194 62 200 58 200 58"/>
+    <path d="M200 120 C206 105 210 88 208 72 C206 62 200 58 200 58"/>
+    <path d="M200 120 C186 108 182 94 186 78 C188 68 196 64 200 68"/>
+    <path d="M200 120 C214 108 218 94 214 78 C212 68 204 64 200 68"/>
+    <!-- Sepal lines -->
+    <path d="M200 120 L198 108"/>
+    <path d="M200 120 L202 108"/>
+    <!-- Right stem: fern tip -->
+    <path d="M248 185 C250 155 255 125 258 100"/>
+    <!-- Fern tip rachis -->
+    <path d="M258 100 C260 78 262 55 258 30"/>
+    <!-- Fern pinnae -->
+    <path d="M258 90 C248 82 240 72 238 62"/>
+    <path d="M258 90 C268 82 276 72 278 62"/>
+    <path d="M258 72 C248 62 242 50 240 38"/>
+    <path d="M258 72 C268 62 274 50 276 38"/>
+    <path d="M258 54 C250 44 246 32 246 22"/>
+    <path d="M258 54 C266 44 270 32 270 22"/>
+    <!-- Leaves low on stems -->
+    <path d="M155 155 C145 148 138 138 142 128 C146 122 154 124 156 132 C158 140 157 150 155 155"/>
+    <path d="M248 155 C258 148 265 138 261 128 C257 122 249 124 247 132 C245 140 246 150 248 155"/>
+  </g>
+</svg>

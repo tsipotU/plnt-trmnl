@@ -6,6 +6,7 @@ import cron from 'node-cron';
 import { loadConfig } from './config.js';
 import { createDatabase } from './database/connection.js';
 import { seedFacts } from './database/seed.js';
+import { seedOrnaments } from './database/seed-ornaments.js';
 import { performBackup } from './database/backup.js';
 import { createPlantsRouter } from './routes/plants.js';
 import { createCalibrationRouter } from './routes/calibration.js';
@@ -19,6 +20,7 @@ const config = loadConfig();
 const db = createDatabase(config.databasePath);
 
 seedFacts(db, []);
+seedOrnaments(db, path.join(config.assetsDir, 'ornaments'));
 
 const app = express();
 

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <!-- Twining vine with curling tendrils -->
+  <g stroke="#2a2a2a" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main wavy stem -->
+    <path d="M30 150 C70 130 90 70 130 90 C170 110 190 50 230 70 C270 90 290 30 330 50 C350 60 370 100 390 90"/>
+    <!-- Tendrils -->
+    <path d="M90 70 C95 55 100 40 95 30 C88 28 82 38 90 50"/>
+    <path d="M190 50 C195 35 200 20 195 10 C188 8 182 18 190 30"/>
+    <path d="M290 30 C295 15 300 5 295 -5"/>
+    <!-- Leaves -->
+    <path d="M70 140 C58 128 50 112 55 98 C63 90 72 96 74 110 C76 122 72 134 70 140"/>
+    <path d="M170 100 C158 88 150 72 155 58 C163 50 172 56 174 70 C176 82 172 94 170 100"/>
+    <path d="M270 60 C258 48 250 32 255 18 C263 10 272 16 274 30 C276 42 272 54 270 60"/>
+    <!-- Small leaf on opposite side -->
+    <path d="M130 90 C142 78 150 62 145 48 C137 40 128 46 126 60 C124 72 128 84 130 90"/>
+    <path d="M230 70 C242 58 250 42 245 28 C237 20 228 26 226 40 C224 52 228 64 230 70"/>
+  </g>
+</svg>

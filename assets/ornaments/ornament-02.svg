@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <!-- Vine with leaves trailing left and right -->
+  <g stroke="#2a2a2a" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main horizontal vine -->
+    <path d="M40 100 C100 90 150 110 200 100 C250 90 300 110 360 100"/>
+    <!-- Left leaf pair -->
+    <path d="M80 98 C70 80 55 65 60 50 C65 38 80 42 80 42 C80 42 92 38 95 50 C100 65 87 80 80 98"/>
+    <path d="M80 95 L80 45"/>
+    <!-- Center leaf pair -->
+    <path d="M200 98 C190 80 175 65 180 50 C185 38 200 42 200 42 C200 42 212 38 215 50 C220 65 207 80 200 98"/>
+    <path d="M200 95 L200 45"/>
+    <!-- Right leaf pair -->
+    <path d="M320 98 C310 80 295 65 300 50 C305 38 320 42 320 42 C320 42 332 38 335 50 C340 65 327 80 320 98"/>
+    <path d="M320 95 L320 45"/>
+    <!-- Small tendrils -->
+    <path d="M120 100 C125 85 130 80 128 70"/>
+    <path d="M280 100 C285 85 290 80 288 70"/>
+  </g>
+</svg>
