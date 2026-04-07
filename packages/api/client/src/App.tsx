@@ -1,28 +1,12 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-
-function Dashboard() {
-  return (
-    <div className="card">
-      <h1>Plant TRMNL</h1>
-      <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Dashboard coming soon</p>
-    </div>
-  );
-}
+import { Dashboard } from './pages/Dashboard.js';
+import { AddPlant } from './pages/AddPlant.js';
 
 function PlantDetail() {
   return (
     <div className="card">
       <h1>Plant Detail</h1>
       <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Plant detail coming soon</p>
-    </div>
-  );
-}
-
-function AddPlant() {
-  return (
-    <div className="card">
-      <h1>Add Plant</h1>
-      <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Add plant coming soon</p>
     </div>
   );
 }
