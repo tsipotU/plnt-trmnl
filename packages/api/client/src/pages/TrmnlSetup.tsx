@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-const RENDERER_URL = 'http://localhost:3901';
+// Proxy through API to avoid CORS issues
+const RENDERER_URL = '/api/trmnl';
 
 interface StatusRowProps {
   label: string;
