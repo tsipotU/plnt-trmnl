@@ -5,7 +5,7 @@ export interface PushResult {
 }
 
 export async function pushToTrmnl(
-  markup: string,
+  mergeVariables: Record<string, unknown>,
   apiKey: string,
   pluginUuid: string,
 ): Promise<PushResult> {
@@ -18,7 +18,7 @@ export async function pushToTrmnl(
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ merge_variables: { markup } }),
+      body: JSON.stringify({ merge_variables: mergeVariables }),
     });
 
     if (response.ok) {
