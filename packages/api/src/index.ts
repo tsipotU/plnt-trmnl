@@ -1,4 +1,7 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: new URL('../../../.env', import.meta.url).pathname });
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
@@ -19,7 +22,11 @@ import { createEnrichmentRouter } from './enrichment/callback.js';
 const config = loadConfig();
 const db = createDatabase(config.databasePath);
 
-seedFacts(db, []);
+const seedFactsPath = path.join(config.assetsDir, 'seed-facts.json');
+if (fs.existsSync(seedFactsPath)) {
+  const facts = JSON.parse(fs.readFileSync(seedFactsPath, 'utf-8'));
+  seedFacts(db, facts);
+}
 seedOrnaments(db, path.join(config.assetsDir, 'ornaments'));
 
 const app = express();
@@ -49,12 +56,12 @@ app.use('/api/enrichment', createEnrichmentRouter(db));
 
 // Static client files (built output from packages/api/client)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const clientPath = path.join(__dirname, 'client');
+const clientPath = path.join(__dirname, '..', 'dist', 'client');
 
 app.use(express.static(clientPath));
 
-// Client-side routing fallback — must be last
-app.get('*', (_req, res) => {
+// Client-side routing fallback — must be last (Express 5 syntax)
+app.get('{*path}', (_req, res) => {
   res.sendFile(path.join(clientPath, 'index.html'));
 });
 
