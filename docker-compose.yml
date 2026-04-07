@@ -1,0 +1,50 @@
+services:
+  plant-api:
+    build:
+      context: ./packages/api
+    ports:
+      - "3900:3900"
+    environment:
+      - TZ=Europe/Amsterdam
+    env_file:
+      - .env
+    volumes:
+      - db-data:/data
+      - ${HOME}/Backups/plant-trmnl:/backups
+      - ./assets:/app/assets:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3900/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - plant-net
+
+  plant-renderer:
+    build:
+      context: ./packages/renderer
+    ports:
+      - "3901:3901"
+    environment:
+      - TZ=Europe/Amsterdam
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3901/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    depends_on:
+      plant-api:
+        condition: service_healthy
+    networks:
+      - plant-net
+
+volumes:
+  db-data:
+
+networks:
+  plant-net:
+    driver: bridge
