@@ -1,0 +1,130 @@
+import Database from 'better-sqlite3';
+
+export function initializeSchema(db: Database.Database): void {
+  db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS plants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      common_name TEXT,
+      species TEXT,
+      pot_size_cm INTEGER,
+      plant_size TEXT CHECK(plant_size IN ('small', 'medium', 'large')),
+      location TEXT,
+      light_level TEXT CHECK(light_level IN ('low', 'medium', 'bright_indirect', 'direct')),
+      base_interval INTEGER,
+      current_interval INTEGER,
+      water_ratio REAL,
+      water_description TEXT,
+      last_watered_at TEXT,
+      next_water_date TEXT,
+      fertilizer_interval_weeks INTEGER,
+      last_fertilized_at TEXT,
+      heating_season_modifier REAL DEFAULT 1.0,
+      illustration_path TEXT,
+      calibration_cycle INTEGER DEFAULT 0,
+      is_converged INTEGER DEFAULT 0,
+      enrichment_status TEXT DEFAULT 'pending' CHECK(enrichment_status IN ('pending', 'complete', 'failed')),
+      archived INTEGER DEFAULT 0,
+      archived_at TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS calibration_questions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plant_id INTEGER NOT NULL REFERENCES plants(id),
+      question_text TEXT,
+      question_type TEXT,
+      scale_min_label TEXT,
+      scale_max_label TEXT,
+      display_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS calibrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plant_id INTEGER NOT NULL REFERENCES plants(id),
+      question_id INTEGER NOT NULL REFERENCES calibration_questions(id),
+      answer_value INTEGER CHECK(answer_value BETWEEN 1 AND 5),
+      interval_before INTEGER,
+      interval_after INTEGER,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS plant_conditions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plant_id INTEGER NOT NULL REFERENCES plants(id),
+      condition_name TEXT,
+      symptoms TEXT,
+      remedy TEXT,
+      severity TEXT CHECK(severity IN ('info', 'warning', 'critical')),
+      is_active INTEGER DEFAULT 1,
+      detected_via TEXT CHECK(detected_via IN ('calibration', 'manual')),
+      resolved_at TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS facts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plant_id INTEGER REFERENCES plants(id),
+      text TEXT,
+      source TEXT CHECK(source IN ('seed', 'enrichment')),
+      shown_count INTEGER DEFAULT 0,
+      is_disabled INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS decorative_ornaments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      image_path TEXT,
+      shown_count INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS event_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plant_id INTEGER REFERENCES plants(id),
+      event_type TEXT,
+      old_value TEXT,
+      new_value TEXT,
+      reason TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS enrichment_queue (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plant_id INTEGER NOT NULL REFERENCES plants(id),
+      status TEXT CHECK(status IN ('pending', 'in_progress', 'complete', 'failed')),
+      attempts INTEGER DEFAULT 0,
+      last_attempt_at TEXT,
+      error_message TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+}
