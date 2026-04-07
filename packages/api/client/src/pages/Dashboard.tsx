@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PlantCard } from '../components/PlantCard.js';
 import { VacationToggle } from '../components/VacationToggle.js';
+import { CalibrationModal } from '../components/CalibrationModal.js';
 import type { Plant } from '../components/PlantCard.js';
 
 export function Dashboard() {
@@ -22,6 +23,9 @@ export function Dashboard() {
 
   return (
     <div>
+      {/* Calibration modal — shown if plants are due for calibration today */}
+      <CalibrationModal onDone={() => {}} />
+
       {/* Page header */}
       <div
         style={{

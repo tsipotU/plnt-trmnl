@@ -1,42 +1,10 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Dashboard } from './pages/Dashboard.js';
 import { AddPlant } from './pages/AddPlant.js';
-
-function PlantDetail() {
-  return (
-    <div className="card">
-      <h1>Plant Detail</h1>
-      <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Plant detail coming soon</p>
-    </div>
-  );
-}
-
-function FactManagement() {
-  return (
-    <div className="card">
-      <h1>Facts</h1>
-      <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Fact management coming soon</p>
-    </div>
-  );
-}
-
-function TrmnlPreview() {
-  return (
-    <div className="card">
-      <h1>TRMNL Preview</h1>
-      <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Preview coming soon</p>
-    </div>
-  );
-}
-
-function TrmnlSetup() {
-  return (
-    <div className="card">
-      <h1>TRMNL Setup</h1>
-      <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>Setup coming soon</p>
-    </div>
-  );
-}
+import { PlantDetail } from './pages/PlantDetail.js';
+import { FactManagement } from './pages/FactManagement.js';
+import { TrmnlPreview } from './pages/TrmnlPreview.js';
+import { TrmnlSetup } from './pages/TrmnlSetup.js';
 
 function Header() {
   const location = useLocation();
