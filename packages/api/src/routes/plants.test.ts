@@ -398,17 +398,21 @@ describe('POST /api/plants/:id/archive', () => {
     db.close();
   });
 
-  it('sets archived = 1 and archived_at', async () => {
+  it('sets archived = 1 and archived_at with reason', async () => {
     const { lastInsertRowid } = db.prepare(
       `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
        VALUES ('Tulip', 7, 7, '2026-04-10')`
     ).run();
 
-    const res = await request(app).post(`/api/plants/${lastInsertRowid}/archive`);
+    const res = await request(app)
+      .post(`/api/plants/${lastInsertRowid}/archive`)
+      .send({ reason: 'died' });
 
     expect(res.status).toBe(200);
     expect(res.body.archived).toBe(1);
     expect(res.body.archived_at).toBeDefined();
+    expect(res.body.archive_reason).toBe('died');
+    expect(res.body.care_duration_days).toBeGreaterThanOrEqual(0);
   });
 
   it('archived plant does not appear in GET /api/plants', async () => {
@@ -417,30 +421,132 @@ describe('POST /api/plants/:id/archive', () => {
        VALUES ('Daisy', 7, 7, '2026-04-10')`
     ).run();
 
-    await request(app).post(`/api/plants/${lastInsertRowid}/archive`);
+    await request(app)
+      .post(`/api/plants/${lastInsertRowid}/archive`)
+      .send({ reason: 'moved' });
 
     const res = await request(app).get('/api/plants');
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(0);
   });
 
-  it('logs an archived event', async () => {
+  it('logs an archived event with reason', async () => {
     const { lastInsertRowid: plantId } = db.prepare(
       `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
        VALUES ('Lily', 7, 7, '2026-04-10')`
     ).run();
 
-    await request(app).post(`/api/plants/${plantId}/archive`);
+    await request(app)
+      .post(`/api/plants/${plantId}/archive`)
+      .send({ reason: 'gave_away', note: 'To my sister' });
 
     const events = db.prepare(
       `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'archived'`
-    ).all(plantId);
+    ).all(plantId) as Array<{ new_value: string; reason: string }>;
 
     expect(events).toHaveLength(1);
+    expect(events[0].new_value).toBe('gave_away');
+    expect(events[0].reason).toContain('To my sister');
+  });
+
+  it('stores archive_note when provided', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
+       VALUES ('Fern', 7, 7, '2026-04-10')`
+    ).run();
+
+    const res = await request(app)
+      .post(`/api/plants/${lastInsertRowid}/archive`)
+      .send({ reason: 'died', note: 'Root rot' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.archive_note).toBe('Root rot');
+  });
+
+  it('treats empty note as null', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
+       VALUES ('Cactus', 7, 7, '2026-04-10')`
+    ).run();
+
+    const res = await request(app)
+      .post(`/api/plants/${lastInsertRowid}/archive`)
+      .send({ reason: 'other', note: '   ' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.archive_note).toBeNull();
+  });
+
+  it('rejects missing reason with 400', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
+       VALUES ('Rose', 7, 7, '2026-04-10')`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${lastInsertRowid}/archive`).send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects invalid reason with 400', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
+       VALUES ('Orchid', 7, 7, '2026-04-10')`
+    ).run();
+
+    const res = await request(app)
+      .post(`/api/plants/${lastInsertRowid}/archive`)
+      .send({ reason: 'stolen' });
+    expect(res.status).toBe(400);
+  });
+
+  it('soft-disables facts when last plant of species is archived', async () => {
+    const { lastInsertRowid: plantId } = db.prepare(
+      `INSERT INTO plants (name, species, base_interval, current_interval, next_water_date)
+       VALUES ('Mona', 'Monstera deliciosa', 7, 7, '2026-04-10')`
+    ).run();
+
+    db.prepare(
+      `INSERT INTO facts (plant_id, text, source) VALUES (?, 'Thrives in humidity', 'enrichment')`
+    ).run(plantId);
+    db.prepare(
+      `INSERT INTO facts (plant_id, text, source) VALUES (?, 'Likes bright indirect light', 'enrichment')`
+    ).run(plantId);
+
+    await request(app).post(`/api/plants/${plantId}/archive`).send({ reason: 'died' });
+
+    const facts = db.prepare(`SELECT is_disabled FROM facts WHERE plant_id = ?`).all(plantId) as Array<{
+      is_disabled: number;
+    }>;
+    expect(facts).toHaveLength(2);
+    expect(facts.every((f) => f.is_disabled === 1)).toBe(true);
+  });
+
+  it('keeps facts enabled when another plant of species exists', async () => {
+    db.prepare(
+      `INSERT INTO plants (name, species, base_interval, current_interval, next_water_date)
+       VALUES ('Mona A', 'Monstera deliciosa', 7, 7, '2026-04-10')`
+    ).run();
+    const { lastInsertRowid: plantBId } = db.prepare(
+      `INSERT INTO plants (name, species, base_interval, current_interval, next_water_date)
+       VALUES ('Mona B', 'Monstera deliciosa', 7, 7, '2026-04-10')`
+    ).run();
+
+    db.prepare(
+      `INSERT INTO facts (plant_id, text, source) VALUES (?, 'Humid', 'enrichment')`
+    ).run(plantBId);
+
+    await request(app).post(`/api/plants/${plantBId}/archive`).send({ reason: 'moved' });
+
+    const facts = db.prepare(`SELECT is_disabled FROM facts WHERE plant_id = ?`).all(plantBId) as Array<{
+      is_disabled: number;
+    }>;
+    expect(facts[0].is_disabled).toBe(0);
   });
 
   it('returns 404 for unknown plant', async () => {
-    const res = await request(app).post('/api/plants/9999/archive');
+    const res = await request(app)
+      .post('/api/plants/9999/archive')
+      .send({ reason: 'other' });
     expect(res.status).toBe(404);
   });
 });

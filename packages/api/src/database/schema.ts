@@ -30,6 +30,8 @@ export function initializeSchema(db: Database.Database): void {
       enrichment_status TEXT DEFAULT 'pending' CHECK(enrichment_status IN ('pending', 'complete', 'failed')),
       archived INTEGER DEFAULT 0,
       archived_at TEXT,
+      archive_reason TEXT CHECK(archive_reason IN ('died', 'gave_away', 'moved', 'other')),
+      archive_note TEXT,
       notes TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
@@ -155,6 +157,8 @@ export function initializeSchema(db: Database.Database): void {
   // Idempotent column additions for live databases created before the column existed.
   // CREATE TABLE IF NOT EXISTS above leaves existing tables untouched.
   addColumnIfMissing(db, 'plants', 'identifier', 'TEXT');
+  addColumnIfMissing(db, 'plants', 'archive_reason', 'TEXT');
+  addColumnIfMissing(db, 'plants', 'archive_note', 'TEXT');
 }
 
 function addColumnIfMissing(
