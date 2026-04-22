@@ -62,7 +62,8 @@ export function createPlantsRouter(
 
     if (
       potSizeCategory != null &&
-      !VALID_POT_SIZE_CATEGORIES.includes(potSizeCategory)
+      (typeof potSizeCategory !== 'string' ||
+        !(VALID_POT_SIZE_CATEGORIES as readonly string[]).includes(potSizeCategory))
     ) {
       res.status(400).json({ error: 'Invalid pot_size_category' });
       return;
@@ -138,7 +139,8 @@ export function createPlantsRouter(
 
     if (
       potSizeCategory != null &&
-      !VALID_POT_SIZE_CATEGORIES.includes(potSizeCategory)
+      (typeof potSizeCategory !== 'string' ||
+        !(VALID_POT_SIZE_CATEGORIES as readonly string[]).includes(potSizeCategory))
     ) {
       res.status(400).json({ error: 'Invalid pot_size_category' });
       return;

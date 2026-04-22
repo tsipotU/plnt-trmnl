@@ -455,7 +455,7 @@ export function PlantDetail() {
       await updatePlant({
         pot_size_cm: parseInt(confirmRepot.newSize),
         pot_size_category: confirmRepot.category,
-      } as Partial<Plant>);
+      });
       showToast('Pot size updated — repot logged');
     } catch {
       showToast('Failed to update pot size');
@@ -1047,7 +1047,7 @@ export function PlantDetail() {
       {/* Dialogs */}
       {confirmRepot && confirmRepot.newSize && (
         <ConfirmDialog
-          message={`Did you repot this plant? (new pot size: ${confirmRepot.newSize}cm)`}
+          message={`Did you repot this plant? (${confirmRepot.category}, ${confirmRepot.newSize} cm)`}
           confirmLabel="Yes, repotted"
           cancelLabel="No, just updating"
           onConfirm={confirmRepotYes}
