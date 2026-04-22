@@ -3,8 +3,15 @@ import type Database from 'better-sqlite3';
 import { calculateNextWaterDate, calculateRepotAdjustment } from '../scheduling/engine.js';
 import { logEvent, getEventsForPlant } from '../database/event-log.js';
 import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
+import { getSeasonalAdjustedInterval } from '../scheduling/seasonal.js';
+import type { Config } from '../config.js';
 
-export function createPlantsRouter(db: Database.Database): Router {
+type HeatingSeasonConfig = Pick<Config, 'heatingSeasonStart' | 'heatingSeasonEnd'>;
+
+export function createPlantsRouter(
+  db: Database.Database,
+  heatingConfig?: HeatingSeasonConfig,
+): Router {
   const router = Router();
 
   // GET /api/plants — list active plants ordered by next_water_date ASC
@@ -183,7 +190,14 @@ export function createPlantsRouter(db: Database.Database): Router {
 
     const today = new Date().toISOString().split('T')[0];
     const currentInterval = plant.current_interval as number;
-    const nextWaterDate = calculateNextWaterDate(today, currentInterval);
+    const modifier = plant.heating_season_modifier as number | null;
+
+    // Apply seasonal adjustment when a heating-season config is available.
+    // current_interval in the DB remains unchanged; only next_water_date reflects the modifier.
+    const effectiveInterval = heatingConfig
+      ? getSeasonalAdjustedInterval(currentInterval, modifier, today, heatingConfig)
+      : currentInterval;
+    const nextWaterDate = calculateNextWaterDate(today, effectiveInterval);
     const calibrationCycle = (plant.calibration_cycle as number) + 1;
 
     // Capture pre-state so the event can be undone.
@@ -209,6 +223,16 @@ export function createPlantsRouter(db: Database.Database): Router {
       newValue: today,
       reason: 'Plant watered',
     });
+
+    if (effectiveInterval !== currentInterval) {
+      logEvent(db, {
+        plantId,
+        eventType: 'seasonal_adjustment',
+        oldValue: String(currentInterval),
+        newValue: String(effectiveInterval),
+        reason: `Heating season active; interval ${currentInterval} → ${effectiveInterval} (×${modifier})`,
+      });
+    }
 
     const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
     res.json(updated);
