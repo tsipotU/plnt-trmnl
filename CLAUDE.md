@@ -80,5 +80,9 @@ Express 5 uses promise-based middleware. Do NOT use callback-style error handler
 - The renderer container has no direct DB access — it only talks to the API
 - TRMNL fetches the screenshot on its own schedule; the renderer pre-renders and serves a static image
 - `CALIBRATION_DEADLINE_HOUR` controls the cutoff for same-day calibration (default: 12 = noon)
-- Heating season affects watering frequency recommendations (`HEATING_SEASON_START` / `HEATING_SEASON_END`)
+- **Heating season:** affects watering frequency recommendations (`HEATING_SEASON_START` / `HEATING_SEASON_END`). The seasonal multiplier is applied in the water handler when `isInHeatingSeason()` is true; only seasonal_adjustment event is logged if interval differs. See `packages/api/src/scheduling/seasonal.ts`.
+- **Undo-water state:** Each water event stores `old_value` as JSON (old `last_watered_at`, `next_water_date`, `calibration_cycle`). The `POST /:id/undo-water` route restores state from this snapshot.
+- **Archive soft-delete:** All scheduling queries must filter `WHERE archived = 0`. Species facts are soft-disabled when the last plant of a species is archived (checked in enrichment).
+- **`createPlantsRouter()` signature:** May accept optional `heatingConfig` parameter (test fixtures can override season dates).
 - In `index.ts`, the scoped `/api` 404 handler must be registered AFTER all API routers but BEFORE the SPA catch-all (`app.get('{*path}', ...)`). Without it, GETs to unknown `/api/*` paths fall through to the SPA fallback and return `index.html` with status 200 — surfacing as cryptic `Unexpected token '<'` JSON parse errors in the client.
+- **Parallel agents:** agents share the working directory without worktree isolation, causing branch-clobbering and stale checkouts if 2+ agents run concurrently. Solution: serialize agents or explicitly set isolation in dispatcher config.

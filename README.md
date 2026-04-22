@@ -30,12 +30,17 @@ The renderer has no direct database access — it only talks to the API over the
 ## Features
 
 - **Self-calibrating watering schedules** — learns from daily check-ins; adjusts frequency up or down based on observation history
+- **Seasonal adjustment** — heating season modifies interval recommendations (configurable start/end dates; wraps correctly over year-end)
 - **Claude-driven enrichment** — auto-populates species, care profile, watering cadence, and placement on plant creation
 - **Plant fact rotation** — 150+ curated botanical facts served in non-repeating order
 - **Condition tracking** — observation-driven detection (overwatering, underwatering, rootbound, pests, light stress)
 - **Vacation mode** — pauses schedules and reschedules intelligently on return
 - **Plant identifiers** — optional per-plant label ("Hanging basket", "Blue pot") shown everywhere a plant appears, so multiple plants of the same species are easy to tell apart
+- **Watering undo** — revert the last water event with a 5-second toast; restores calibration state
+- **Archive with reason** — mark plants as died/gave away/moved/other with optional note; memorial shows "was in your care for X months"
 - **Feedback system** — floating action button on every page; capture bugs, ideas, and notes with a comment thread per item
+- **Timeline view** — paginated event history for each plant; shows all waterings, observations, and metadata updates
+- **Welcome empty state** — contextual hints for new users on plant creation; celebration toast on first plant
 - **Mobile-first management UI** — optimised for iPhone 15 Pro; single-handed watering log in two taps
 
 ## Tech Stack
