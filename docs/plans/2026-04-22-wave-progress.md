@@ -7,6 +7,7 @@
 ## Changelog
 
 2026-04-22 evening: reshuffled post-test-feedback. Added bug-fix wave. Bumped illustrations (#5) from Wave 6 to Wave 4.
+2026-04-22 late: backlog grooming pass — 16 issues commented (scope boundaries, dependencies, cross-refs, AC additions). #16 retitled (API portion done). 6 dependencies added. No closures or merges — all 25 issues confirmed distinct.
 
 ## Wave Plan Status
 
@@ -15,9 +16,53 @@
 | **Wave 1** | #10 (#20), #8 (#20), #19 (feedback) | ✓ Done | Docker/healthchecks audit confirmed; identifier + feedback shipped. |
 | **Wave 2** | #17, #14, #15, #13 | ✓ Done | Archive, undo-water, seasonal adjustment, welcome state all shipped. |
 | **Wave 3** | #25, #26, #27, #28, #29 (partial), #30, #31, #6, #11, #12 | ⏳ Pending | Bug fixes (JSON render, undo timeout, button copy, flag button); UX polish (archive dialog, memorial toast, pot size, notes log). |
-| **Wave 4** | #5 (BUMPED), #16 (UI), #9 (tests), #32, #33, #34, #35 | ⏳ Pending | Botanical illustrations, watering history timeline UI, integration tests, notes log, archived plants view, condition remediation, origin story tracking. |
+| **Wave 4** | #5 (BUMPED), #16 (UI only — API done), #9 (tests), #32, #33, #34, #35 | ⏳ Pending | Botanical illustrations, watering history timeline UI (API shipped PR #20), integration tests, notes log, archived plants view, condition remediation, origin story tracking. |
 | **Wave 5** | #1, #2, #3 (expanded), #4, #36, #37, #38, #39 | ⏳ Pending | Plant catalog, streamlined add-plant, rich care profiles, species facts, dry-soil scheduling, deep plant info, daily facts, did-you-mean fallback. |
 | **Wave 6** | #40 (design pass), #7, #18 | ⏳ Deferred | Frontend design pass, TRMNL visual redesign, auto-detect conditions. |
+
+## Grooming Notes (2026-04-22 late)
+
+### Actions taken
+
+| Issue | Action | Summary |
+|-------|--------|---------|
+| #2 | Dependency added | Depends on #1 (catalog must exist for dropdown flow) |
+| #3 | Dependency added + cross-ref #37 | Depends on #1; scope boundary with #37 documented |
+| #4 | Cross-ref #38 | Scope: fact generation only; display/rotation is #38 |
+| #5 | Dependency added | Depends on #1 (species slugs needed for illustration keying) |
+| #6 | Coupling note added | Batch water (#11) must trigger same overflow/rebalance check |
+| #7 | Scope boundary vs #40 | TRMNL Liquid template only; web client redesign is #40 |
+| #9 | Scope updated | Wave 2 features (archive, undo, seasonal, welcome) added to required E2E scenarios |
+| #11 | AC added | Must include batch undo toast (15s window, restores all N plants) |
+| #16 | Retitled + scope update | API shipped in PR #20; remaining scope is UI only (timeline component, stats card, trend indicator) |
+| #18 | Independence confirmed vs #34 | No blocking dependency either direction; #34 recommended first |
+| #29 | Scope boundary vs #40 | Targeted CSS fixes only — no full design pass here |
+| #36 | Algorithm scope clarified | Replace not additive; migration note for existing plants added |
+| #37 | Dependency added + cross-ref #3 | Depends on #1; scope boundary with #3 documented |
+| #38 | Dependency added + cross-ref #4 | Depends on #4; display/rotation only, not generation |
+| #39 | Dependency added | Depends on #1 (fuzzy match needs species list) |
+| #40 | Scope boundary vs #7 | Web client only; TRMNL visual is #7 |
+
+### Totals
+- Closed: 0
+- Merged/folded: 0
+- Retitled: 1 (#16)
+- Scope clarifications / boundary comments: 13 issues
+- Dependencies added: 6 (#2→#1, #3→#1, #5→#1, #37→#1, #38→#4, #39→#1)
+- Cross-references added: 3 pairs (#3↔#37, #4↔#38, #7↔#40)
+
+### No merges/closures — all 25 issues are genuinely distinct
+After full review: no two issues are 80%+ overlapping. The candidates flagged in the grooming brief all turned out to have clean scope boundaries once documented. The backlog is kept intact with boundary comments.
+
+### Dependency order for Wave 5
+Wave 5 has a hard ordering constraint:
+1. **#1** (catalog) must land first — blocks #2, #3, #4 (partial), #5, #37, #39
+2. **#4** (fact generation) before **#38** (daily rotation)
+3. **#36** (dry-soil calibration rethink) is the most disruptive — plan it last in Wave 5 or run in parallel on a branch
+
+### Items needing user decision
+- **#32 (notes log):** Wave 4 has it, but it introduces a new `plant_notes` table with schema migration. Confirm whether existing `notes` textarea content should be migrated as a first entry or discarded.
+- **#36 (calibration rethink):** This is a breaking algorithm change. Confirm whether it's Wave 5 or deferred to Wave 6 alongside #40 — it may be safer to ship all UX polish before touching the scheduling core.
 
 ## Important Gotcha
 
