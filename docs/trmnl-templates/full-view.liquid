@@ -1,121 +1,109 @@
 {% if screen_type == "watering" %}
-<div class="screen">
-  <div class="full" style="background:#f5f0eb;font-family:Georgia,serif;padding:0;">
+<div class="layout layout--col">
+  <div style="display:flex;gap:12px;justify-content:center;flex:1;padding:8px;">
 
-    <div style="background:#2a2a2a;color:#f5f0eb;padding:8px 16px;display:flex;justify-content:space-between;font-family:sans-serif;font-size:14px;">
-      <span style="font-weight:bold;">Plant TRMNL</span>
-      <span>{{ date }}</span>
-    </div>
+    <div style="flex:1;max-width:380px;border:1.5px solid #000;border-radius:8px;padding:10px;">
+      <div style="font-size:26px;font-weight:bold;line-height:1.1;margin-bottom:2px;">{{ p1_name }}</div>
+      {% if p1_species != blank %}<div style="font-size:12px;font-style:italic;color:#666;margin-bottom:4px;">{{ p1_species }}</div>{% endif %}
+      {% if p1_location != blank %}<div style="font-size:11px;color:#888;margin-bottom:8px;">{{ p1_location }} · {{ p1_pot_size }}</div>{% endif %}
 
-    <div style="display:flex;gap:12px;padding:12px;justify-content:center;flex:1;">
-
-      <div style="flex:1;max-width:380px;border:1.5px solid #2a2a2a;border-radius:8px;padding:10px;">
-        <div style="font-size:26px;font-weight:bold;line-height:1.1;margin-bottom:2px;">{{ p1_name }}</div>
-        {% if p1_species != "" %}<div style="font-size:12px;font-style:italic;color:#666;margin-bottom:4px;">{{ p1_species }}</div>{% endif %}
-        {% if p1_location != "" %}<div style="font-size:11px;color:#888;font-family:sans-serif;margin-bottom:8px;">{{ p1_location }} · {{ p1_pot_size }}</div>{% endif %}
-
-        <div style="border-top:1px solid #ccc;padding-top:8px;font-family:sans-serif;">
-          <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:4px;">
-            <span>Water</span><strong style="font-size:17px;">{{ p1_water }}</strong>
-          </div>
-          <div style="font-size:12px;color:#666;margin-bottom:6px;">{{ p1_water_desc }}</div>
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
-            <span>Fertilizer</span><strong>{{ p1_fertilizer }}</strong>
-          </div>
-          {% if p1_watch_for != "" %}
-          <div style="background:#e8e4de;border-radius:4px;padding:4px 8px;font-size:12px;margin-top:4px;">Watch for: {{ p1_watch_for }}</div>
-          {% endif %}
+      <div style="border-top:1px solid #999;padding-top:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:4px;">
+          <span>Water</span><strong style="font-size:17px;">{{ p1_water }}</strong>
         </div>
-
-        {% if p1_has_calibration %}
-        <div style="border:1px solid #999;border-radius:4px;padding:6px 8px;margin-top:8px;background:#eae6e0;">
-          <div style="font-size:12px;font-weight:bold;font-family:sans-serif;margin-bottom:3px;">{{ p1_cal_question }}</div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;font-family:sans-serif;color:#666;">
-            <span>1 {{ p1_cal_min }}</span><span>2</span><span>3</span><span>4</span><span>5 {{ p1_cal_max }}</span>
-          </div>
-          <div style="font-size:9px;color:#888;font-family:sans-serif;margin-top:3px;">Answer in app before 12:00</div>
+        <div style="font-size:12px;color:#666;margin-bottom:6px;">{{ p1_water_desc }}</div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
+          <span>Fertilizer</span><strong>{{ p1_fertilizer }}</strong>
         </div>
-        {% else %}
-        <div style="border-radius:4px;padding:4px 8px;margin-top:8px;font-size:11px;font-family:sans-serif;color:#666;">Soil: dialed in ✓</div>
+        {% if p1_watch_for != blank %}
+        <div style="background:#ddd;border-radius:4px;padding:4px 8px;font-size:12px;margin-top:4px;">Watch for: {{ p1_watch_for }}</div>
         {% endif %}
       </div>
 
-      {% if plant_count == 2 %}
-      <div style="flex:1;max-width:380px;border:1.5px solid #2a2a2a;border-radius:8px;padding:10px;">
-        <div style="font-size:26px;font-weight:bold;line-height:1.1;margin-bottom:2px;">{{ p2_name }}</div>
-        {% if p2_species != "" %}<div style="font-size:12px;font-style:italic;color:#666;margin-bottom:4px;">{{ p2_species }}</div>{% endif %}
-        {% if p2_location != "" %}<div style="font-size:11px;color:#888;font-family:sans-serif;margin-bottom:8px;">{{ p2_location }} · {{ p2_pot_size }}</div>{% endif %}
-
-        <div style="border-top:1px solid #ccc;padding-top:8px;font-family:sans-serif;">
-          <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:4px;">
-            <span>Water</span><strong style="font-size:17px;">{{ p2_water }}</strong>
-          </div>
-          <div style="font-size:12px;color:#666;margin-bottom:6px;">{{ p2_water_desc }}</div>
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
-            <span>Fertilizer</span><strong>{{ p2_fertilizer }}</strong>
-          </div>
-          {% if p2_watch_for != "" %}
-          <div style="background:#e8e4de;border-radius:4px;padding:4px 8px;font-size:12px;margin-top:4px;">Watch for: {{ p2_watch_for }}</div>
-          {% endif %}
+      {% if p1_has_calibration == true %}
+      <div style="border:1px solid #999;border-radius:4px;padding:6px 8px;margin-top:8px;background:#eee;">
+        <div style="font-size:12px;font-weight:bold;margin-bottom:3px;">{{ p1_cal_question }}</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;">
+          <span>1 {{ p1_cal_min }}</span><span>2</span><span>3</span><span>4</span><span>5 {{ p1_cal_max }}</span>
         </div>
-
-        {% if p2_has_calibration %}
-        <div style="border:1px solid #999;border-radius:4px;padding:6px 8px;margin-top:8px;background:#eae6e0;">
-          <div style="font-size:12px;font-weight:bold;font-family:sans-serif;margin-bottom:3px;">{{ p2_cal_question }}</div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;font-family:sans-serif;color:#666;">
-            <span>1 {{ p2_cal_min }}</span><span>2</span><span>3</span><span>4</span><span>5 {{ p2_cal_max }}</span>
-          </div>
-          <div style="font-size:9px;color:#888;font-family:sans-serif;margin-top:3px;">Answer in app before 12:00</div>
-        </div>
-        {% else %}
-        <div style="border-radius:4px;padding:4px 8px;margin-top:8px;font-size:11px;font-family:sans-serif;color:#666;">Soil: dialed in ✓</div>
-        {% endif %}
+        <div style="font-size:9px;color:#888;margin-top:3px;">Answer in app before 12:00</div>
       </div>
+      {% else %}
+      <div style="border-radius:4px;padding:4px 8px;margin-top:8px;font-size:11px;color:#666;">Soil: dialed in</div>
       {% endif %}
-
     </div>
 
-    {% if has_next %}
-    <div style="border-top:1.5px solid #2a2a2a;padding:6px 16px;font-family:sans-serif;font-size:13px;color:#555;">
-      Next: <strong style="color:#2a2a2a;">{{ next_name }}</strong> — {{ next_date }} · every {{ next_interval }} days
+    {% if plant_count == 2 %}
+    <div style="flex:1;max-width:380px;border:1.5px solid #000;border-radius:8px;padding:10px;">
+      <div style="font-size:26px;font-weight:bold;line-height:1.1;margin-bottom:2px;">{{ p2_name }}</div>
+      {% if p2_species != blank %}<div style="font-size:12px;font-style:italic;color:#666;margin-bottom:4px;">{{ p2_species }}</div>{% endif %}
+      {% if p2_location != blank %}<div style="font-size:11px;color:#888;margin-bottom:8px;">{{ p2_location }} · {{ p2_pot_size }}</div>{% endif %}
+
+      <div style="border-top:1px solid #999;padding-top:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:4px;">
+          <span>Water</span><strong style="font-size:17px;">{{ p2_water }}</strong>
+        </div>
+        <div style="font-size:12px;color:#666;margin-bottom:6px;">{{ p2_water_desc }}</div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
+          <span>Fertilizer</span><strong>{{ p2_fertilizer }}</strong>
+        </div>
+        {% if p2_watch_for != blank %}
+        <div style="background:#ddd;border-radius:4px;padding:4px 8px;font-size:12px;margin-top:4px;">Watch for: {{ p2_watch_for }}</div>
+        {% endif %}
+      </div>
+
+      {% if p2_has_calibration == true %}
+      <div style="border:1px solid #999;border-radius:4px;padding:6px 8px;margin-top:8px;background:#eee;">
+        <div style="font-size:12px;font-weight:bold;margin-bottom:3px;">{{ p2_cal_question }}</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;">
+          <span>1 {{ p2_cal_min }}</span><span>2</span><span>3</span><span>4</span><span>5 {{ p2_cal_max }}</span>
+        </div>
+        <div style="font-size:9px;color:#888;margin-top:3px;">Answer in app before 12:00</div>
+      </div>
+      {% else %}
+      <div style="border-radius:4px;padding:4px 8px;margin-top:8px;font-size:11px;color:#666;">Soil: dialed in</div>
+      {% endif %}
     </div>
     {% endif %}
 
   </div>
+
+  {% if has_next == true %}
+  <div style="border-top:1.5px solid #000;padding:6px 16px;font-size:13px;color:#555;">
+    Next: <strong style="color:#000;">{{ next_name }}</strong> — {{ next_date }} · every {{ next_interval }} days
+  </div>
+  {% endif %}
+</div>
+
+<div class="title_bar">
+  <span class="title">Plant TRMNL</span>
+  <span class="instance">{{ date }}</span>
 </div>
 
 {% else %}
 
-<div class="screen">
-  <div class="full" style="background:#f5f0eb;font-family:Georgia,serif;padding:0;">
+<div class="layout layout--col" style="justify-content:center;align-items:center;text-align:center;">
+  <div style="font-size:24px;max-width:650px;line-height:1.4;padding:20px;">{{ fact_text }}</div>
 
-    <div style="background:#2a2a2a;color:#f5f0eb;padding:8px 16px;display:flex;justify-content:space-between;font-family:sans-serif;font-size:14px;">
-      <span style="font-weight:bold;">Plant TRMNL</span>
-      <span>{{ date }}</span>
-    </div>
-
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;min-height:340px;">
-      <div style="font-size:24px;text-align:center;max-width:650px;line-height:1.4;">{{ fact_text }}</div>
-    </div>
-
-    {% if has_overdue %}
-    <div style="text-align:center;margin-bottom:8px;">
-      <span style="background:#2a2a2a;color:#f5f0eb;padding:4px 12px;border-radius:12px;font-family:sans-serif;font-size:13px;">
-        Overdue: {{ overdue_name }} ({{ overdue_days }} days) {{ overdue_extra }}
-      </span>
-    </div>
-    {% endif %}
-
-    {% if has_next %}
-    <div style="border-top:1.5px solid #2a2a2a;padding:6px 16px;display:flex;align-items:center;gap:8px;font-family:sans-serif;font-size:13px;color:#555;">
-      <span style="text-transform:uppercase;font-size:11px;letter-spacing:1px;">Next Watering</span>
-      <strong style="color:#2a2a2a;">{{ next_name }}</strong> — {{ next_date }} · every {{ next_interval }} days
-    </div>
-    {% else %}
-    <div style="border-top:1.5px solid #2a2a2a;padding:6px 16px;font-family:sans-serif;font-size:13px;color:#555;">No upcoming waterings</div>
-    {% endif %}
-
+  {% if has_overdue == true %}
+  <div style="margin-top:12px;">
+    <span style="background:#000;color:#fff;padding:4px 12px;border-radius:12px;font-size:13px;">
+      Overdue: {{ overdue_name }} ({{ overdue_days }} days) {{ overdue_extra }}
+    </span>
   </div>
+  {% endif %}
+
+  {% if has_next == true %}
+  <div style="border-top:1.5px solid #000;padding:6px 16px;font-size:13px;color:#555;width:100%;margin-top:auto;">
+    <span style="text-transform:uppercase;font-size:11px;letter-spacing:1px;">Next Watering</span>
+    <strong style="color:#000;">{{ next_name }}</strong> — {{ next_date }} · every {{ next_interval }} days
+  </div>
+  {% endif %}
+</div>
+
+<div class="title_bar">
+  <span class="title">Plant TRMNL</span>
+  <span class="instance">{{ date }}</span>
 </div>
 
 {% endif %}
