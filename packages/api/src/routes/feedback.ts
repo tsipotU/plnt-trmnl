@@ -31,7 +31,7 @@ export function createFeedbackRouter(db: Database.Database): Router {
               (SELECT COUNT(*) FROM feedback_comments WHERE feedback_id = f.id) AS comment_count
        FROM feedback f
        ${where}
-       ORDER BY f.id DESC`
+       ORDER BY f.created_at DESC, f.id DESC`
     ).all(...params);
 
     res.json(rows);
@@ -215,14 +215,18 @@ export function createFeedbackRouter(db: Database.Database): Router {
 
     const { body } = req.body;
 
-    if (!body) {
+    if (!body || typeof body !== 'string' || !body.trim()) {
       res.status(400).json({ error: 'body is required' });
+      return;
+    }
+    if (body.trim().length > 2000) {
+      res.status(400).json({ error: 'body must be 2000 characters or fewer' });
       return;
     }
 
     db.prepare(
       `UPDATE feedback_comments SET body = ?, updated_at = datetime('now') WHERE id = ?`
-    ).run(body, commentId);
+    ).run(body.trim(), commentId);
 
     const updated = db.prepare(`SELECT * FROM feedback_comments WHERE id = ?`).get(commentId);
     res.json(updated);
