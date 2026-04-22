@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArchiveDialog } from '../components/ArchiveDialog';
+import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
 
 // --- Types ---
 
@@ -496,16 +497,17 @@ export function PlantDetail() {
         body: JSON.stringify({ reason, note }),
       });
       if (!res.ok) throw new Error('archive failed');
-      const body = (await res.json()) as { care_duration_days?: number };
-      const days = body.care_duration_days ?? 0;
+      const body = (await res.json()) as { created_at?: string; archived_at?: string };
       const name = plant?.name ?? 'Your plant';
-      const duration =
-        days >= 60
-          ? `${Math.round(days / 30)} months`
-          : days >= 14
-          ? `${Math.round(days / 7)} weeks`
-          : `${days} days`;
-      showToast(`${name} was in your care for ${duration}. Rest well. 🌿`);
+      const createdAt = body.created_at ?? new Date().toISOString();
+      const archivedAt = body.archived_at ?? new Date().toISOString();
+      const message = buildMemorialMessage({
+        name,
+        reason: reason as ArchiveReason,
+        createdAt,
+        archivedAt,
+      });
+      showToast(message);
       setTimeout(() => navigate('/'), 3000);
     } catch {
       showToast('Failed to archive plant');
