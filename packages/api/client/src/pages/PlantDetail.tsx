@@ -13,6 +13,7 @@ interface Plant {
   identifier: string | null;
   location: string | null;
   pot_size_cm: number | null;
+  pot_size_category: string | null;
   plant_size: string | null;
   light_level: string | null;
   current_interval: number | null;
@@ -39,6 +40,23 @@ interface PlantEvent {
   new_value: string | null;
   reason: string | null;
   created_at: string;
+}
+
+const POT_SIZE_CATEGORIES: { value: string; label: string; cm: number | null }[] = [
+  { value: 'Extra Small', label: 'Extra Small (5–10 cm)', cm: 8 },
+  { value: 'Small', label: 'Small (10–15 cm)', cm: 13 },
+  { value: 'Medium', label: 'Medium (15–20 cm)', cm: 18 },
+  { value: 'Large', label: 'Large (20–30 cm)', cm: 25 },
+  { value: 'Extra Large', label: 'Extra Large (30–50 cm)', cm: 40 },
+  { value: 'Other', label: 'Other', cm: null },
+];
+
+function formatPotSize(category: string | null, cm: number | null): string {
+  if (category) {
+    if (category === 'Other') return cm != null ? `${cm} cm` : '—';
+    return cm != null ? `${category} (${cm} cm)` : category;
+  }
+  return cm != null ? `${cm} cm` : '—';
 }
 
 // --- Helpers ---
@@ -364,7 +382,8 @@ export function PlantDetail() {
 
   const [toast, setToast] = useState<string | null>(isFirstPlant ? 'Your first plant! 🌱' : null);
   const [undoToast, setUndoToast] = useState<string | null>(null);
-  const [confirmRepot, setConfirmRepot] = useState<{ newSize: string } | null>(null);
+  const [confirmRepot, setConfirmRepot] = useState<{ newSize: string; category: string | null } | null>(null);
+  const [otherCmDraft, setOtherCmDraft] = useState<string>('');
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [notesEditing, setNotesEditing] = useState(false);
   const [notesDraft, setNotesDraft] = useState('');
@@ -407,26 +426,47 @@ export function PlantDetail() {
     setPlant(updated);
   }
 
-  // Handle pot size change — may trigger repot dialog
-  function handlePotSizeChange(val: string) {
-    const newSize = val.replace(/\D/g, '');
+  // Handle pot size category change — may trigger repot dialog
+  function handlePotCategoryChange(category: string) {
+    const opt = POT_SIZE_CATEGORIES.find((o) => o.value === category);
+    if (!opt) return;
+    if (category === 'Other') {
+      // Reveal inline input; confirmation happens when user submits a cm value
+      setOtherCmDraft(plant?.pot_size_cm ? String(plant.pot_size_cm) : '');
+      setConfirmRepot({ newSize: '', category: 'Other' });
+      return;
+    }
+    if (opt.cm == null) return;
+    setConfirmRepot({ newSize: String(opt.cm), category });
+  }
+
+  function submitOtherCm() {
+    const newSize = otherCmDraft.replace(/\D/g, '');
     if (!newSize) return;
-    setConfirmRepot({ newSize });
+    setConfirmRepot({ newSize, category: 'Other' });
   }
 
   async function confirmRepotYes() {
-    if (!confirmRepot) return;
+    if (!confirmRepot || !confirmRepot.newSize) {
+      setConfirmRepot(null);
+      return;
+    }
     try {
-      await updatePlant({ pot_size_cm: parseInt(confirmRepot.newSize) });
+      await updatePlant({
+        pot_size_cm: parseInt(confirmRepot.newSize),
+        pot_size_category: confirmRepot.category,
+      } as Partial<Plant>);
       showToast('Pot size updated — repot logged');
     } catch {
       showToast('Failed to update pot size');
     }
     setConfirmRepot(null);
+    setOtherCmDraft('');
   }
 
   function confirmRepotNo() {
     setConfirmRepot(null);
+    setOtherCmDraft('');
   }
 
   // Mark as watered — shows a 15s undo toast
@@ -669,15 +709,54 @@ export function PlantDetail() {
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
               Pot size
             </div>
-            <EditableField
-              value={plant.pot_size_cm ? `${plant.pot_size_cm}` : ''}
-              onSave={handlePotSizeChange}
-              type="number"
-              placeholder="cm"
+            <EditableSelect
+              value={plant.pot_size_category ?? ''}
+              options={[
+                { value: '', label: plant.pot_size_cm ? `${plant.pot_size_cm} cm` : '—' },
+                ...POT_SIZE_CATEGORIES.map((o) => ({ value: o.value, label: o.label })),
+              ]}
+              onSave={(v) => {
+                if (v) handlePotCategoryChange(v);
+              }}
               style={{ fontSize: 15 }}
             />
-            {plant.pot_size_cm && (
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>cm</span>
+            {plant.pot_size_category && (
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
+                {formatPotSize(plant.pot_size_category, plant.pot_size_cm)}
+              </div>
+            )}
+            {confirmRepot?.category === 'Other' && !confirmRepot.newSize && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <input
+                  type="number"
+                  value={otherCmDraft}
+                  onChange={(e) => setOtherCmDraft(e.target.value)}
+                  placeholder="Diameter in cm"
+                  min={1}
+                  max={150}
+                  autoFocus
+                  style={{ flex: 1, fontSize: 15 }}
+                />
+                <button
+                  type="button"
+                  onClick={submitOtherCm}
+                  style={{ padding: '6px 12px', fontSize: 14 }}
+                >
+                  Set
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRepotNo}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: 14,
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             )}
           </div>
 
@@ -966,7 +1045,7 @@ export function PlantDetail() {
       </button>
 
       {/* Dialogs */}
-      {confirmRepot && (
+      {confirmRepot && confirmRepot.newSize && (
         <ConfirmDialog
           message={`Did you repot this plant? (new pot size: ${confirmRepot.newSize}cm)`}
           confirmLabel="Yes, repotted"

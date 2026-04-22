@@ -8,6 +8,15 @@ import type { Config } from '../config.js';
 
 type HeatingSeasonConfig = Pick<Config, 'heatingSeasonStart' | 'heatingSeasonEnd'>;
 
+const VALID_POT_SIZE_CATEGORIES = [
+  'Extra Small',
+  'Small',
+  'Medium',
+  'Large',
+  'Extra Large',
+  'Other',
+] as const;
+
 export function createPlantsRouter(
   db: Database.Database,
   heatingConfig?: HeatingSeasonConfig,
@@ -41,10 +50,21 @@ export function createPlantsRouter(
 
   // POST /api/plants — create a new plant
   router.post('/', (req: Request, res: Response) => {
-    const { name, potSizeCm, plantSize, identifier, location, lightLevel, lastWateredAt, notes } = req.body;
+    const { name, plantSize, identifier, location, lightLevel, lastWateredAt, notes } = req.body;
+    // Accept both camelCase (existing API) and snake_case (client payloads / dropdown form)
+    const potSizeCm = req.body.potSizeCm ?? req.body.pot_size_cm;
+    const potSizeCategory = req.body.pot_size_category;
 
     if (!name || !lastWateredAt) {
       res.status(400).json({ error: 'name and lastWateredAt are required' });
+      return;
+    }
+
+    if (
+      potSizeCategory != null &&
+      !VALID_POT_SIZE_CATEGORIES.includes(potSizeCategory)
+    ) {
+      res.status(400).json({ error: 'Invalid pot_size_category' });
       return;
     }
 
@@ -53,12 +73,13 @@ export function createPlantsRouter(
 
     const result = db.prepare(
       `INSERT INTO plants
-         (name, pot_size_cm, plant_size, identifier, location, light_level, base_interval, current_interval,
+         (name, pot_size_cm, pot_size_category, plant_size, identifier, location, light_level, base_interval, current_interval,
           last_watered_at, next_water_date, enrichment_status, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
     ).run(
       name,
       potSizeCm ?? null,
+      potSizeCategory ?? null,
       plantSize ?? null,
       identifier ?? null,
       location ?? null,
@@ -110,7 +131,18 @@ export function createPlantsRouter(
       return;
     }
 
-    const { name, potSizeCm, plantSize, identifier, location, lightLevel, notes } = req.body;
+    const { name, plantSize, identifier, location, lightLevel, notes } = req.body;
+    // Accept both camelCase and snake_case for pot_size_cm (client sends snake_case)
+    const potSizeCm = req.body.potSizeCm ?? req.body.pot_size_cm;
+    const potSizeCategory = req.body.pot_size_category;
+
+    if (
+      potSizeCategory != null &&
+      !VALID_POT_SIZE_CATEGORIES.includes(potSizeCategory)
+    ) {
+      res.status(400).json({ error: 'Invalid pot_size_category' });
+      return;
+    }
 
     let newInterval = existing.current_interval as number;
     let isConverged = existing.is_converged as number;
@@ -146,6 +178,7 @@ export function createPlantsRouter(
       `UPDATE plants SET
          name              = COALESCE(?, name),
          pot_size_cm       = COALESCE(?, pot_size_cm),
+         pot_size_category = COALESCE(?, pot_size_category),
          plant_size        = COALESCE(?, plant_size),
          identifier        = CASE WHEN ? = 1 THEN ? ELSE identifier END,
          location          = COALESCE(?, location),
@@ -159,6 +192,7 @@ export function createPlantsRouter(
     ).run(
       name ?? null,
       potSizeCm ?? null,
+      potSizeCategory ?? null,
       plantSize ?? null,
       identifier !== undefined ? 1 : 0,
       identifier ?? null,

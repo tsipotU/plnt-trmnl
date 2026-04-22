@@ -3,6 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 
+const POT_SIZE_OPTIONS: { value: string; label: string; cm: number | null }[] = [
+  { value: 'Extra Small', label: 'Extra Small (5–10 cm)', cm: 8 },
+  { value: 'Small', label: 'Small (10–15 cm)', cm: 13 },
+  { value: 'Medium', label: 'Medium (15–20 cm)', cm: 18 },
+  { value: 'Large', label: 'Large (20–30 cm)', cm: 25 },
+  { value: 'Extra Large', label: 'Extra Large (30–50 cm)', cm: 40 },
+  { value: 'Other', label: 'Other', cm: null },
+];
+
 function today(): string {
   return new Date().toISOString().split('T')[0];
 }
@@ -20,6 +29,7 @@ export function AddPlant() {
   const [identifier, setIdentifier] = useState('');
   const [wateredWhen, setWateredWhen] = useState<WateredWhen>('today');
   const [pickedDate, setPickedDate] = useState(today());
+  const [potCategory, setPotCategory] = useState<string>('');
   const [potSizeCm, setPotSizeCm] = useState<number | ''>('');
   const [location, setLocation] = useState('');
   const [lightLevel, setLightLevel] = useState<string>('medium');
@@ -56,6 +66,8 @@ export function AddPlant() {
       name: name.trim(),
       identifier: identifier.trim() || null,
       potSizeCm: potSizeCm !== '' ? Number(potSizeCm) : 20,
+      pot_size_category: potCategory || null,
+      pot_size_cm: potSizeCm === '' ? null : Number(potSizeCm),
       plantSize: plantSize || 'medium',
       location: location.trim() || '',
       lightLevel: lightLevel || 'medium',
@@ -304,24 +316,53 @@ export function AddPlant() {
               htmlFor="potSize"
               style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
             >
-              Pot diameter
+              Pot size
             </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                id="potSize"
-                type="number"
-                value={potSizeCm}
-                onChange={(e) => setPotSizeCm(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="20"
-                min={1}
-                max={150}
-                style={{ flex: 1 }}
-              />
-              <span style={{ color: 'var(--text-secondary)', fontSize: 15, flexShrink: 0 }}>cm</span>
-            </div>
+            <select
+              id="potSize"
+              value={potCategory}
+              onChange={(e) => {
+                const v = e.target.value;
+                setPotCategory(v);
+                const opt = POT_SIZE_OPTIONS.find((o) => o.value === v);
+                if (opt && opt.cm !== null) {
+                  setPotSizeCm(opt.cm);
+                } else if (v === 'Other') {
+                  setPotSizeCm('');
+                } else {
+                  setPotSizeCm('');
+                }
+              }}
+              style={{ width: '100%' }}
+            >
+              <option value="">Select size…</option>
+              {POT_SIZE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            {potCategory === 'Other' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <input
+                  type="number"
+                  value={potSizeCm}
+                  onChange={(e) =>
+                    setPotSizeCm(e.target.value === '' ? '' : Number(e.target.value))
+                  }
+                  placeholder="Diameter in cm"
+                  min={1}
+                  max={150}
+                  style={{ flex: 1 }}
+                />
+                <span style={{ color: 'var(--text-secondary)', fontSize: 15, flexShrink: 0 }}>
+                  cm
+                </span>
+              </div>
+            )}
             {isFirstPlant && (
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                Measure the diameter of the top of the pot in cm
+                Pick a size range, or choose Other to enter an exact diameter in cm
               </p>
             )}
           </div>
