@@ -17,6 +17,7 @@ import { createConditionsRouter } from './routes/conditions.js';
 import { createFactsRouter } from './routes/facts.js';
 import { createScreenRouter } from './routes/screen.js';
 import { createVacationRouter } from './routes/vacation.js';
+import { createFeedbackRouter } from './routes/feedback.js';
 import { createEnrichmentRouter } from './enrichment/callback.js';
 
 const config = loadConfig();
@@ -52,6 +53,7 @@ app.use(
   })
 );
 app.use('/api/vacation', createVacationRouter(db));
+app.use('/api/feedback', createFeedbackRouter(db));
 app.use('/api/enrichment', createEnrichmentRouter(db));
 
 // Proxy renderer endpoints (avoids CORS from browser → renderer direct)
@@ -74,6 +76,11 @@ app.post('/api/trmnl/render', async (_req, res) => {
   } catch {
     res.status(502).json({ error: 'Cannot reach renderer' });
   }
+});
+
+// Unknown /api/* routes return JSON 404 instead of being swallowed by the SPA fallback
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'Not found' });
 });
 
 // Static client files (built output from packages/api/client)

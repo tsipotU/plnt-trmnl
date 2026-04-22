@@ -5,6 +5,9 @@ import { PlantDetail } from './pages/PlantDetail.js';
 import { FactManagement } from './pages/FactManagement.js';
 import { TrmnlPreview } from './pages/TrmnlPreview.js';
 import { TrmnlSetup } from './pages/TrmnlSetup.js';
+import { FeedbackList } from './pages/FeedbackList.js';
+import { FeedbackDetail } from './pages/FeedbackDetail.js';
+import { FeedbackButton } from './components/FeedbackButton.js';
 
 function Header() {
   const location = useLocation();
@@ -70,6 +73,17 @@ function Header() {
         >
           Setup
         </Link>
+        <Link
+          to="/feedback"
+          style={{
+            color: location.pathname.startsWith('/feedback')
+              ? 'var(--accent)'
+              : 'var(--text-secondary)',
+            fontSize: 14,
+          }}
+        >
+          Feedback
+        </Link>
       </nav>
     </header>
   );
@@ -87,8 +101,11 @@ export function App() {
           <Route path="/facts" element={<FactManagement />} />
           <Route path="/preview" element={<TrmnlPreview />} />
           <Route path="/setup" element={<TrmnlSetup />} />
+          <Route path="/feedback" element={<FeedbackList />} />
+          <Route path="/feedback/:id" element={<FeedbackDetail />} />
         </Routes>
       </main>
+      <FeedbackButton />
     </div>
   );
 }
