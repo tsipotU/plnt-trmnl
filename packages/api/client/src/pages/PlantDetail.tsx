@@ -238,7 +238,7 @@ function UndoToast({
   onExpire: () => void;
 }) {
   useEffect(() => {
-    const t = setTimeout(onExpire, 5000);
+    const t = setTimeout(onExpire, 15000);
     return () => clearTimeout(t);
   }, [onExpire]);
 
@@ -548,7 +548,7 @@ export function PlantDetail() {
     setConfirmRepot(null);
   }
 
-  // Mark as watered — shows a 5s undo toast
+  // Mark as watered — shows a 15s undo toast
   async function handleWater() {
     if (!id) return;
     try {
