@@ -444,3 +444,111 @@ describe('POST /api/plants/:id/archive', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('GET /api/plants/:id/events', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  beforeEach(() => {
+    ({ app, db } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  function insertPlant(name = 'Monstera'): number {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
+       VALUES (?, 7, 7, '2026-04-10')`
+    ).run(name);
+    return Number(lastInsertRowid);
+  }
+
+  function insertEvent(plantId: number, eventType: string, createdAt: string) {
+    db.prepare(
+      `INSERT INTO event_log (plant_id, event_type, reason, created_at)
+       VALUES (?, ?, ?, ?)`
+    ).run(plantId, eventType, `${eventType} reason`, createdAt);
+  }
+
+  it('returns empty array for plant with no events', async () => {
+    const plantId = insertPlant();
+    const res = await request(app).get(`/api/plants/${plantId}/events`);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('returns events in reverse chronological order (newest first)', async () => {
+    const plantId = insertPlant();
+    insertEvent(plantId, 'watered', '2026-01-01 10:00:00');
+    insertEvent(plantId, 'repot', '2026-03-01 10:00:00');
+    insertEvent(plantId, 'archived', '2026-02-01 10:00:00');
+
+    const res = await request(app).get(`/api/plants/${plantId}/events`);
+    expect(res.status).toBe(200);
+    expect(res.body.map((e: { event_type: string }) => e.event_type))
+      .toEqual(['repot', 'archived', 'watered']);
+  });
+
+  it('returns only events for the requested plant', async () => {
+    const plantA = insertPlant('A');
+    const plantB = insertPlant('B');
+    insertEvent(plantA, 'watered', '2026-04-01 10:00:00');
+    insertEvent(plantB, 'watered', '2026-04-02 10:00:00');
+
+    const res = await request(app).get(`/api/plants/${plantA}/events`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].plant_id).toBe(plantA);
+  });
+
+  it('respects ?limit= query parameter', async () => {
+    const plantId = insertPlant();
+    for (let i = 0; i < 10; i++) {
+      insertEvent(plantId, 'watered', `2026-04-${String(i + 1).padStart(2, '0')} 10:00:00`);
+    }
+
+    const res = await request(app).get(`/api/plants/${plantId}/events?limit=3`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(3);
+  });
+
+  it('defaults to 50 events when no limit is given', async () => {
+    const plantId = insertPlant();
+    for (let i = 0; i < 60; i++) {
+      const day = String((i % 28) + 1).padStart(2, '0');
+      insertEvent(plantId, 'watered', `2026-03-${day} ${String(10 + (i % 12)).padStart(2, '0')}:00:${String(i % 60).padStart(2, '0')}`);
+    }
+
+    const res = await request(app).get(`/api/plants/${plantId}/events`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(50);
+  });
+
+  it('clamps limit above 200 to 200', async () => {
+    const plantId = insertPlant();
+    for (let i = 0; i < 250; i++) {
+      const day = String((i % 28) + 1).padStart(2, '0');
+      insertEvent(plantId, 'watered', `2026-02-${day} ${String(10 + (i % 12)).padStart(2, '0')}:00:${String(i % 60).padStart(2, '0')}`);
+    }
+
+    const res = await request(app).get(`/api/plants/${plantId}/events?limit=500`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(200);
+  });
+
+  it('falls back to default when limit is invalid', async () => {
+    const plantId = insertPlant();
+    insertEvent(plantId, 'watered', '2026-04-01 10:00:00');
+
+    const res = await request(app).get(`/api/plants/${plantId}/events?limit=notanumber`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+  });
+
+  it('returns 404 for unknown plant', async () => {
+    const res = await request(app).get('/api/plants/9999/events');
+    expect(res.status).toBe(404);
+  });
+});

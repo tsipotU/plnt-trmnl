@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import type Database from 'better-sqlite3';
 import { calculateNextWaterDate, calculateRepotAdjustment } from '../scheduling/engine.js';
-import { logEvent } from '../database/event-log.js';
+import { logEvent, getEventsForPlant } from '../database/event-log.js';
 import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
 
 export function createPlantsRouter(db: Database.Database): Router {
@@ -204,6 +204,25 @@ export function createPlantsRouter(db: Database.Database): Router {
 
     const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
     res.json(updated);
+  });
+
+  // GET /api/plants/:id/events — paginated event history (newest first)
+  router.get('/:id/events', (req: Request, res: Response) => {
+    const plantId = Number(req.params.id);
+
+    const plant = db.prepare(`SELECT id FROM plants WHERE id = ?`).get(plantId);
+    if (!plant) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+
+    const rawLimit = Number(req.query.limit);
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0
+      ? Math.min(Math.floor(rawLimit), 200)
+      : 50;
+
+    const events = getEventsForPlant(db, plantId, limit);
+    res.json(events);
   });
 
   // POST /api/plants/:id/archive — archive a plant
