@@ -78,3 +78,4 @@ Express 5 uses promise-based middleware. Do NOT use callback-style error handler
 - TRMNL fetches the screenshot on its own schedule; the renderer pre-renders and serves a static image
 - `CALIBRATION_DEADLINE_HOUR` controls the cutoff for same-day calibration (default: 12 = noon)
 - Heating season affects watering frequency recommendations (`HEATING_SEASON_START` / `HEATING_SEASON_END`)
+- In `index.ts`, the scoped `/api` 404 handler must be registered AFTER all API routers but BEFORE the SPA catch-all (`app.get('{*path}', ...)`). Without it, GETs to unknown `/api/*` paths fall through to the SPA fallback and return `index.html` with status 200 — surfacing as cryptic `Unexpected token '<'` JSON parse errors in the client.
