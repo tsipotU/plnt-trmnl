@@ -228,6 +228,61 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   );
 }
 
+function UndoToast({
+  message,
+  onUndo,
+  onExpire,
+}: {
+  message: string;
+  onUndo: () => void;
+  onExpire: () => void;
+}) {
+  useEffect(() => {
+    const t = setTimeout(onExpire, 5000);
+    return () => clearTimeout(t);
+  }, [onExpire]);
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 24,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'var(--accent)',
+        color: 'white',
+        padding: '12px 16px',
+        borderRadius: 'var(--radius)',
+        fontSize: 14,
+        fontWeight: 600,
+        zIndex: 200,
+        maxWidth: '90vw',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+      }}
+    >
+      <span>{message}</span>
+      <button
+        onClick={onUndo}
+        style={{
+          background: 'transparent',
+          color: 'white',
+          border: '1px solid rgba(255,255,255,0.6)',
+          padding: '4px 10px',
+          fontSize: 13,
+          fontWeight: 700,
+          borderRadius: 6,
+          cursor: 'pointer',
+        }}
+      >
+        Undo
+      </button>
+    </div>
+  );
+}
+
 // --- Confirm Dialog ---
 
 const ARCHIVE_REASONS = [
@@ -423,6 +478,7 @@ export function PlantDetail() {
   const [error, setError] = useState<string | null>(null);
 
   const [toast, setToast] = useState<string | null>(null);
+  const [undoToast, setUndoToast] = useState<string | null>(null);
   const [confirmRepot, setConfirmRepot] = useState<{ newSize: string } | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [notesEditing, setNotesEditing] = useState(false);
@@ -488,7 +544,7 @@ export function PlantDetail() {
     setConfirmRepot(null);
   }
 
-  // Mark as watered
+  // Mark as watered — shows a 5s undo toast
   async function handleWater() {
     if (!id) return;
     try {
@@ -501,9 +557,36 @@ export function PlantDetail() {
         .then((r) => r.json())
         .then((e) => setEvents(Array.isArray(e) ? e : []))
         .catch(() => {});
-      showToast(`Watered! Next: ${formatDate(data.next_water_date)}`);
+      setUndoToast(`Watered ✓ Next: ${formatDate(data.next_water_date)}`);
     } catch {
       showToast('Failed to record watering');
+    }
+  }
+
+  // Undo the most recent watering
+  async function handleUndoWater() {
+    if (!id) return;
+    try {
+      const res = await fetch(`/api/plants/${id}/undo-water`, { method: 'POST' });
+      if (!res.ok) throw new Error('Undo failed');
+      const data = await res.json();
+      setPlant((prev) =>
+        prev
+          ? {
+              ...prev,
+              next_water_date: data.next_water_date,
+              last_watered_at: data.last_watered_at,
+            }
+          : prev,
+      );
+      fetch(`/api/plants/${id}/events`)
+        .then((r) => r.json())
+        .then((e) => setEvents(Array.isArray(e) ? e : []))
+        .catch(() => {});
+      setUndoToast(null);
+      showToast('Watering undone');
+    } catch {
+      showToast('Undo failed');
     }
   }
 
@@ -1025,6 +1108,13 @@ export function PlantDetail() {
 
       {/* Toast */}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+      {undoToast && (
+        <UndoToast
+          message={undoToast}
+          onUndo={handleUndoWater}
+          onExpire={() => setUndoToast(null)}
+        />
+      )}
     </div>
   );
 }

@@ -551,6 +551,102 @@ describe('POST /api/plants/:id/archive', () => {
   });
 });
 
+describe('POST /api/plants/:id/undo-water', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  beforeEach(() => {
+    ({ app, db } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('restores last_watered_at, next_water_date, calibration_cycle to pre-state', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, last_watered_at, next_water_date, calibration_cycle)
+       VALUES ('Monstera', 8, 8, '2026-04-14', '2026-04-22', 3)`
+    ).run();
+
+    // Water it
+    const waterRes = await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    expect(waterRes.body.calibration_cycle).toBe(4);
+    expect(waterRes.body.last_watered_at).not.toBe('2026-04-14');
+
+    // Undo
+    const undoRes = await request(app).post(`/api/plants/${lastInsertRowid}/undo-water`);
+    expect(undoRes.status).toBe(200);
+    expect(undoRes.body.last_watered_at).toBe('2026-04-14');
+    expect(undoRes.body.next_water_date).toBe('2026-04-22');
+    expect(undoRes.body.calibration_cycle).toBe(3);
+  });
+
+  it('removes the watered event from the event log', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, last_watered_at, next_water_date, calibration_cycle)
+       VALUES ('Aloe', 14, 14, '2026-04-10', '2026-04-24', 2)`
+    ).run();
+
+    await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    const before = db.prepare(
+      `SELECT COUNT(*) AS n FROM event_log WHERE plant_id = ? AND event_type = 'watered'`
+    ).get(lastInsertRowid) as { n: number };
+    expect(before.n).toBe(1);
+
+    await request(app).post(`/api/plants/${lastInsertRowid}/undo-water`);
+    const after = db.prepare(
+      `SELECT COUNT(*) AS n FROM event_log WHERE plant_id = ? AND event_type = 'watered'`
+    ).get(lastInsertRowid) as { n: number };
+    expect(after.n).toBe(0);
+  });
+
+  it('only undoes the most recent watering when multiple exist', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, last_watered_at, next_water_date, calibration_cycle)
+       VALUES ('Pothos', 7, 7, '2026-04-01', '2026-04-08', 1)`
+    ).run();
+
+    await request(app).post(`/api/plants/${lastInsertRowid}/water`); // #1
+    const afterFirst = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(lastInsertRowid) as {
+      last_watered_at: string;
+      calibration_cycle: number;
+    };
+
+    await request(app).post(`/api/plants/${lastInsertRowid}/water`); // #2
+
+    // Undo #2 — should restore to the state captured just before #2
+    const undoRes = await request(app).post(`/api/plants/${lastInsertRowid}/undo-water`);
+    expect(undoRes.status).toBe(200);
+    expect(undoRes.body.last_watered_at).toBe(afterFirst.last_watered_at);
+    expect(undoRes.body.calibration_cycle).toBe(afterFirst.calibration_cycle);
+
+    // Only the most recent watered event removed
+    const remaining = db.prepare(
+      `SELECT COUNT(*) AS n FROM event_log WHERE plant_id = ? AND event_type = 'watered'`
+    ).get(lastInsertRowid) as { n: number };
+    expect(remaining.n).toBe(1);
+  });
+
+  it('returns 400 when no watering events exist', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
+       VALUES ('Cactus', 14, 14, '2026-04-30')`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${lastInsertRowid}/undo-water`);
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 404 for unknown plant', async () => {
+    const res = await request(app).post('/api/plants/9999/undo-water');
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('GET /api/plants/:id/events', () => {
   let app: express.Express;
   let db: Database.Database;
