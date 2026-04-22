@@ -186,6 +186,13 @@ export function createPlantsRouter(db: Database.Database): Router {
     const nextWaterDate = calculateNextWaterDate(today, currentInterval);
     const calibrationCycle = (plant.calibration_cycle as number) + 1;
 
+    // Capture pre-state so the event can be undone.
+    const preState = JSON.stringify({
+      last_watered_at: plant.last_watered_at ?? null,
+      next_water_date: plant.next_water_date ?? null,
+      calibration_cycle: plant.calibration_cycle ?? 0,
+    });
+
     db.prepare(
       `UPDATE plants SET
          last_watered_at   = ?,
@@ -198,9 +205,59 @@ export function createPlantsRouter(db: Database.Database): Router {
     logEvent(db, {
       plantId,
       eventType: 'watered',
+      oldValue: preState,
       newValue: today,
       reason: 'Plant watered',
     });
+
+    const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
+    res.json(updated);
+  });
+
+  // POST /api/plants/:id/undo-water — revert the last watering + remove the event
+  router.post('/:id/undo-water', (req: Request, res: Response) => {
+    const plantId = Number(req.params.id);
+
+    const plant = db.prepare(`SELECT id FROM plants WHERE id = ?`).get(plantId);
+    if (!plant) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+
+    const lastWatered = db.prepare(
+      `SELECT id, old_value FROM event_log
+       WHERE plant_id = ? AND event_type = 'watered'
+       ORDER BY created_at DESC, id DESC LIMIT 1`
+    ).get(plantId) as { id: number; old_value: string | null } | undefined;
+
+    if (!lastWatered || !lastWatered.old_value) {
+      res.status(400).json({ error: 'No undoable watering found' });
+      return;
+    }
+
+    let preState: { last_watered_at: string | null; next_water_date: string | null; calibration_cycle: number };
+    try {
+      preState = JSON.parse(lastWatered.old_value);
+    } catch {
+      res.status(400).json({ error: 'Watering event has no restorable state' });
+      return;
+    }
+
+    db.prepare(
+      `UPDATE plants SET
+         last_watered_at   = ?,
+         next_water_date   = ?,
+         calibration_cycle = ?,
+         updated_at        = datetime('now')
+       WHERE id = ?`
+    ).run(
+      preState.last_watered_at,
+      preState.next_water_date,
+      preState.calibration_cycle,
+      plantId,
+    );
+
+    db.prepare(`DELETE FROM event_log WHERE id = ?`).run(lastWatered.id);
 
     const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
     res.json(updated);
