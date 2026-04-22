@@ -78,6 +78,11 @@ app.post('/api/trmnl/render', async (_req, res) => {
   }
 });
 
+// Unknown /api/* routes return JSON 404 instead of being swallowed by the SPA fallback
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
 // Static client files (built output from packages/api/client)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const clientPath = path.join(__dirname, '..', 'dist', 'client');
