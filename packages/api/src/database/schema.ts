@@ -11,6 +11,7 @@ export function initializeSchema(db: Database.Database): void {
       common_name TEXT,
       species TEXT,
       pot_size_cm INTEGER,
+      pot_size_category TEXT CHECK(pot_size_category IN ('Extra Small', 'Small', 'Medium', 'Large', 'Extra Large', 'Other')),
       plant_size TEXT CHECK(plant_size IN ('small', 'medium', 'large')),
       identifier TEXT,
       location TEXT,
@@ -159,6 +160,7 @@ export function initializeSchema(db: Database.Database): void {
   addColumnIfMissing(db, 'plants', 'identifier', 'TEXT');
   addColumnIfMissing(db, 'plants', 'archive_reason', 'TEXT');
   addColumnIfMissing(db, 'plants', 'archive_note', 'TEXT');
+  addColumnIfMissing(db, 'plants', 'pot_size_category', 'TEXT');
 }
 
 function addColumnIfMissing(
