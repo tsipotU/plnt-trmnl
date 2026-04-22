@@ -18,6 +18,14 @@ describe('formatDuration', () => {
   it('handles 1 month singular', () => {
     expect(formatDuration('2026-03-22', '2026-04-22')).toBe('1 month');
   });
+
+  it('handles SQLite timestamp format (space instead of T, no Z)', () => {
+    expect(formatDuration('2026-01-22 00:00:00', '2026-04-22 00:00:00')).toBe('3 months');
+  });
+
+  it('clamps negative duration to 0 months', () => {
+    expect(formatDuration('2026-04-22', '2026-01-22')).toBe('0 months');
+  });
 });
 
 describe('buildMemorialMessage', () => {
