@@ -863,7 +863,7 @@ export function PlantDetail() {
           gap: 8,
         }}
       >
-        💧 Mark as Watered
+        Watered
       </button>
 
       {/* Active conditions */}
