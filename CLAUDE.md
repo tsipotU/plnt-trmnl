@@ -53,6 +53,9 @@ The database runs in WAL mode for concurrent read support. Always open with:
 db.pragma('journal_mode = WAL');
 ```
 
+### Schema Migrations
+`CREATE TABLE IF NOT EXISTS` does NOT alter existing tables — adding a column to a live database requires an explicit `ALTER TABLE ... ADD COLUMN`. Use the `addColumnIfMissing(db, table, column, definition)` helper at the bottom of `database/schema.ts`, which checks `PRAGMA table_info` first to stay idempotent. Add the column to the CREATE TABLE block AND a migration call at the bottom of `initializeSchema`.
+
 ### Archived Plants
 All scheduling queries MUST filter archived plants:
 ```sql
