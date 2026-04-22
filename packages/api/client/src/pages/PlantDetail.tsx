@@ -868,22 +868,7 @@ export function PlantDetail() {
 
       {/* Active conditions */}
       <div className="card" style={{ marginBottom: 12 }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 12,
-          }}
-        >
-          <h2 style={{ fontSize: 16, fontWeight: 600 }}>Conditions</h2>
-          <a
-            href={`/plants/${id}/conditions/new`}
-            style={{ fontSize: 13, color: 'var(--accent)' }}
-          >
-            + Flag condition
-          </a>
-        </div>
+        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Conditions</h2>
 
         {activeConditions.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>No active conditions</p>
