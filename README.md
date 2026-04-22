@@ -34,6 +34,7 @@ The renderer has no direct database access — it only talks to the API over the
 - **Plant fact rotation** — 150+ curated botanical facts served in non-repeating order
 - **Condition tracking** — observation-driven detection (overwatering, underwatering, rootbound, pests, light stress)
 - **Vacation mode** — pauses schedules and reschedules intelligently on return
+- **Plant identifiers** — optional per-plant label ("Hanging basket", "Blue pot") shown everywhere a plant appears, so multiple plants of the same species are easy to tell apart
 - **Feedback system** — floating action button on every page; capture bugs, ideas, and notes with a comment thread per item
 - **Mobile-first management UI** — optimised for iPhone 15 Pro; single-handed watering log in two taps
 
