@@ -95,13 +95,12 @@ Each item below touches distinct files. Agents dispatched with `isolation: "work
 
 **Schema** (`packages/api/src/database/schema.ts`):
 
+- Existing column `pot_size_cm INTEGER` stays as-is (reused for the numeric pot diameter).
 - Add to the `plants` `CREATE TABLE IF NOT EXISTS` block:
   - `pot_size_category TEXT`
-  - `pot_size_cm REAL`
 - Append to `initializeSchema`:
   - `addColumnIfMissing(db, 'plants', 'pot_size_category', 'TEXT')`
-  - `addColumnIfMissing(db, 'plants', 'pot_size_cm', 'REAL')`
-- Legacy `pot_size` column left in place (empty DB; idempotent migration keeps it). It will be removed in a later cleanup PR — not in this wave.
+- Midpoints rounded to whole cm (since column is INTEGER): XS=8, S=13, M=18, L=25, XL=40.
 
 **API** (`packages/api/src/routes/plants.ts`):
 
@@ -116,7 +115,7 @@ Each item below touches distinct files. Agents dispatched with `isolation: "work
   - Native `<select>` with the 6 options
   - When a named size is selected, both fields are set (see midpoints below)
   - When "Other" is selected, reveal a numeric input that sets `pot_size_cm`; `pot_size_category` stays `"Other"`
-  - Midpoints: XS=7.5, S=12.5, M=17.5, L=25, XL=40 (cm)
+  - Midpoints (whole cm): XS=8, S=13, M=18, L=25, XL=40
 
 **Display**:
 
@@ -313,7 +312,7 @@ New columns on `plants`:
 | Column | Type | Purpose |
 |--------|------|---------|
 | `pot_size_category` | TEXT | User's chosen category label |
-| `pot_size_cm` | REAL | Numeric pot diameter (midpoint or custom) |
+| `pot_size_cm` | INTEGER | Reused existing column. Numeric pot diameter (midpoint or custom). |
 
 All schema changes apply via `addColumnIfMissing` at the bottom of `initializeSchema`.
 
@@ -354,7 +353,7 @@ All schema changes apply via `addColumnIfMissing` at the bottom of `initializeSc
 | Event log growth from overflow/congested events | Events are small; no trigger for truncation in this wave. Revisit if plants > 100. |
 | Batch UUID collision | UUID v4; collision probability negligible. No unique-key constraint needed. |
 | Dashboard re-render cost with strip + list | Both data sources already cached by React Query (or equivalent); strip refetches in parallel with plant list, not sequentially. |
-| #31 legacy `pot_size` column stays unused | Acceptable for this wave. Flag for cleanup PR in Wave 4 or later. |
+| #31 reuses existing `pot_size_cm` column; no legacy column stranded | Verified in schema: only one numeric column exists; category is the only addition. |
 
 ## Open Questions
 
