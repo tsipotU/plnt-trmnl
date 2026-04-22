@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PlantCard } from '../components/PlantCard.js';
 import { VacationToggle } from '../components/VacationToggle.js';
 import { CalibrationModal } from '../components/CalibrationModal.js';
 import type { Plant } from '../components/PlantCard.js';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,12 +82,44 @@ export function Dashboard() {
           style={{
             textAlign: 'center',
             padding: '60px 16px',
-            color: 'var(--text-secondary)',
           }}
         >
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🪴</div>
-          <p style={{ fontSize: 16, marginBottom: 8 }}>No plants yet.</p>
-          <p>Add your first plant!</p>
+          <div style={{ fontSize: 72, marginBottom: 20 }}>🪴</div>
+          <h2
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              marginBottom: 8,
+            }}
+          >
+            Welcome to Plant TRMNL
+          </h2>
+          <p
+            style={{
+              fontSize: 15,
+              color: 'var(--text-secondary)',
+              marginBottom: 28,
+            }}
+          >
+            Add your first plant to get started
+          </p>
+          <button
+            onClick={() => navigate('/add')}
+            style={{
+              background: 'var(--accent)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 12,
+              padding: '14px 32px',
+              fontSize: 17,
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 20px rgba(0, 168, 107, 0.35)',
+            }}
+          >
+            + Add Your First Plant
+          </button>
         </div>
       )}
 

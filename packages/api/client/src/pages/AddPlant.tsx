@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
@@ -28,6 +28,16 @@ export function AddPlant() {
   const [loading, setLoading] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Track whether this is the first plant (for contextual hints + celebration)
+  const [isFirstPlant, setIsFirstPlant] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/plants')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: unknown[]) => setIsFirstPlant(Array.isArray(data) && data.length === 0))
+      .catch(() => setIsFirstPlant(false));
+  }, []);
 
   function resolveLastWateredAt(): string {
     if (wateredWhen === 'today') return today();
@@ -72,7 +82,7 @@ export function AddPlant() {
 
       // Brief "enriching" moment before navigation
       await new Promise((resolve) => setTimeout(resolve, 900));
-      navigate(`/plants/${plant.id}`);
+      navigate(`/plants/${plant.id}`, { state: { firstPlant: isFirstPlant } });
     } catch {
       setError('Network error. Please try again.');
       setLoading(false);
@@ -156,6 +166,11 @@ export function AddPlant() {
             required
             style={{ fontSize: 20, fontWeight: 500 }}
           />
+          {isFirstPlant && (
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+              Search for your plant by name
+            </p>
+          )}
         </div>
 
         {/* Identifier — helps tell same-species plants apart */}
@@ -182,7 +197,9 @@ export function AddPlant() {
             style={{ fontSize: 15 }}
           />
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-            Helps tell similar plants apart at a glance.
+            {isFirstPlant
+              ? 'How would you describe this specific plant?'
+              : 'Helps tell similar plants apart at a glance.'}
           </p>
         </div>
 
@@ -251,6 +268,11 @@ export function AddPlant() {
               style={{ marginTop: 10 }}
             />
           )}
+          {isFirstPlant && (
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
+              When did you last water it? Pick &lsquo;Don&rsquo;t know&rsquo; if unsure
+            </p>
+          )}
         </div>
 
         {/* Optional fields */}
@@ -297,6 +319,11 @@ export function AddPlant() {
               />
               <span style={{ color: 'var(--text-secondary)', fontSize: 15, flexShrink: 0 }}>cm</span>
             </div>
+            {isFirstPlant && (
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+                Measure the diameter of the top of the pot in cm
+              </p>
+            )}
           </div>
 
           {/* Location */}
@@ -314,6 +341,11 @@ export function AddPlant() {
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Living room, Kitchen windowsill"
             />
+            {isFirstPlant && (
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+                Where in your home is this plant?
+              </p>
+            )}
           </div>
 
           {/* Light level */}

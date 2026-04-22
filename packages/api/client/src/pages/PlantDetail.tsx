@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 // --- Types ---
 
@@ -470,6 +470,7 @@ function ConfirmDialog({
 export function PlantDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [plant, setPlant] = useState<Plant | null>(null);
   const [conditions, setConditions] = useState<Condition[]>([]);
@@ -477,7 +478,10 @@ export function PlantDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [toast, setToast] = useState<string | null>(null);
+  // Show "first plant" celebration if navigated here after adding the very first plant
+  const isFirstPlant = (location.state as { firstPlant?: boolean } | null)?.firstPlant === true;
+
+  const [toast, setToast] = useState<string | null>(isFirstPlant ? 'Your first plant! 🌱' : null);
   const [undoToast, setUndoToast] = useState<string | null>(null);
   const [confirmRepot, setConfirmRepot] = useState<{ newSize: string } | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
