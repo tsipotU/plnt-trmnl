@@ -14,6 +14,7 @@ const plant1: WateringPlant = {
   id: 1,
   name: 'Monstera',
   species: 'Monstera deliciosa',
+  identifier: null,
   location: 'Living room',
   potSizeCm: 21,
   waterAmountMl: 400,
@@ -28,6 +29,7 @@ const plant2: WateringPlant = {
   id: 2,
   name: 'Ficus',
   species: 'Ficus lyrata',
+  identifier: 'by the window',
   location: 'Bedroom',
   potSizeCm: 17,
   waterAmountMl: 250,
@@ -139,5 +141,17 @@ describe('renderWateringDay', () => {
 
     expect(html).toContain('21cm');
     expect(html).toContain('Living room');
+  });
+
+  it('renders identifier as subtitle under name when set', () => {
+    const html = renderWateringDay('2026-04-07', [plant2], nextWatering);
+
+    expect(html).toContain('by the window');
+  });
+
+  it('omits identifier when null', () => {
+    const html = renderWateringDay('2026-04-07', [plant1], nextWatering);
+
+    expect(html).not.toMatch(/>null</);
   });
 });
