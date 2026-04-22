@@ -15,7 +15,7 @@
 | **Wave 1** | #10 (#20), #8 (#20), #19 (feedback) | ✓ Done | Docker/healthchecks audit confirmed; identifier + feedback shipped. |
 | **Wave 2** | #17, #14, #15, #13 | ✓ Done | Archive, undo-water, seasonal adjustment, welcome state all shipped. |
 | **Wave 3** | #25, #26, #27, #28, #29 (partial), #30, #31, #6, #11, #12 | ⏳ Pending | Bug fixes (JSON render, undo timeout, button copy, flag button); UX polish (archive dialog, memorial toast, pot size, notes log). |
-| **Wave 4** | #5 (BUMPED), #16 (UI), #9 (tests), #34, #35 | ⏳ Pending | Botanical illustrations, watering history timeline UI, integration tests, condition remediation, origin story tracking. |
+| **Wave 4** | #5 (BUMPED), #16 (UI), #9 (tests), #32, #33, #34, #35 | ⏳ Pending | Botanical illustrations, watering history timeline UI, integration tests, notes log, archived plants view, condition remediation, origin story tracking. |
 | **Wave 5** | #1, #2, #3 (expanded), #4, #36, #37, #38, #39 | ⏳ Pending | Plant catalog, streamlined add-plant, rich care profiles, species facts, dry-soil scheduling, deep plant info, daily facts, did-you-mean fallback. |
 | **Wave 6** | #40 (design pass), #7, #18 | ⏳ Deferred | Frontend design pass, TRMNL visual redesign, auto-detect conditions. |
 
@@ -33,15 +33,9 @@ git log --oneline -10
 
 Then open `docs/plans/2026-04-22-wave-progress.md` (this file) for context.
 
-## Salvage Directory
-
-`/tmp/plant-trmnl-salvage/` contains leftover files from failed parallel-agent runs earlier today:
-- `seasonal.ts` — already reused in PR #23 (seasonal modifier)
-- `client-helpers.ts` / `client-helpers.test.ts` — not used; safe to ignore
-
 ## Next Steps
 
-1. **Wave 3 (#6, #11, #12):** Overflow rules, batch water, 7-day calendar strip — all UI-heavy, no routing changes needed.
-2. **Wave 4 (#16, #9):** Build summary stats + calibration trend cards (route exists); write integration smoke tests.
-3. **Wave 5 (#1-4):** Catalog epic — implement species lookup, streamlined add-plant, rich profiles, species facts.
-4. **Wave 6 (#7, #18):** Likely close without code (scope creep).
+1. **Wave 3 — bug fixes first** (#25 JSON render, #26 undo 15s, #27 watered button, #28 flag condition, #30 reason-toast variants, #31 pot dropdown), then medium features (#6 overflow, #11 batch water, #12 calendar). Most are small; #29 archive dialog CSS is a partial polish before the full Wave 6 design pass.
+2. **Wave 4 — visuals + history** — #5 illustrations (bumped here per user feedback), #16 timeline stats + trend card, #9 integration tests, #32 notes log (new plant_notes table), #33 archived plants view, #34 condition remediation, #35 origin story.
+3. **Wave 5 — catalog + deep features** — #1-4 Tier-1 catalog, #36 dry-soil calibration, #37 deep plant info, #38 daily fact rotation, #39 did-you-mean fallback.
+4. **Wave 6 — design + deferrals** — #40 frontend-design pass, close #7 and #18 with deferral rationale.
