@@ -225,7 +225,7 @@ export function createPlantsRouter(db: Database.Database): Router {
     res.json(events);
   });
 
-  // POST /api/plants/:id/archive — archive a plant
+  // POST /api/plants/:id/archive — archive a plant with reason + optional note
   router.post('/:id/archive', (req: Request, res: Response) => {
     const plantId = Number(req.params.id);
 
@@ -238,22 +238,64 @@ export function createPlantsRouter(db: Database.Database): Router {
       return;
     }
 
+    const { reason, note } = req.body as { reason?: unknown; note?: unknown };
+    const VALID_REASONS = ['died', 'gave_away', 'moved', 'other'] as const;
+    if (typeof reason !== 'string' || !VALID_REASONS.includes(reason as (typeof VALID_REASONS)[number])) {
+      res.status(400).json({
+        error: 'reason is required and must be one of: died, gave_away, moved, other',
+      });
+      return;
+    }
+    const archiveNote = typeof note === 'string' && note.trim().length > 0 ? note.trim() : null;
+
     db.prepare(
       `UPDATE plants SET
-         archived    = 1,
-         archived_at = datetime('now'),
-         updated_at  = datetime('now')
+         archived       = 1,
+         archived_at    = datetime('now'),
+         archive_reason = ?,
+         archive_note   = ?,
+         updated_at     = datetime('now')
        WHERE id = ?`
-    ).run(plantId);
+    ).run(reason, archiveNote, plantId);
+
+    // Soft-disable species-specific facts when this was the last plant of the species.
+    const species = plant.species as string | null;
+    if (species) {
+      const remainingOfSpecies = db.prepare(
+        `SELECT COUNT(*) AS n FROM plants WHERE species = ? AND archived = 0 AND id != ?`
+      ).get(species, plantId) as { n: number };
+      if (remainingOfSpecies.n === 0) {
+        db.prepare(
+          `UPDATE facts SET is_disabled = 1 WHERE plant_id = ?`
+        ).run(plantId);
+      }
+    }
 
     logEvent(db, {
       plantId,
       eventType: 'archived',
-      reason: 'Plant archived',
+      newValue: reason,
+      reason: archiveNote
+        ? `Plant archived (${reason}): ${archiveNote}`
+        : `Plant archived (${reason})`,
     });
 
-    const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
-    res.json(updated);
+    const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<
+      string,
+      unknown
+    >;
+
+    // Memorial: days between created_at and archived_at
+    const createdAt = updated.created_at as string;
+    const archivedAt = updated.archived_at as string;
+    const careDurationDays = Math.max(
+      0,
+      Math.floor(
+        (new Date(archivedAt).getTime() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
+      )
+    );
+
+    res.json({ ...updated, care_duration_days: careDurationDays });
   });
 
   return router;
