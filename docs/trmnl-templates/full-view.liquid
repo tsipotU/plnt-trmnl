@@ -4,6 +4,7 @@
 
     <div style="flex:1;max-width:380px;border:1.5px solid #000;border-radius:8px;padding:10px;">
       <div style="font-size:26px;font-weight:bold;line-height:1.1;margin-bottom:2px;">{{ p1_name }}</div>
+      {% if p1_identifier != blank %}<div style="font-size:13px;color:#444;margin-bottom:3px;">{{ p1_identifier }}</div>{% endif %}
       {% if p1_species != blank %}<div style="font-size:12px;font-style:italic;color:#666;margin-bottom:4px;">{{ p1_species }}</div>{% endif %}
       {% if p1_location != blank %}<div style="font-size:11px;color:#888;margin-bottom:8px;">{{ p1_location }} · {{ p1_pot_size }}</div>{% endif %}
 
@@ -36,6 +37,7 @@
     {% if plant_count == 2 %}
     <div style="flex:1;max-width:380px;border:1.5px solid #000;border-radius:8px;padding:10px;">
       <div style="font-size:26px;font-weight:bold;line-height:1.1;margin-bottom:2px;">{{ p2_name }}</div>
+      {% if p2_identifier != blank %}<div style="font-size:13px;color:#444;margin-bottom:3px;">{{ p2_identifier }}</div>{% endif %}
       {% if p2_species != blank %}<div style="font-size:12px;font-style:italic;color:#666;margin-bottom:4px;">{{ p2_species }}</div>{% endif %}
       {% if p2_location != blank %}<div style="font-size:11px;color:#888;margin-bottom:8px;">{{ p2_location }} · {{ p2_pot_size }}</div>{% endif %}
 

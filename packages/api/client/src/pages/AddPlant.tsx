@@ -17,6 +17,7 @@ export function AddPlant() {
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [wateredWhen, setWateredWhen] = useState<WateredWhen>('today');
   const [pickedDate, setPickedDate] = useState(today());
   const [potSizeCm, setPotSizeCm] = useState<number | ''>('');
@@ -43,6 +44,7 @@ export function AddPlant() {
 
     const payload = {
       name: name.trim(),
+      identifier: identifier.trim() || null,
       potSizeCm: potSizeCm !== '' ? Number(potSizeCm) : 20,
       plantSize: plantSize || 'medium',
       location: location.trim() || '',
@@ -154,6 +156,34 @@ export function AddPlant() {
             required
             style={{ fontSize: 20, fontWeight: 500 }}
           />
+        </div>
+
+        {/* Identifier — helps tell same-species plants apart */}
+        <div>
+          <label
+            htmlFor="identifier"
+            style={{
+              display: 'block',
+              fontSize: 13,
+              color: 'var(--text-secondary)',
+              marginBottom: 6,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}
+          >
+            Identifier <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>(optional)</span>
+          </label>
+          <input
+            id="identifier"
+            type="text"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="e.g. Hanging basket, Blue pot"
+            style={{ fontSize: 15 }}
+          />
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+            Helps tell similar plants apart at a glance.
+          </p>
         </div>
 
         {/* When did you last water? */}

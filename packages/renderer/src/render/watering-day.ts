@@ -2,6 +2,7 @@ export interface WateringPlant {
   id: number;
   name: string;
   species: string | null;
+  identifier: string | null;
   location: string | null;
   potSizeCm: number | null;
   waterAmountMl: number;
@@ -46,6 +47,10 @@ function renderPlantCard(plant: WateringPlant): string {
     ? `<div style="text-align:center;margin-bottom:8px;"><img src="${plant.illustrationPath}" style="max-height:160px;max-width:100%;" /></div>`
     : '';
 
+  const identifierHtml = plant.identifier
+    ? `<div style="font-size:14px;color:#333;">${plant.identifier}</div>`
+    : '';
+
   const speciesHtml = plant.species
     ? `<div style="font-size:13px;font-style:italic;color:#555;">${plant.species}</div>`
     : '';
@@ -63,6 +68,7 @@ function renderPlantCard(plant: WateringPlant): string {
   return `<div style="flex:1;max-width:380px;border:1.5px solid #2a2a2a;border-radius:8px;padding:10px;display:flex;flex-direction:column;">
     ${illustrationHtml}
     <div style="font-size:28px;font-weight:bold;line-height:1.1;">${plant.name}</div>
+    ${identifierHtml}
     ${speciesHtml}
     ${locationPotHtml}
     <div style="margin-top:8px;font-family:sans-serif;font-size:14px;">

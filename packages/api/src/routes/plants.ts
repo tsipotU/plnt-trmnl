@@ -34,7 +34,7 @@ export function createPlantsRouter(db: Database.Database): Router {
 
   // POST /api/plants — create a new plant
   router.post('/', (req: Request, res: Response) => {
-    const { name, potSizeCm, plantSize, location, lightLevel, lastWateredAt, notes } = req.body;
+    const { name, potSizeCm, plantSize, identifier, location, lightLevel, lastWateredAt, notes } = req.body;
 
     if (!name || !lastWateredAt) {
       res.status(400).json({ error: 'name and lastWateredAt are required' });
@@ -46,13 +46,14 @@ export function createPlantsRouter(db: Database.Database): Router {
 
     const result = db.prepare(
       `INSERT INTO plants
-         (name, pot_size_cm, plant_size, location, light_level, base_interval, current_interval,
+         (name, pot_size_cm, plant_size, identifier, location, light_level, base_interval, current_interval,
           last_watered_at, next_water_date, enrichment_status, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
     ).run(
       name,
       potSizeCm ?? null,
       plantSize ?? null,
+      identifier ?? null,
       location ?? null,
       lightLevel ?? null,
       currentInterval,
@@ -102,7 +103,7 @@ export function createPlantsRouter(db: Database.Database): Router {
       return;
     }
 
-    const { name, potSizeCm, plantSize, location, lightLevel, notes } = req.body;
+    const { name, potSizeCm, plantSize, identifier, location, lightLevel, notes } = req.body;
 
     let newInterval = existing.current_interval as number;
     let isConverged = existing.is_converged as number;
@@ -139,6 +140,7 @@ export function createPlantsRouter(db: Database.Database): Router {
          name              = COALESCE(?, name),
          pot_size_cm       = COALESCE(?, pot_size_cm),
          plant_size        = COALESCE(?, plant_size),
+         identifier        = CASE WHEN ? = 1 THEN ? ELSE identifier END,
          location          = COALESCE(?, location),
          light_level       = COALESCE(?, light_level),
          notes             = COALESCE(?, notes),
@@ -151,6 +153,8 @@ export function createPlantsRouter(db: Database.Database): Router {
       name ?? null,
       potSizeCm ?? null,
       plantSize ?? null,
+      identifier !== undefined ? 1 : 0,
+      identifier ?? null,
       location ?? null,
       lightLevel ?? null,
       notes ?? null,

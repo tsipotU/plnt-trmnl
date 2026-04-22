@@ -134,6 +134,31 @@ describe('POST /api/plants', () => {
 
     expect(res.status).toBe(400);
   });
+
+  it('stores optional identifier field', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Pothos',
+        identifier: 'Hanging basket',
+        lastWateredAt: '2026-04-01',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.identifier).toBe('Hanging basket');
+  });
+
+  it('leaves identifier null when not provided', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Monstera',
+        lastWateredAt: '2026-04-01',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.identifier).toBeNull();
+  });
 });
 
 describe('GET /api/plants/:id', () => {
@@ -234,6 +259,49 @@ describe('PUT /api/plants/:id', () => {
     expect(res.body.current_interval).toBeGreaterThan(7);
     // next_water_date should be recalculated
     expect(res.body.next_water_date).toBeDefined();
+  });
+
+  it('updates identifier when provided', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, identifier)
+       VALUES ('Pothos', 7, 7, '2026-04-08', 'Blue pot')`
+    ).run();
+
+    const res = await request(app)
+      .put(`/api/plants/${lastInsertRowid}`)
+      .send({ identifier: 'Terracotta pot' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.identifier).toBe('Terracotta pot');
+  });
+
+  it('clears identifier when explicitly set to null', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, identifier)
+       VALUES ('Pothos', 7, 7, '2026-04-08', 'Old label')`
+    ).run();
+
+    const res = await request(app)
+      .put(`/api/plants/${lastInsertRowid}`)
+      .send({ identifier: null });
+
+    expect(res.status).toBe(200);
+    expect(res.body.identifier).toBeNull();
+  });
+
+  it('preserves identifier when the field is omitted from the update', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, identifier)
+       VALUES ('Pothos', 7, 7, '2026-04-08', 'Kitchen shelf')`
+    ).run();
+
+    const res = await request(app)
+      .put(`/api/plants/${lastInsertRowid}`)
+      .send({ location: 'Moved to bedroom' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.identifier).toBe('Kitchen shelf');
+    expect(res.body.location).toBe('Moved to bedroom');
   });
 
   it('logs a repot event when pot size changes', async () => {

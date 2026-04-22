@@ -5,6 +5,7 @@ import { screenCache } from './cache.js';
 interface ScreenPlant {
   name: string;
   species: string | null;
+  identifier: string | null;
   location: string | null;
   potSizeCm: number | null;
   waterAmountMl: number;
@@ -44,6 +45,7 @@ function buildMergeVariables(data: ScreenData): Record<string, unknown> {
     const p1 = data.plants[0];
     if (p1) {
       vars.p1_name = p1.name;
+      vars.p1_identifier = p1.identifier || '';
       vars.p1_species = p1.species || '';
       vars.p1_location = p1.location || '';
       vars.p1_pot_size = p1.potSizeCm ? `${p1.potSizeCm}cm pot` : '';
@@ -63,6 +65,7 @@ function buildMergeVariables(data: ScreenData): Record<string, unknown> {
     const p2 = data.plants[1];
     if (p2) {
       vars.p2_name = p2.name;
+      vars.p2_identifier = p2.identifier || '';
       vars.p2_species = p2.species || '';
       vars.p2_location = p2.location || '';
       vars.p2_pot_size = p2.potSizeCm ? `${p2.potSizeCm}cm pot` : '';

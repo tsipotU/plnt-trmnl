@@ -8,6 +8,7 @@ interface Plant {
   name: string;
   species: string | null;
   common_name: string | null;
+  identifier: string | null;
   location: string | null;
   pot_size_cm: number | null;
   plant_size: string | null;
@@ -522,6 +523,14 @@ export function PlantDetail() {
             style={{ fontSize: 24, fontWeight: 700 }}
           />
         </h1>
+        <div style={{ fontSize: 14, marginBottom: 6 }}>
+          <EditableField
+            value={plant.identifier ?? ''}
+            onSave={(v) => updatePlant({ identifier: v.trim() === '' ? null : v }).catch(() => showToast('Failed to save'))}
+            placeholder="Add identifier (e.g. Blue pot)"
+            style={{ fontSize: 14 }}
+          />
+        </div>
         {plant.species && (
           <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: 14 }}>
             {plant.species}

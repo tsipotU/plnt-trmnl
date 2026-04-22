@@ -12,6 +12,7 @@ export function initializeSchema(db: Database.Database): void {
       species TEXT,
       pot_size_cm INTEGER,
       plant_size TEXT CHECK(plant_size IN ('small', 'medium', 'large')),
+      identifier TEXT,
       location TEXT,
       light_level TEXT CHECK(light_level IN ('low', 'medium', 'bright_indirect', 'direct')),
       base_interval INTEGER,
@@ -150,4 +151,19 @@ export function initializeSchema(db: Database.Database): void {
       updated_at TEXT
     )
   `).run();
+
+  // Idempotent column additions for live databases created before the column existed.
+  // CREATE TABLE IF NOT EXISTS above leaves existing tables untouched.
+  addColumnIfMissing(db, 'plants', 'identifier', 'TEXT');
+}
+
+function addColumnIfMissing(
+  db: Database.Database,
+  table: string,
+  column: string,
+  definition: string,
+): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (cols.some((c) => c.name === column)) return;
+  db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`).run();
 }

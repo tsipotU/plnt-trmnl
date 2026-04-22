@@ -14,6 +14,7 @@ interface CalibrationQuestion {
 interface CalibrationPlant {
   id: number;
   name: string;
+  identifier: string | null;
   illustration_path: string | null;
   question: CalibrationQuestion;
 }
@@ -159,12 +160,24 @@ function PlantCalibrationScreen({
         style={{
           fontSize: 22,
           fontWeight: 700,
-          marginBottom: 8,
+          marginBottom: plant.identifier ? 2 : 8,
           textAlign: 'center',
         }}
       >
         {plant.name}
       </h2>
+      {plant.identifier && (
+        <div
+          style={{
+            fontSize: 14,
+            color: 'var(--text-secondary)',
+            marginBottom: 8,
+            textAlign: 'center',
+          }}
+        >
+          {plant.identifier}
+        </div>
+      )}
 
       {/* Question */}
       <p

@@ -5,6 +5,7 @@ export interface Plant {
   name: string;
   common_name: string | null;
   species: string | null;
+  identifier: string | null;
   pot_size_cm: number | null;
   plant_size: 'small' | 'medium' | 'large' | null;
   location: string | null;
@@ -91,7 +92,7 @@ export function PlantCard({ plant }: PlantCardProps) {
 
       {/* Main content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Name + species */}
+        {/* Name + identifier + species */}
         <div
           style={{
             fontWeight: 700,
@@ -104,6 +105,21 @@ export function PlantCard({ plant }: PlantCardProps) {
         >
           {plant.name}
         </div>
+        {plant.identifier && (
+          <div
+            style={{
+              fontSize: 13,
+              color: 'var(--text-primary)',
+              opacity: 0.85,
+              marginTop: 1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {plant.identifier}
+          </div>
+        )}
         {plant.species && (
           <div
             style={{
