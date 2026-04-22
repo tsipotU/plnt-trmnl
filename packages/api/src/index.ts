@@ -41,7 +41,10 @@ app.get('/health', (_req, res) => {
 });
 
 // API routes
-app.use('/api/plants', createPlantsRouter(db));
+app.use('/api/plants', createPlantsRouter(db, {
+  heatingSeasonStart: config.heatingSeasonStart,
+  heatingSeasonEnd: config.heatingSeasonEnd,
+}));
 app.use('/api', createCalibrationRouter(db));
 app.use('/api', createConditionsRouter(db));
 app.use('/api', createFactsRouter(db));

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import Database from 'better-sqlite3';
@@ -11,6 +11,18 @@ function createTestApp() {
   const app = express();
   app.use(express.json());
   app.use('/api/plants', createPlantsRouter(db));
+  return { app, db };
+}
+
+function createTestAppWithHeating(heatingConfig: {
+  heatingSeasonStart: { month: number; day: number };
+  heatingSeasonEnd: { month: number; day: number };
+}) {
+  const db = new Database(':memory:');
+  initializeSchema(db);
+  const app = express();
+  app.use(express.json());
+  app.use('/api/plants', createPlantsRouter(db, heatingConfig));
   return { app, db };
 }
 
@@ -548,6 +560,94 @@ describe('POST /api/plants/:id/archive', () => {
       .post('/api/plants/9999/archive')
       .send({ reason: 'other' });
     expect(res.status).toBe(404);
+  });
+});
+
+describe('POST /api/plants/:id/water — seasonal adjustment', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  const heatingConfig = {
+    heatingSeasonStart: { month: 10, day: 1 },
+    heatingSeasonEnd: { month: 4, day: 1 },
+  };
+
+  beforeEach(() => {
+    ({ app, db } = createTestAppWithHeating(heatingConfig));
+  });
+
+  afterEach(() => {
+    db.close();
+    vi.useRealTimers();
+  });
+
+  it('applies modifier during heating season — shortens next_water_date', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Monstera', 10, 10, 0.7, '2026-01-15')`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    expect(res.status).toBe(200);
+    // 10 * 0.7 = 7 → 2026-01-15 + 7 days = 2026-01-22
+    expect(res.body.next_water_date).toBe('2026-01-22');
+    // current_interval in DB unchanged
+    expect(res.body.current_interval).toBe(10);
+  });
+
+  it('does not apply modifier outside heating season', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-15T12:00:00Z'));
+
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Aloe', 10, 10, 0.7, '2026-07-15')`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    // Outside heating season → uses base interval 10, so 2026-07-15 + 10 = 2026-07-25
+    expect(res.body.next_water_date).toBe('2026-07-25');
+  });
+
+  it('logs seasonal_adjustment event when interval differs', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+
+    const { lastInsertRowid: plantId } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Pothos', 10, 10, 0.7, '2026-01-15')`
+    ).run();
+
+    await request(app).post(`/api/plants/${plantId}/water`);
+
+    const events = db.prepare(
+      `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'seasonal_adjustment'`
+    ).all(plantId);
+    expect(events).toHaveLength(1);
+  });
+
+  it('does not log seasonal_adjustment when modifier is 1.0', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+
+    const { lastInsertRowid: plantId } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Cactus', 10, 10, 1.0, '2026-01-15')`
+    ).run();
+
+    await request(app).post(`/api/plants/${plantId}/water`);
+
+    const events = db.prepare(
+      `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'seasonal_adjustment'`
+    ).all(plantId);
+    expect(events).toHaveLength(0);
   });
 });
 
