@@ -127,4 +127,27 @@ export function initializeSchema(db: Database.Database): void {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      category TEXT NOT NULL CHECK(category IN ('bug', 'feature', 'improvement', 'other')),
+      page_path TEXT,
+      status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'in_progress', 'done', 'wont_fix')),
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT
+    )
+  `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS feedback_comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      feedback_id INTEGER NOT NULL REFERENCES feedback(id) ON DELETE CASCADE,
+      body TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT
+    )
+  `).run();
 }
