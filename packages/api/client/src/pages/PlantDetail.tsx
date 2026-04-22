@@ -973,11 +973,17 @@ export function PlantDetail() {
                       {e.reason}
                     </div>
                   )}
-                  {(e.old_value || e.new_value) && (
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-                      {e.old_value} → {e.new_value}
-                    </div>
-                  )}
+                  {e.event_type === 'watered'
+                    ? e.new_value && (
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          {e.new_value}
+                        </div>
+                      )
+                    : (e.old_value || e.new_value) && (
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          {e.old_value} → {e.new_value}
+                        </div>
+                      )}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', flexShrink: 0, textAlign: 'right' }}>
                   {formatDate(e.created_at)}
