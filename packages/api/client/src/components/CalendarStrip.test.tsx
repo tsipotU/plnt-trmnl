@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CalendarStrip } from './CalendarStrip';
@@ -15,16 +15,50 @@ const days = [
 
 describe('CalendarStrip', () => {
   it('renders 7 day cells', () => {
-    render(<CalendarStrip days={days} />);
+    render(<CalendarStrip days={days} selectedDate={null} onDaySelect={() => {}} />);
     expect(screen.getByText('22')).toBeInTheDocument();
     expect(screen.getByText('28')).toBeInTheDocument();
   });
 
   it('expands a day on click to show plant names', async () => {
     const user = userEvent.setup();
-    render(<CalendarStrip days={days} />);
+    render(<CalendarStrip days={days} selectedDate={null} onDaySelect={() => {}} />);
     await user.click(screen.getByText('24'));
     expect(screen.getByText(/Pothos/)).toBeInTheDocument();
     expect(screen.getByText(/Snake/)).toBeInTheDocument();
+  });
+
+  it('calls onDaySelect when a day card is clicked', async () => {
+    const user = userEvent.setup();
+    const onDaySelect = vi.fn();
+    render(<CalendarStrip days={days} selectedDate={null} onDaySelect={onDaySelect} />);
+    await user.click(screen.getByText('24'));
+    expect(onDaySelect).toHaveBeenCalledWith('2026-04-24');
+  });
+
+  it('clears selection when clicking selected day again', async () => {
+    const user = userEvent.setup();
+    const onDaySelect = vi.fn();
+    render(<CalendarStrip days={days} selectedDate="2026-04-24" onDaySelect={onDaySelect} />);
+    await user.click(screen.getByText('24'));
+    expect(onDaySelect).toHaveBeenCalledWith(null);
+  });
+
+  it('visually indicates selected day', () => {
+    const { container } = render(
+      <CalendarStrip days={days} selectedDate="2026-04-24" onDaySelect={() => {}} />,
+    );
+    const dayButtons = container.querySelectorAll('button');
+    const selectedButton = dayButtons[2]; // 2026-04-24 is index 2
+    expect(selectedButton).toHaveStyle('background: var(--accent-muted, rgba(0, 168, 107, 0.15))');
+  });
+
+  it('dims empty-day cards', () => {
+    const { container } = render(
+      <CalendarStrip days={days} selectedDate={null} onDaySelect={() => {}} />,
+    );
+    const dayButtons = container.querySelectorAll('button');
+    const emptyDayButton = dayButtons[1]; // 2026-04-23 has count=0
+    expect(emptyDayButton).toHaveStyle('opacity: 0.6');
   });
 });
