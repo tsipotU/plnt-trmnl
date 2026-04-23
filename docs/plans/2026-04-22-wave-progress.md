@@ -8,17 +8,21 @@
 
 2026-04-22 evening: reshuffled post-test-feedback. Added bug-fix wave. Bumped illustrations (#5) from Wave 6 to Wave 4.
 2026-04-22 late: backlog grooming pass — 16 issues commented (scope boundaries, dependencies, cross-refs, AC additions). #16 retitled (API portion done). 6 dependencies added. No closures or merges — all 25 issues confirmed distinct.
+2026-04-23 mid-day: feedback triage landed 20 new issues (#61–#81), slotted across Waves 4–6.
+2026-04-23 evening: Wave 4 complete. All 6 feature PRs merged (#87 vitest hardening, #88 #9 E2E, #90 #34 URL fix, #91 #35 origin story, #92 #33 archived view, #93 #16 stats card, #94 #32 notes log). Original Wave 4 #5 (illustrations) closed as deferred. Tests: 340 API + 43 renderer + 35 client = 418 total, all green.
 
 ## Wave Plan Status
 
-| Wave | Issues | Status | Notes |
-|------|--------|--------|-------|
-| **Wave 1** | #10 (#20), #8 (#20), #19 (feedback) | ✓ Done | Docker/healthchecks audit confirmed; identifier + feedback shipped. |
-| **Wave 2** | #17, #14, #15, #13 | ✓ Done | Archive, undo-water, seasonal adjustment, welcome state all shipped. |
-| **Wave 3** | #25, #26, #27, #28, #29 (partial), #30, #31, #6, #11, #12 | ⏳ Pending | Bug fixes (JSON render, undo timeout, button copy, flag button); UX polish (archive dialog, memorial toast, pot size, notes log). |
-| **Wave 4** | #5 (BUMPED), #16 (UI only — API done), #9 (tests), #32, #33, #34, #35 | ⏳ Pending | Botanical illustrations, watering history timeline UI (API shipped PR #20), integration tests, notes log, archived plants view, condition remediation, origin story tracking. |
-| **Wave 5** | #1, #2, #3 (expanded), #4, #36, #37, #38, #39 | ⏳ Pending | Plant catalog, streamlined add-plant, rich care profiles, species facts, dry-soil scheduling, deep plant info, daily facts, did-you-mean fallback. |
-| **Wave 6** | #40 (design pass), #7, #18 | ⏳ Deferred | Frontend design pass, TRMNL visual redesign, auto-detect conditions. |
+| Wave | Issues | Status |
+|------|--------|--------|
+| **Wave 1** | #10 (#20), #8 (#20), #19 (feedback) | ✓ Done |
+| **Wave 2** | #17, #14, #15, #13 | ✓ Done |
+| **Wave 3** | #25–31, #6, #11, #12 | ✓ Done — 11 PRs (#41–51) |
+| **Wave 4** | #5 (deferred), #9, #16, #32, #33, #34, #35, #61–69, #73 | **✓ Done** — 6 PRs (#87, #88, #90–94) |
+| **Wave 5** | #1–4, #36–39, #70–72, #74–77 | ⏳ Pending |
+| **Wave 6** | #7, #18, #40, #78–81 | ⏳ Deferred (design-pass wave) |
+
+Per-session summary + what-to-pick-up-next lives in [`HANDOFF.md`](HANDOFF.md).
 
 ## Grooming Notes (2026-04-22 late)
 
