@@ -7,6 +7,7 @@ import { TrmnlPreview } from './pages/TrmnlPreview.js';
 import { TrmnlSetup } from './pages/TrmnlSetup.js';
 import { FeedbackList } from './pages/FeedbackList.js';
 import { FeedbackDetail } from './pages/FeedbackDetail.js';
+import { ArchivedPlants } from './pages/ArchivedPlants.js';
 import { FeedbackButton } from './components/FeedbackButton.js';
 import { DialogProvider } from './context/DialogContext.js';
 
@@ -75,6 +76,15 @@ function Header() {
           Setup
         </Link>
         <Link
+          to="/archived"
+          style={{
+            color: location.pathname === '/archived' ? 'var(--accent)' : 'var(--text-secondary)',
+            fontSize: 14,
+          }}
+        >
+          Archived
+        </Link>
+        <Link
           to="/feedback"
           style={{
             color: location.pathname.startsWith('/feedback')
@@ -103,6 +113,7 @@ export function App() {
             <Route path="/facts" element={<FactManagement />} />
             <Route path="/preview" element={<TrmnlPreview />} />
             <Route path="/setup" element={<TrmnlSetup />} />
+            <Route path="/archived" element={<ArchivedPlants />} />
             <Route path="/feedback" element={<FeedbackList />} />
             <Route path="/feedback/:id" element={<FeedbackDetail />} />
           </Routes>
