@@ -47,6 +47,10 @@ The renderer has no direct database access — it only talks to the API over the
 - **Welcome empty state** — contextual hints for new users on plant creation; celebration toast on first plant
 - **Mobile-first management UI** — optimised for iPhone 15 Pro; single-handed watering log in two taps; 44px minimum touch targets throughout
 
+## Roadmap
+
+Forward-looking plans live in [`docs/ROADMAP.md`](docs/ROADMAP.md). Near-term: Wave 4 (timeline polish, visuals, E2E tests) and Wave 5 (plant catalog, fact generation, deep care info).
+
 ## Tech Stack
 
 | Layer | Technology |
