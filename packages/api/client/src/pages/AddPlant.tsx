@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
+type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
+
+interface ExistingPlant {
+  id: number;
+  name: string;
+}
 
 const POT_SIZE_OPTIONS: { value: string; label: string; cm: number }[] = [
   { value: 'Extra Small', label: 'Extra Small (5–10 cm)', cm: 8 },
@@ -33,6 +39,10 @@ export function AddPlant() {
   const [location, setLocation] = useState('');
   const [lightLevel, setLightLevel] = useState<string>('');
   const [plantSize, setPlantSize] = useState<string>('medium');
+  const [originType, setOriginType] = useState<OriginType>('');
+  const [originSource, setOriginSource] = useState('');
+  const [motherPlantId, setMotherPlantId] = useState<string>('');
+  const [existingPlants, setExistingPlants] = useState<ExistingPlant[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [enriching, setEnriching] = useState(false);
@@ -44,8 +54,15 @@ export function AddPlant() {
   useEffect(() => {
     fetch('/api/plants')
       .then((r) => (r.ok ? r.json() : []))
-      .then((data: unknown[]) => setIsFirstPlant(Array.isArray(data) && data.length === 0))
-      .catch(() => setIsFirstPlant(false));
+      .then((data: unknown) => {
+        const list = Array.isArray(data) ? (data as ExistingPlant[]) : [];
+        setIsFirstPlant(list.length === 0);
+        setExistingPlants(list.filter((p) => p && typeof p.id === 'number' && p.name));
+      })
+      .catch(() => {
+        setIsFirstPlant(false);
+        setExistingPlants([]);
+      });
   }, []);
 
   function resolveLastWateredAt(): string {
@@ -75,6 +92,13 @@ export function AddPlant() {
       location: location.trim(),
       lightLevel: lightLevel,
       lastWateredAt: resolveLastWateredAt(),
+      origin_type: originType || null,
+      origin_source:
+        (originType === 'purchased' || originType === 'received') && originSource.trim()
+          ? originSource.trim()
+          : null,
+      mother_plant_id:
+        originType === 'seedling' && motherPlantId ? Number(motherPlantId) : null,
     };
 
     try {
@@ -416,6 +440,68 @@ export function AddPlant() {
               <option value="large">Large</option>
             </select>
           </div>
+
+          {/* Origin */}
+          <div>
+            <label
+              htmlFor="originType"
+              style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
+            >
+              Origin
+            </label>
+            <select
+              id="originType"
+              value={originType}
+              onChange={(e) => setOriginType(e.target.value as OriginType)}
+            >
+              <option value="">— choose —</option>
+              <option value="purchased">Purchased</option>
+              <option value="received">Received as gift</option>
+              <option value="seedling">Grown from seedling</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+
+          {(originType === 'purchased' || originType === 'received') && (
+            <div>
+              <label
+                htmlFor="originSource"
+                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
+              >
+                {originType === 'purchased' ? 'Shop or source' : 'From whom'}
+              </label>
+              <input
+                id="originSource"
+                type="text"
+                value={originSource}
+                onChange={(e) => setOriginSource(e.target.value)}
+                placeholder={originType === 'purchased' ? 'e.g. Intratuin Amsterdam' : 'e.g. Mom'}
+              />
+            </div>
+          )}
+
+          {originType === 'seedling' && existingPlants.length > 0 && (
+            <div>
+              <label
+                htmlFor="motherPlantId"
+                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
+              >
+                Mother plant
+              </label>
+              <select
+                id="motherPlantId"
+                value={motherPlantId}
+                onChange={(e) => setMotherPlantId(e.target.value)}
+              >
+                <option value="">— optional —</option>
+                {existingPlants.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Inline error */}
