@@ -22,6 +22,29 @@ interface Plant {
   illustration_path: string | null;
   notes: string | null;
   archived: number;
+  origin_type: 'purchased' | 'received' | 'seedling' | 'unknown' | null;
+  origin_source: string | null;
+  mother_plant_id: number | null;
+}
+
+const ORIGIN_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: '— unset —' },
+  { value: 'purchased', label: 'Purchased' },
+  { value: 'received', label: 'Received as gift' },
+  { value: 'seedling', label: 'Grown from seedling' },
+  { value: 'unknown', label: 'Unknown' },
+];
+
+function formatOriginSummary(
+  type: Plant['origin_type'],
+  source: string | null,
+  motherName: string | null,
+): string {
+  if (!type) return '—';
+  if (type === 'purchased') return source ? `Purchased from ${source}` : 'Purchased';
+  if (type === 'received') return source ? `Gift from ${source}` : 'Gift';
+  if (type === 'seedling') return motherName ? `Seedling of ${motherName}` : 'Grown from seedling';
+  return 'Unknown origin';
 }
 
 interface Condition {
@@ -793,6 +816,46 @@ export function PlantDetail() {
               onSave={(v) => updatePlant({ light_level: v }).catch(() => showToast('Failed to save'))}
               style={{ fontSize: 15 }}
             />
+          </div>
+
+          {/* Origin */}
+          <div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
+              Origin
+            </div>
+            <EditableSelect
+              value={plant.origin_type ?? ''}
+              options={ORIGIN_TYPE_OPTIONS}
+              onSave={(v) =>
+                updatePlant({ origin_type: v === '' ? null : v }).catch(() =>
+                  showToast('Failed to save'),
+                )
+              }
+              style={{ fontSize: 15 }}
+            />
+            {(plant.origin_type === 'purchased' || plant.origin_type === 'received') && (
+              <div style={{ marginTop: 6 }}>
+                <EditableField
+                  value={plant.origin_source ?? ''}
+                  onSave={(v) =>
+                    updatePlant({ origin_source: v.trim() === '' ? null : v.trim() }).catch(() =>
+                      showToast('Failed to save'),
+                    )
+                  }
+                  placeholder={plant.origin_type === 'purchased' ? 'Shop or source' : 'From whom'}
+                  style={{ fontSize: 14, color: 'var(--text-secondary)' }}
+                />
+              </div>
+            )}
+            {plant.origin_type && (
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
+                {formatOriginSummary(
+                  plant.origin_type,
+                  plant.origin_source,
+                  plant.mother_plant_id != null ? `#${plant.mother_plant_id}` : null,
+                )}
+              </div>
+            )}
           </div>
 
           {/* Plant size */}
