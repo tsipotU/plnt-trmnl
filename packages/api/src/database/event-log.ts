@@ -7,13 +7,21 @@ export interface LogEventInput {
   oldValue?: string;
   newValue?: string;
   reason: string;
+  batchId?: string;
 }
 
 export function logEvent(db: Database.Database, input: LogEventInput): void {
   db.prepare(
-    `INSERT INTO event_log (plant_id, event_type, old_value, new_value, reason)
-     VALUES (?, ?, ?, ?, ?)`
-  ).run(input.plantId, input.eventType, input.oldValue ?? null, input.newValue ?? null, input.reason);
+    `INSERT INTO event_log (plant_id, event_type, old_value, new_value, reason, batch_id)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(
+    input.plantId,
+    input.eventType,
+    input.oldValue ?? null,
+    input.newValue ?? null,
+    input.reason,
+    input.batchId ?? null,
+  );
 }
 
 export function getEventsForPlant(db: Database.Database, plantId: number, limit = 50): any[] {

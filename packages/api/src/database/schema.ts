@@ -108,6 +108,7 @@ export function initializeSchema(db: Database.Database): void {
       old_value TEXT,
       new_value TEXT,
       reason TEXT,
+      batch_id TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     )
   `).run();
@@ -161,6 +162,7 @@ export function initializeSchema(db: Database.Database): void {
   addColumnIfMissing(db, 'plants', 'archive_reason', 'TEXT');
   addColumnIfMissing(db, 'plants', 'archive_note', 'TEXT');
   addColumnIfMissing(db, 'plants', 'pot_size_category', 'TEXT');
+  addColumnIfMissing(db, 'event_log', 'batch_id', 'TEXT');
 }
 
 function addColumnIfMissing(
