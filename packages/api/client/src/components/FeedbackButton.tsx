@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useDialogContext } from '../context/DialogContext';
 
 type Category = 'bug' | 'feature' | 'improvement' | 'other';
 
@@ -12,6 +13,12 @@ const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
 
 export function FeedbackButton() {
   const [open, setOpen] = useState(false);
+  const { isArchiveDialogOpen } = useDialogContext();
+
+  // Hide the FAB while the archive dialog is open
+  if (isArchiveDialogOpen) {
+    return null;
+  }
 
   return (
     <>

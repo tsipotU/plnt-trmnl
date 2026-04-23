@@ -8,6 +8,7 @@ import { TrmnlSetup } from './pages/TrmnlSetup.js';
 import { FeedbackList } from './pages/FeedbackList.js';
 import { FeedbackDetail } from './pages/FeedbackDetail.js';
 import { FeedbackButton } from './components/FeedbackButton.js';
+import { DialogProvider } from './context/DialogContext.js';
 
 function Header() {
   const location = useLocation();
@@ -91,21 +92,23 @@ function Header() {
 
 export function App() {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <Header />
-      <main style={{ flex: 1, padding: 16 }}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/plants/:id" element={<PlantDetail />} />
-          <Route path="/add" element={<AddPlant />} />
-          <Route path="/facts" element={<FactManagement />} />
-          <Route path="/preview" element={<TrmnlPreview />} />
-          <Route path="/setup" element={<TrmnlSetup />} />
-          <Route path="/feedback" element={<FeedbackList />} />
-          <Route path="/feedback/:id" element={<FeedbackDetail />} />
-        </Routes>
-      </main>
-      <FeedbackButton />
-    </div>
+    <DialogProvider>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+        <Header />
+        <main style={{ flex: 1, padding: 16 }}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/plants/:id" element={<PlantDetail />} />
+            <Route path="/add" element={<AddPlant />} />
+            <Route path="/facts" element={<FactManagement />} />
+            <Route path="/preview" element={<TrmnlPreview />} />
+            <Route path="/setup" element={<TrmnlSetup />} />
+            <Route path="/feedback" element={<FeedbackList />} />
+            <Route path="/feedback/:id" element={<FeedbackDetail />} />
+          </Routes>
+        </main>
+        <FeedbackButton />
+      </div>
+    </DialogProvider>
   );
 }
