@@ -2,6 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArchiveDialog } from '../components/ArchiveDialog';
 import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
+import {
+  daysBetween,
+  computeIntervalHistory,
+  trendLabel,
+  countWaterings,
+} from '../utils/stats';
 
 // --- Types ---
 
@@ -25,6 +31,8 @@ interface Plant {
   origin_type: 'purchased' | 'received' | 'seedling' | 'unknown' | null;
   origin_source: string | null;
   mother_plant_id: number | null;
+  is_converged: number | null;
+  created_at: string | null;
 }
 
 const ORIGIN_TYPE_OPTIONS: { value: string; label: string }[] = [
@@ -117,6 +125,27 @@ function severityColor(severity: string): string {
 }
 
 const ACTIVE_CONDITIONS_EXPLANATION = 'Conditions are problems affecting your plant — things like root rot, leaf yellowing, or pest infestations. When flagged, plnt-trmnl suggests how to address them.';
+
+function StatCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 11,
+          color: 'var(--text-secondary)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: 2,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ fontSize: 18, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+    </div>
+  );
+}
 
 // --- Inline editable field ---
 
@@ -1050,11 +1079,73 @@ export function PlantDetail() {
         )}
       </div>
 
+      {/* Summary stats + calibration trend */}
+      {(() => {
+        const wateringCount = countWaterings(events);
+        const daysSinceAdded = plant.created_at
+          ? daysBetween(plant.created_at, new Date().toISOString())
+          : null;
+        const intervalHistory = computeIntervalHistory(events);
+        const trend = trendLabel(intervalHistory);
+        return (
+          <div className="card" style={{ marginBottom: 12 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Health overview</h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                gap: 12,
+                marginBottom: intervalHistory.length > 0 ? 16 : 0,
+              }}
+            >
+              <StatCell label="Total waterings" value={String(wateringCount)} />
+              <StatCell
+                label="Current interval"
+                value={plant.current_interval ? `${plant.current_interval} days` : '—'}
+              />
+              <StatCell
+                label="Days since added"
+                value={daysSinceAdded != null ? String(daysSinceAdded) : '—'}
+              />
+              <StatCell
+                label="Status"
+                value={plant.is_converged ? 'Converged ✓' : 'Calibrating'}
+              />
+            </div>
+            {intervalHistory.length > 0 && (
+              <div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--text-secondary)',
+                    marginBottom: 6,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Calibration trend
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  {intervalHistory.join(' → ')}
+                </div>
+                {trend && (
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+                    {trend}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Event timeline */}
       <div className="card" style={{ marginBottom: 12 }}>
         <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>History</h2>
         {events.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>No events yet</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+            No care history yet — water your plant for the first time to start tracking.
+          </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {events.map((e, i) => (
