@@ -5,6 +5,8 @@ import { VacationToggle } from '../components/VacationToggle.js';
 import { CalibrationModal } from '../components/CalibrationModal.js';
 import { CalibrationSequence } from '../components/CalibrationSequence.js';
 import { BatchUndoToast } from '../components/BatchUndoToast.js';
+import { CalendarStrip } from '../components/CalendarStrip.js';
+import { useWeekSchedule } from '../hooks/useWeekSchedule.js';
 import type { Plant } from '../components/PlantCard.js';
 
 export function Dashboard() {
@@ -15,6 +17,7 @@ export function Dashboard() {
   const [calibQueue, setCalibQueue] = useState<number[] | null>(null);
   const [batchToast, setBatchToast] = useState<{ batchId: string; count: number } | null>(null);
   const [batching, setBatching] = useState(false);
+  const { days: scheduleDays, refresh: refreshSchedule } = useWeekSchedule();
 
   const loadPlants = useCallback(() => {
     return fetch('/api/plants')
@@ -50,6 +53,7 @@ export function Dashboard() {
       if (!res.ok) return;
       const data = (await res.json()) as { batch_id: string; watered: unknown[] };
       await loadPlants();
+      await refreshSchedule();
       setBatchToast({ batchId: data.batch_id, count: data.watered.length });
       setCalibQueue(ids);
     } finally {
@@ -84,6 +88,9 @@ export function Dashboard() {
         </h1>
         <VacationToggle />
       </div>
+
+      {/* 7-day upcoming watering calendar */}
+      {scheduleDays.length > 0 && <CalendarStrip days={scheduleDays} />}
 
       {/* Water all — only when 2+ plants are due today */}
       {!loading && dueToday.length >= 2 && (
@@ -236,6 +243,7 @@ export function Dashboard() {
             setBatchToast(null);
             setCalibQueue(null);
             loadPlants();
+            refreshSchedule();
           }}
           onDismiss={() => setBatchToast(null)}
         />
