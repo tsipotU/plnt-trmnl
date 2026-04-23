@@ -17,6 +17,7 @@ export function Dashboard() {
   const [calibQueue, setCalibQueue] = useState<number[] | null>(null);
   const [batchToast, setBatchToast] = useState<{ batchId: string; count: number } | null>(null);
   const [batching, setBatching] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { days: scheduleDays, refresh: refreshSchedule } = useWeekSchedule();
 
   const loadPlants = useCallback(() => {
@@ -37,6 +38,11 @@ export function Dashboard() {
   const dueToday = plants.filter(
     (p) => p.next_water_date != null && p.next_water_date <= today,
   );
+
+  // Filter plants by selected date if a date is selected
+  const filteredPlants = selectedDate
+    ? plants.filter((p) => p.next_water_date === selectedDate)
+    : plants;
 
   const plantNames = Object.fromEntries(plants.map((p) => [p.id, p.name] as const));
 
@@ -90,7 +96,9 @@ export function Dashboard() {
       </div>
 
       {/* 7-day upcoming watering calendar */}
-      {scheduleDays.length > 0 && <CalendarStrip days={scheduleDays} />}
+      {scheduleDays.length > 0 && (
+        <CalendarStrip days={scheduleDays} selectedDate={selectedDate} onDaySelect={setSelectedDate} />
+      )}
 
       {/* Water all — only when 2+ plants are due today */}
       {!loading && dueToday.length >= 2 && (
@@ -198,10 +206,23 @@ export function Dashboard() {
         </div>
       )}
 
+      {/* Empty state for filter */}
+      {!loading && !error && plants.length > 0 && selectedDate && filteredPlants.length === 0 && (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '40px 16px',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          No plants scheduled for this day
+        </div>
+      )}
+
       {/* Plant list */}
-      {!loading && !error && plants.length > 0 && (
+      {!loading && !error && plants.length > 0 && filteredPlants.length > 0 && (
         <div>
-          {plants.map((plant) => (
+          {filteredPlants.map((plant) => (
             <PlantCard key={plant.id} plant={plant} />
           ))}
         </div>
