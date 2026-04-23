@@ -32,6 +32,7 @@ interface Plant {
   origin_type: 'purchased' | 'received' | 'seedling' | 'unknown' | null;
   origin_source: string | null;
   mother_plant_id: number | null;
+  mother_plant_name: string | null;
   is_converged: number | null;
   created_at: string | null;
 }
@@ -867,7 +868,8 @@ export function PlantDetail() {
                 {formatOriginSummary(
                   plant.origin_type,
                   plant.origin_source,
-                  plant.mother_plant_id != null ? `#${plant.mother_plant_id}` : null,
+                  plant.mother_plant_name ??
+                    (plant.mother_plant_id != null ? `#${plant.mother_plant_id}` : null),
                 )}
               </div>
             )}
