@@ -74,6 +74,20 @@ Express 5 uses promise-based middleware. Do NOT use callback-style error handler
 - Design spec: `docs/specs/2026-04-07-plant-trmnl-design.md`
 - Implementation plan: `docs/plans/2026-04-07-plant-trmnl-plan.md`
 
+## Test Execution Rules (Resource Safety)
+
+On 2026-04-23 (and 2026-04-22), unbounded Vitest parallelism on this Mac Mini consumed enough RAM to freeze the system and force an SSH-only recovery. See `docs/incidents/2026-04-23-vitest-resource-exhaustion.md`. Rules to prevent recurrence:
+
+- Use `npm test` (= `vitest run`), never bare `vitest` or `--watch` on this headless machine. `test:watch` is explicit opt-in only.
+- All vitest configs cap concurrency via `pool: 'forks'` + `maxForks: 2`. Do not remove or raise these caps without discussing trade-offs first.
+- If a run exceeds 2 minutes, **check progress before assuming trouble**:
+  - Is the test counter advancing? Is RSS sawtoothing (healthy) or monotonic (leak)?
+  - High CPU + no progress → likely infinite loop. Use `sample <pid> 3` to confirm.
+  - Low CPU + no progress → likely awaiting unmocked I/O (network, Claude Agent SDK, fs).
+- Kill only after diagnosing — never on a blind timer.
+- **Hard ceiling:** if total RSS across vitest processes exceeds 3GB, kill regardless. That's the system-safety line.
+- Never spawn real Claude Agent SDK calls inside test suites without mocking — that path is how a single test can balloon to 800MB+.
+
 ## Gotchas
 
 - `better-sqlite3` is synchronous — do not mix with async DB patterns
