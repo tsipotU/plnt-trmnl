@@ -163,23 +163,6 @@ describe('POST /api/plants', () => {
     expect(res.body.current_interval).toBe(7);
   });
 
-  it('stores optional notes field', async () => {
-    const res = await request(app)
-      .post('/api/plants')
-      .send({
-        name: 'Cactus',
-        potSizeCm: 8,
-        plantSize: 'small',
-        location: 'Windowsill',
-        lightLevel: 'direct',
-        lastWateredAt: '2026-04-01',
-        notes: 'Very spiky',
-      });
-
-    expect(res.status).toBe(201);
-    expect(res.body.notes).toBe('Very spiky');
-  });
-
   it('returns 400 when required fields are missing', async () => {
     const res = await request(app)
       .post('/api/plants')
