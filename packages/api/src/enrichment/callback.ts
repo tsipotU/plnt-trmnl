@@ -2,7 +2,8 @@ import { Router, Request, Response } from 'express';
 import type Database from 'better-sqlite3';
 import pino from 'pino';
 import { calculateNextWaterDate } from '../scheduling/engine.js';
-import { logEvent } from '../database/event-log.js';
+import { logEvent, logScheduleEvents } from '../database/event-log.js';
+import { scheduleNextWater, type ScheduledPlant } from '../scheduling/bin-packer.js';
 
 const logger = pino({ name: 'enrichment.callback' });
 
@@ -37,6 +38,7 @@ interface EnrichmentCallbackBody {
 interface PlantRow {
   id: number;
   last_watered_at: string | null;
+  location: string | null;
   [key: string]: unknown;
 }
 
@@ -56,9 +58,21 @@ export function createEnrichmentRouter(db: Database.Database): Router {
 
     const newInterval = body.base_interval;
     const lastWateredAt = plant.last_watered_at;
-    const nextWaterDate = lastWateredAt
+    const idealDate = lastWateredAt
       ? calculateNextWaterDate(lastWateredAt, newInterval)
       : null;
+
+    let scheduled: ReturnType<typeof scheduleNextWater> | null = null;
+    let nextWaterDate: string | null = null;
+    if (idealDate) {
+      const existing = db.prepare(
+        `SELECT id, location, next_water_date as nextWaterDate
+           FROM plants
+           WHERE archived = 0 AND id != ? AND next_water_date IS NOT NULL`
+      ).all(plantId) as ScheduledPlant[];
+      scheduled = scheduleNextWater(idealDate, plant.location ?? '', existing);
+      nextWaterDate = scheduled.date;
+    }
 
     // 1. Update plant with enrichment data
     db.prepare(
@@ -127,6 +141,10 @@ export function createEnrichmentRouter(db: Database.Database): Router {
       newValue: String(newInterval),
       reason: 'Enrichment data received from n8n',
     });
+
+    if (scheduled) {
+      logScheduleEvents(db, plantId, scheduled);
+    }
 
     logger.info({ plantId }, 'enrichment callback processed');
 

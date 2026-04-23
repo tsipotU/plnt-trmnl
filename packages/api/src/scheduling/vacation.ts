@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
-import { findBestDate, type ScheduledPlant } from './bin-packer.js';
+import { scheduleNextWater, type ScheduledPlant } from './bin-packer.js';
 import { calculateNextWaterDate } from './engine.js';
-import { logEvent } from '../database/event-log.js';
+import { logEvent, logScheduleEvents } from '../database/event-log.js';
 
 /**
  * Check if vacation mode is currently active.
@@ -55,7 +55,7 @@ export function endVacation(db: Database.Database, today?: string): void {
 
   for (const plant of plants) {
     const idealDate = calculateNextWaterDate(currentDate, plant.current_interval);
-    const bestDate = findBestDate(idealDate, plant.location ?? '', scheduled);
+    const result = scheduleNextWater(idealDate, plant.location ?? '', scheduled);
 
     // Update this plant
     db.prepare(
@@ -64,13 +64,15 @@ export function endVacation(db: Database.Database, today?: string): void {
          next_water_date = ?,
          updated_at      = datetime('now')
        WHERE id = ?`
-    ).run(currentDate, bestDate, plant.id);
+    ).run(currentDate, result.date, plant.id);
+
+    logScheduleEvents(db, plant.id, result);
 
     // Add to scheduled list so subsequent plants see already-assigned dates
     scheduled.push({
       id: plant.id,
       location: plant.location ?? '',
-      nextWaterDate: bestDate,
+      nextWaterDate: result.date,
     });
   }
 

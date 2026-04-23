@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import type Database from 'better-sqlite3';
 import { calculateNextWaterDate, calculateRepotAdjustment } from '../scheduling/engine.js';
-import { logEvent, getEventsForPlant } from '../database/event-log.js';
+import { logEvent, getEventsForPlant, logScheduleEvents } from '../database/event-log.js';
 import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
 import { getSeasonalAdjustedInterval } from '../scheduling/seasonal.js';
+import { scheduleNextWater, type ScheduledPlant } from '../scheduling/bin-packer.js';
 import type { Config } from '../config.js';
 
 type HeatingSeasonConfig = Pick<Config, 'heatingSeasonStart' | 'heatingSeasonEnd'>;
@@ -157,14 +158,28 @@ export function createPlantsRouter(
       oldPotSizeCm !== undefined &&
       potSizeCm !== oldPotSizeCm;
 
+    let scheduledOnPut: ReturnType<typeof scheduleNextWater> | null = null;
+
     if (potSizeChanged && oldPotSizeCm) {
       newInterval = calculateRepotAdjustment(newInterval, oldPotSizeCm, potSizeCm);
       isConverged = 0;
 
-      // Recalculate next_water_date from last_watered_at if available
+      // Recalculate next_water_date from last_watered_at if available,
+      // funneling through scheduleNextWater so we get overflow/congested metadata.
       const lastWatered = existing.last_watered_at as string | null;
       if (lastWatered) {
-        nextWaterDate = calculateNextWaterDate(lastWatered, newInterval);
+        const idealDate = calculateNextWaterDate(lastWatered, newInterval);
+        const activeSchedule = db.prepare(
+          `SELECT id, location, next_water_date as nextWaterDate
+             FROM plants
+             WHERE archived = 0 AND id != ? AND next_water_date IS NOT NULL`
+        ).all(plantId) as ScheduledPlant[];
+        scheduledOnPut = scheduleNextWater(
+          idealDate,
+          (existing.location as string) ?? '',
+          activeSchedule,
+        );
+        nextWaterDate = scheduledOnPut.date;
       }
 
       logEvent(db, {
@@ -207,6 +222,10 @@ export function createPlantsRouter(
       plantId
     );
 
+    if (scheduledOnPut) {
+      logScheduleEvents(db, plantId, scheduledOnPut);
+    }
+
     const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
     res.json(updated);
   });
@@ -233,7 +252,14 @@ export function createPlantsRouter(
     const effectiveInterval = heatingConfig
       ? getSeasonalAdjustedInterval(currentInterval, modifier, today, heatingConfig)
       : currentInterval;
-    const nextWaterDate = calculateNextWaterDate(today, effectiveInterval);
+    const idealDate = calculateNextWaterDate(today, effectiveInterval);
+    const existingSchedule = db.prepare(
+      `SELECT id, location, next_water_date as nextWaterDate
+         FROM plants
+         WHERE archived = 0 AND id != ? AND next_water_date IS NOT NULL`
+    ).all(plantId) as ScheduledPlant[];
+    const scheduled = scheduleNextWater(idealDate, (plant.location as string) ?? '', existingSchedule);
+    const nextWaterDate = scheduled.date;
     const calibrationCycle = (plant.calibration_cycle as number) + 1;
 
     // Capture pre-state so the event can be undone.
@@ -269,6 +295,8 @@ export function createPlantsRouter(
         reason: `Heating season active; interval ${currentInterval} → ${effectiveInterval} (×${modifier})`,
       });
     }
+
+    logScheduleEvents(db, plantId, scheduled);
 
     const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
     res.json(updated);

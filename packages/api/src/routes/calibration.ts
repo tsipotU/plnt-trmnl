@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import type Database from 'better-sqlite3';
 import { adjustInterval, checkConvergence } from '../scheduling/calibration.js';
-import { logEvent } from '../database/event-log.js';
+import { calculateNextWaterDate } from '../scheduling/engine.js';
+import { logEvent, logScheduleEvents } from '../database/event-log.js';
+import { scheduleNextWater, type ScheduledPlant } from '../scheduling/bin-packer.js';
 
 interface PlantRow {
   id: number;
@@ -9,6 +11,8 @@ interface PlantRow {
   calibration_cycle: number;
   is_converged: number;
   archived: number;
+  last_watered_at: string | null;
+  location: string | null;
   next_water_date: string | null;
   [key: string]: unknown;
 }
@@ -134,6 +138,21 @@ export function createCalibrationRouter(db: Database.Database): Router {
       newValue: String(newInterval),
       reason: `Calibration answer: ${answerValue}/5`,
     });
+
+    // If the interval changed and we have a last_watered_at, recompute
+    // next_water_date through the bin-packer so overflow/congested events fire.
+    if (newInterval !== oldInterval && plant.last_watered_at) {
+      const idealDate = calculateNextWaterDate(plant.last_watered_at, newInterval);
+      const existing = db.prepare(
+        `SELECT id, location, next_water_date as nextWaterDate
+           FROM plants
+           WHERE archived = 0 AND id != ? AND next_water_date IS NOT NULL`
+      ).all(plant.id) as ScheduledPlant[];
+      const scheduled = scheduleNextWater(idealDate, plant.location ?? '', existing);
+
+      db.prepare(`UPDATE plants SET next_water_date = ? WHERE id = ?`).run(scheduled.date, plant.id);
+      logScheduleEvents(db, plant.id, scheduled);
+    }
 
     const updated = db
       .prepare(`SELECT * FROM plants WHERE id = ?`)
