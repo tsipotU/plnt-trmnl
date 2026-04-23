@@ -78,6 +78,7 @@ function eventIcon(type: string): string {
     enrichment_complete: '✨',
     enrichment_failed: '❌',
     overflow_rebalance: '🔄',
+    schedule_congested: '🚦',
     archived: '📦',
     fact_disabled: '🚫',
     vacation_start: '✈️',
@@ -919,12 +920,8 @@ export function PlantDetail() {
                       {e.reason}
                     </div>
                   )}
-                  {e.event_type === 'watered'
-                    ? e.new_value && (
-                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-                          {e.new_value}
-                        </div>
-                      )
+                  {['watered', 'overflow_rebalance', 'schedule_congested'].includes(e.event_type)
+                    ? null
                     : (e.old_value || e.new_value) && (
                         <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
                           {e.old_value} → {e.new_value}

@@ -442,6 +442,54 @@ describe('POST /api/plants/:id/water — overflow rebalance', () => {
     ).all(plantCId);
     expect(events.length).toBe(1);
   });
+
+  it('logs schedule_congested and keeps ideal date when ±3-day window is full', async () => {
+    // Today is computed in the route; ideal next water = today+7 (default interval).
+    const today = new Date().toISOString().split('T')[0];
+    const t = new Date(today);
+    t.setUTCDate(t.getUTCDate() + 7);
+    const idealDate = t.toISOString().split('T')[0];
+
+    // Seed the full ±3-day window at capacity (2 plants × 7 days = 14).
+    // Covers ideal-3, ideal-2, ideal-1, ideal, ideal+1, ideal+2, ideal+3.
+    const insertFiller = db.prepare(
+      `INSERT INTO plants (name, location, base_interval, current_interval, next_water_date)
+       VALUES (?, 'Living', 7, 7, ?)`
+    );
+    for (let delta = -3; delta <= 3; delta++) {
+      const d = new Date(idealDate);
+      d.setUTCDate(d.getUTCDate() + delta);
+      const dayStr = d.toISOString().slice(0, 10);
+      insertFiller.run(`Filler ${delta}a`, dayStr);
+      insertFiller.run(`Filler ${delta}b`, dayStr);
+    }
+
+    // Plant under test — no current schedule. When watered today, ideal = today+7.
+    const { lastInsertRowid: plantId } = db.prepare(
+      `INSERT INTO plants (name, location, base_interval, current_interval, next_water_date)
+       VALUES ('Congested Plant', 'Living', 7, 7, NULL)`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${plantId}/water`);
+    expect(res.status).toBe(200);
+    // Window is full — no shift possible, ideal date is kept.
+    expect(res.body.next_water_date).toBe(idealDate);
+
+    const events = db.prepare(
+      `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'schedule_congested'`
+    ).all(plantId) as Array<{ old_value: string | null; new_value: string | null }>;
+    expect(events.length).toBe(1);
+    expect(events[0].new_value).toBeNull();
+    expect(events[0].old_value).not.toBeNull();
+    const parsed = JSON.parse(events[0].old_value as string);
+    expect(parsed.ideal).toBe(idealDate);
+
+    // And no overflow_rebalance event was emitted (mutually exclusive).
+    const overflow = db.prepare(
+      `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'overflow_rebalance'`
+    ).all(plantId);
+    expect(overflow.length).toBe(0);
+  });
 });
 
 describe('POST /api/plants/:id/archive', () => {
