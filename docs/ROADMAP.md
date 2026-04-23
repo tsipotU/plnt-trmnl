@@ -54,15 +54,30 @@ Plant TRMNL will be published publicly for TRMNL community self-hosting. This is
 
 These are the hard design questions that shape what gets built:
 
-#### D1 — Enrichment provider model [DECIDED 2026-04-23]
+#### D1 — Enrichment architecture [REVISED 2026-04-23]
 
-**Decision:** Hybrid catalog + LLM fallback with pluggable provider abstraction.
+**Decision: Enrichment is EXTERNAL to plant-trmnl. No LLM code ships in the app.**
 
-- **Catalog** (issue #1) covers ~250 common species — no LLM calls, no API keys, works offline.
-- **LLM fallback** via `EnrichmentProvider` adapter interface ([issue #53](https://github.com/tsipotU/plant-trmnl/issues/53)) supports Claude, Gemini, Ollama, with a NoopProvider for catalog-only mode. User selects via `LLM_PROVIDER` env var + corresponding API key.
-- **n8n path ripped out** ([issue #52](https://github.com/tsipotU/plant-trmnl/issues/52)) — was tied to Emiel's personal n8n instance; unusable for others. Claude Agent SDK path becomes the baseline `ClaudeProvider` implementation.
+Plant-trmnl becomes a catalog + data store + API. Enrichment happens outside the app — users pick their tool. This maximizes vendor neutrality, eliminates SDK auditing burden, and sidesteps Anthropic's April 4, 2026 billing change.
 
-**Critical billing note (discovered 2026-04-23):** As of April 4 2026 Anthropic no longer covers Agent SDK usage under Claude Max / Pro subscriptions. Every Agent SDK call requires an `ANTHROPIC_API_KEY` and is billed at pay-as-you-go API rates. Emiel should check his Anthropic Console for any unexpected charges since April 4 and decide whether to keep the Claude path as default or promote Gemini / Ollama.
+**What plant-trmnl provides:**
+- **Catalog** (issue #1) — ~250 common species with Latin/English/Dutch names, care data, shipped in repo. Covers 80% of use cases with no external AI needed.
+- **Enrichment API endpoints** — `GET /api/plants?enrichment=pending` returns unenriched plants; `POST /api/plants/:id/enrichment` accepts payload.
+- **Copy-prompt-to-clipboard button** ([issue #56](https://github.com/tsipotU/plant-trmnl/issues/56)) — users click, get a pre-formatted prompt, paste into their AI tool.
+
+**What users choose externally (documented in INSTALL.md):**
+
+| Path | Cost | Fit |
+|---|---|---|
+| **Claude Code Desktop Scheduled Task** | Covered by Claude Max subscription (no API billing) | Best for Mac Mini / always-on desktop users who have Max |
+| **Ollama + cron** | Free, fully local, private | Best for privacy-focused users willing to run an LLM locally |
+| **Gemini free-tier + cron script** | Free within generous limits | Best for casual users who don't want to host anything |
+| **Anthropic API + cron** | Pay per enrichment (~$0.01) | For users with no Max subscription who still want Claude |
+| **Manual entry** | Free | Minimum viable — catalog covers most needs |
+
+[Issue #53 closed](https://github.com/tsipotU/plant-trmnl/issues/53) — LLM provider adapter abstraction is no longer needed in-app. [Issue #52](https://github.com/tsipotU/plant-trmnl/issues/52) expanded to remove ALL in-app LLM integration (Claude Agent SDK + n8n webhook).
+
+**Critical billing note (April 4, 2026):** Anthropic stopped covering Agent SDK under Max. This architecture sidesteps that entirely — plant-trmnl no longer embeds any SDK.
 
 #### D5 — Agent SDK billing audit [NEW 2026-04-23]
 
@@ -88,14 +103,22 @@ Estimated budget: ~$5 one-time for 250 species via Gemini. Contributors can re-r
 
 Per-install image generation ruled out — too slow, too expensive for users, quality too variable.
 
-#### D3 — Keys UX
+#### D3 — Keys UX [DECIDED]
 
-TRMNL device API key and plugin UUID need to be configured per install. Options:
+`.env` + INSTALL.md walkthrough for v1.0. Industry standard for self-hosted tools.
 
-- **.env file + INSTALL.md walkthrough.** Industry standard for self-hosted tools. Users edit `.env` once; restart containers. Recommended for v1.0.
-- **First-run in-app wizard.** Slicker UX, but adds ~3-5× work (DB encryption, session auth, bootstrap flow). Defer to v1.1+ unless users ask.
+#### D6 — License [DECIDED 2026-04-23]
 
-**Decision: .env + INSTALL.md for v1.0.**
+**PolyForm Noncommercial 1.0.0.** Purpose-built for code, non-commercial use, allows personal use + modification + distribution + contributing back. Forbids: selling, bundling into paid products, SaaS hosting for revenue.
+
+File location: `LICENSE` in repo root, text from https://polyformproject.org/licenses/noncommercial/1.0.0/.
+
+Note: This is "source-available" rather than "open source" in the strict OSI sense. Use "community-source-available" in communications instead of "open source." Community-friendly and honest.
+
+Alternatives considered and rejected:
+- MIT / Apache — allow commercial use. Not what Emiel wants.
+- BSL (Business Source License) — reverts to permissive after N years. Overkill for a hobby project.
+- CC-BY-NC-SA — designed for creative works, less precise on code-specific issues.
 
 #### D4 — Settings boundary
 
@@ -249,25 +272,41 @@ Haiku audit run 2026-04-23 found the repo is mostly ready — no secrets in git 
   - Option γ: treat n8n as deprecated, leave the code but don't surface in INSTALL.md.
   - **Recommendation: α — rip out.** Simplifies the architecture, eliminates a dependency on an external service, and the Claude Agent SDK path is already primary.
 
+### Emiel's personal enrichment setup (reference)
+
+Emiel's Mac Mini runs 24/7 on the LAN. Recommended path for his own plant-trmnl install:
+
+- **Tool:** Claude Code Desktop Scheduled Task (local, covered by Max subscription)
+- **Schedule:** Nightly at 3:00 AM (or 3:01 to match existing TRMNL screen refresh time)
+- **Cost pattern:** Guard prompt — if no plants pending enrichment, exit in ~80-100 tokens. Enrichment runs only when there's actual work.
+- **Setup:** Desktop app → Schedule sidebar → New task → Paste guard prompt → Daily at 03:00
+- **Prerequisite:** Desktop app OPEN and Mac AWAKE at 3 AM (Mac Mini always-on satisfies this)
+
+Community users who lack a 24/7 machine have alternative paths documented in INSTALL.md (Ollama, Gemini, etc).
+
 ### Community-release prerequisites tracking
 
 Status checklist — update as items land:
 
 - [x] Hardcoded-secrets audit complete (2026-04-23)
 - [x] TRMNL-X dual-device research complete (2026-04-23) — filed as [issue #55](https://github.com/tsipotU/plant-trmnl/issues/55)
-- [x] D1 enrichment decision locked (2026-04-23) — catalog + LLM adapter, see [issue #53](https://github.com/tsipotU/plant-trmnl/issues/53)
+- [x] D1 enrichment decision locked (2026-04-23) — **external enrichment, no in-app LLM**
 - [x] D2 image strategy locked (2026-04-23) — pre-generated illustrations pipeline, see [issue #54](https://github.com/tsipotU/plant-trmnl/issues/54)
 - [x] D3 keys UX locked — `.env` + INSTALL.md walkthrough
-- [ ] D5: Check Anthropic Console for API usage since April 4 2026; decide which provider is the default for new users
+- [x] D6 license locked — PolyForm Noncommercial 1.0.0
+- [ ] D5: Check Anthropic Console for API usage since April 4 2026 (Emiel action)
 - [ ] Blocker B: clean personal paths in `docs/specs/` and `docs/plans/` (Wave 4 spec task)
 - [ ] Blocker C: make `docker-compose.yml` backup mount portable (Wave 4)
 - [ ] Hygiene A: rotate TRMNL keys (anytime before first public tag)
-- [ ] n8n rip-out — [issue #52](https://github.com/tsipotU/plant-trmnl/issues/52)
+- [ ] Remove ALL in-app LLM integration — [issue #52](https://github.com/tsipotU/plant-trmnl/issues/52) (expanded scope: n8n + Claude Agent SDK)
 - [ ] TRMNL-X support — [issue #55](https://github.com/tsipotU/plant-trmnl/issues/55)
-- [ ] LLM provider abstraction — [issue #53](https://github.com/tsipotU/plant-trmnl/issues/53)
 - [ ] Illustration generation pipeline — [issue #54](https://github.com/tsipotU/plant-trmnl/issues/54)
+- [ ] Catalog (#1) updated with multilingual + broad coverage (cacti/succulents/trees) — [issue #1](https://github.com/tsipotU/plant-trmnl/issues/1)
+- [ ] Copy-prompt-to-clipboard UX — [issue #56](https://github.com/tsipotU/plant-trmnl/issues/56)
+- [ ] Enrichment API endpoints — included in [issue #52](https://github.com/tsipotU/plant-trmnl/issues/52) scope
 - [ ] D4 settings-boundary list finalized (part of audit response)
 - [ ] Release Infra work complete
+- [ ] Release process playbook + CHANGELOG — [issue #57](https://github.com/tsipotU/plant-trmnl/issues/57) (AFTER v1.0.0)
 - [ ] v1.0.0 tagged + released + announced
 - [ ] D1 enrichment decision made + implemented (likely Wave 5 via issues #1, #4)
 - [ ] D2 image decision made (scope for Wave 5 or v1.0 prep)
