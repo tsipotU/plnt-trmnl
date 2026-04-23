@@ -337,9 +337,8 @@ describe('Lifecycle 2: seasonal modifier applied during heating season', () => {
     expect(screenRes.body.type).toBe('watering');
     const plant = screenRes.body.plants[0];
     expect(plant.name).toBe('Pothos');
-    // TODO: the screen card surfaces neither `pot_size_category` (#31) nor a
-    // pot_size_cm value for this seed. File a follow-up to project the
-    // category on the TRMNL card.
+    // pot_size_category now projected on the TRMNL screen card (#16 follow-up)
+    expect(plant.potSizeCategory).toBe('Medium');
     // water_description from enrichment
     expect(plant.waterDescription).toBe('about 1 cup');
   });
