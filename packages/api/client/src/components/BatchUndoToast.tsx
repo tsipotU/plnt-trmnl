@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   batchId: string;
@@ -16,19 +16,24 @@ export function BatchUndoToast({ batchId, plantCount, onUndone, onDismiss }: Pro
   const [remaining, setRemaining] = useState(15);
   const [submitting, setSubmitting] = useState(false);
 
+  // Hold the latest onDismiss in a ref so the timer effect can run exactly
+  // once per mount without restarting when the parent passes a fresh arrow.
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
+
   useEffect(() => {
     const interval = setInterval(() => {
       setRemaining((r) => {
         if (r <= 1) {
           clearInterval(interval);
-          onDismiss();
+          onDismissRef.current();
           return 0;
         }
         return r - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [onDismiss]);
+  }, []);
 
   async function handleUndo() {
     if (submitting) return;
@@ -39,7 +44,13 @@ export function BatchUndoToast({ batchId, plantCount, onUndone, onDismiss }: Pro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ batch_id: batchId }),
       });
-      if (res.ok) onUndone();
+      if (res.ok) {
+        onUndone();
+      } else {
+        onDismiss();
+      }
+    } catch {
+      onDismiss();
     } finally {
       setSubmitting(false);
     }

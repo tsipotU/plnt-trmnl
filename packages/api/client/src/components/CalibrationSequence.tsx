@@ -68,10 +68,7 @@ export function CalibrationSequence({ plantIds, plantNames, onComplete }: Props)
 
   if (!queue) return null;
   const current = queue[index];
-  if (!current) {
-    onComplete();
-    return null;
-  }
+  if (!current) return null;
 
   async function submit(value: number) {
     if (submitting) return;
