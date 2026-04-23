@@ -128,6 +128,15 @@ export function createPlantsRouter(
     res.json(plants);
   });
 
+  // GET /api/plants/archived — list archived plants, newest-archived first.
+  // MUST be declared BEFORE '/:id' so Express doesn't match "archived" as an id.
+  router.get('/archived', (_req: Request, res: Response) => {
+    const plants = db.prepare(
+      `SELECT * FROM plants WHERE archived = 1 ORDER BY archived_at DESC, id DESC`
+    ).all();
+    res.json(plants);
+  });
+
   // GET /api/plants/:id — single plant with active conditions count
   router.get('/:id', (req: Request, res: Response) => {
     const plant = db.prepare(

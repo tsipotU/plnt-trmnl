@@ -75,6 +75,47 @@ describe('GET /api/plants', () => {
   });
 });
 
+describe('GET /api/plants/archived', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  beforeEach(() => {
+    ({ app, db } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('returns archived plants ordered by archived_at DESC', async () => {
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, archived, archived_at, archive_reason)
+       VALUES ('Old Rubber Tree', 7, 7, 1, '2026-02-01T12:00:00Z', 'died')`
+    ).run();
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, archived, archived_at, archive_reason)
+       VALUES ('Given-Away Fern', 7, 7, 1, '2026-03-15T12:00:00Z', 'gave_away')`
+    ).run();
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, archived)
+       VALUES ('Active Plant', 7, 7, 0)`
+    ).run();
+
+    const res = await request(app).get('/api/plants/archived');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2);
+    expect(res.body[0].name).toBe('Given-Away Fern');
+    expect(res.body[1].name).toBe('Old Rubber Tree');
+    expect(res.body.every((p: { archived: number }) => p.archived === 1)).toBe(true);
+  });
+
+  it('returns empty array when no archived plants', async () => {
+    const res = await request(app).get('/api/plants/archived');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
 describe('POST /api/plants', () => {
   let app: express.Express;
   let db: Database.Database;
