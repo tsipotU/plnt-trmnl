@@ -1,13 +1,109 @@
 import { Router, Request, Response } from 'express';
+import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 import { calculateNextWaterDate, calculateRepotAdjustment } from '../scheduling/engine.js';
 import { logEvent, getEventsForPlant, logScheduleEvents } from '../database/event-log.js';
 import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
 import { getSeasonalAdjustedInterval } from '../scheduling/seasonal.js';
-import { scheduleNextWater, type ScheduledPlant } from '../scheduling/bin-packer.js';
+import { scheduleNextWater, type ScheduledPlant, type ScheduleResult } from '../scheduling/bin-packer.js';
 import type { Config } from '../config.js';
 
 type HeatingSeasonConfig = Pick<Config, 'heatingSeasonStart' | 'heatingSeasonEnd'>;
+
+export interface WaterPlantOptions {
+  batchId?: string;
+  today?: string;
+}
+
+export interface WaterPlantResult {
+  plant: Record<string, unknown>;
+  batchId: string;
+  scheduled: ScheduleResult;
+  seasonalApplied: boolean;
+}
+
+/**
+ * Core water-a-plant operation shared by POST /:id/water and POST /water-all.
+ *
+ * Captures pre-state JSON for undo, applies seasonal adjustment when configured,
+ * funnels the ideal date through the bin-packer, logs the watered event + any
+ * seasonal_adjustment event with the shared batchId. Overflow/congested events
+ * logged by logScheduleEvents are intentionally left OUT of the batch (they
+ * aren't part of the undo flow — see Task 9 caveat 3).
+ */
+export function waterPlant(
+  db: Database.Database,
+  plantId: number,
+  heatingConfig: HeatingSeasonConfig | undefined,
+  options: WaterPlantOptions = {},
+): WaterPlantResult {
+  const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as
+    | Record<string, unknown>
+    | undefined;
+  if (!plant) throw new Error(`Plant ${plantId} not found`);
+
+  const today = options.today ?? new Date().toISOString().split('T')[0];
+  const batchId = options.batchId ?? randomUUID();
+  const currentInterval = plant.current_interval as number;
+  const modifier = plant.heating_season_modifier as number | null;
+
+  const effectiveInterval = heatingConfig
+    ? getSeasonalAdjustedInterval(currentInterval, modifier, today, heatingConfig)
+    : currentInterval;
+
+  const idealDate = calculateNextWaterDate(today, effectiveInterval);
+  const existing = db.prepare(
+    `SELECT id, location, next_water_date as nextWaterDate
+       FROM plants
+       WHERE archived = 0 AND id != ? AND next_water_date IS NOT NULL`
+  ).all(plantId) as ScheduledPlant[];
+  const scheduled = scheduleNextWater(idealDate, (plant.location as string) ?? '', existing);
+
+  const calibrationCycle = ((plant.calibration_cycle as number) ?? 0) + 1;
+  const preState = JSON.stringify({
+    last_watered_at: plant.last_watered_at ?? null,
+    next_water_date: plant.next_water_date ?? null,
+    calibration_cycle: plant.calibration_cycle ?? 0,
+  });
+
+  db.prepare(
+    `UPDATE plants SET
+       last_watered_at   = ?,
+       next_water_date   = ?,
+       calibration_cycle = ?,
+       updated_at        = datetime('now')
+     WHERE id = ?`
+  ).run(today, scheduled.date, calibrationCycle, plantId);
+
+  logEvent(db, {
+    plantId,
+    eventType: 'watered',
+    oldValue: preState,
+    newValue: today,
+    reason: 'Plant watered',
+    batchId,
+  });
+
+  const seasonalApplied = effectiveInterval !== currentInterval;
+  if (seasonalApplied) {
+    logEvent(db, {
+      plantId,
+      eventType: 'seasonal_adjustment',
+      oldValue: String(currentInterval),
+      newValue: String(effectiveInterval),
+      reason: `Heating season active; interval ${currentInterval} → ${effectiveInterval} (×${modifier})`,
+      batchId,
+    });
+  }
+
+  logScheduleEvents(db, plantId, scheduled);
+
+  const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<
+    string,
+    unknown
+  >;
+  return { plant: updated, batchId, scheduled, seasonalApplied };
+}
 
 const VALID_POT_SIZE_CATEGORIES = [
   'Extra Small',
@@ -230,76 +326,114 @@ export function createPlantsRouter(
     res.json(updated);
   });
 
-  // POST /api/plants/:id/water — mark as watered
+  // POST /api/plants/water-all — batch water plants (all due or a given id list).
+  // IMPORTANT: must be declared BEFORE '/:id/water' routes so Express doesn't match
+  // 'water-all' as :id.
+  router.post('/water-all', (req: Request, res: Response) => {
+    const today = new Date().toISOString().split('T')[0];
+    const requestedIds = Array.isArray(req.body?.plant_ids)
+      ? (req.body.plant_ids as number[])
+      : null;
+
+    let plantIds: number[];
+    if (requestedIds) {
+      if (requestedIds.length === 0) {
+        res.json({ batch_id: randomUUID(), watered: [] });
+        return;
+      }
+      const placeholders = requestedIds.map(() => '?').join(',');
+      const found = db
+        .prepare(
+          `SELECT id FROM plants WHERE archived = 0 AND id IN (${placeholders})`,
+        )
+        .all(...requestedIds) as { id: number }[];
+      if (found.length !== requestedIds.length) {
+        res.status(404).json({ error: 'Unknown or archived plant id(s)' });
+        return;
+      }
+      plantIds = requestedIds;
+    } else {
+      plantIds = (
+        db
+          .prepare(
+            `SELECT id FROM plants WHERE archived = 0 AND next_water_date <= ?`,
+          )
+          .all(today) as { id: number }[]
+      ).map((r) => r.id);
+    }
+
+    const batchId = randomUUID();
+    const watered: unknown[] = [];
+    for (const pid of plantIds) {
+      const result = waterPlant(db, pid, heatingConfig, { batchId, today });
+      watered.push(result.plant);
+    }
+    res.json({ batch_id: batchId, watered });
+  });
+
+  // POST /api/plants/undo-batch — restore all plants in a batch and delete its events.
+  router.post('/undo-batch', (req: Request, res: Response) => {
+    const batchId = req.body?.batch_id;
+    if (typeof batchId !== 'string' || !batchId) {
+      res.status(400).json({ error: 'batch_id required' });
+      return;
+    }
+
+    const events = db
+      .prepare(
+        `SELECT id, plant_id, old_value FROM event_log
+         WHERE batch_id = ? AND event_type = 'watered'`,
+      )
+      .all(batchId) as { id: number; plant_id: number; old_value: string | null }[];
+
+    if (events.length === 0) {
+      res.status(404).json({ error: 'No events for batch_id' });
+      return;
+    }
+
+    const restored: unknown[] = [];
+    const tx = db.transaction(() => {
+      for (const ev of events) {
+        if (!ev.old_value) continue;
+        const pre = JSON.parse(ev.old_value) as {
+          last_watered_at: string | null;
+          next_water_date: string | null;
+          calibration_cycle: number;
+        };
+        db.prepare(
+          `UPDATE plants SET
+             last_watered_at   = ?,
+             next_water_date   = ?,
+             calibration_cycle = ?,
+             updated_at        = datetime('now')
+           WHERE id = ?`,
+        ).run(pre.last_watered_at, pre.next_water_date, pre.calibration_cycle, ev.plant_id);
+
+        const p = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(ev.plant_id);
+        restored.push(p);
+      }
+      // Delete ALL events tied to this batch (watered + seasonal_adjustment).
+      // Overflow/congested events aren't part of the batch (see waterPlant).
+      db.prepare(`DELETE FROM event_log WHERE batch_id = ?`).run(batchId);
+    });
+    tx();
+
+    res.json({ restored });
+  });
+
+  // POST /api/plants/:id/water — mark as watered (single-plant path).
+  // Shares the exact same logic as /water-all via the waterPlant helper.
   router.post('/:id/water', (req: Request, res: Response) => {
     const plantId = Number(req.params.id);
 
-    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as
-      | Record<string, unknown>
-      | undefined;
-
+    const plant = db.prepare(`SELECT id FROM plants WHERE id = ?`).get(plantId);
     if (!plant) {
       res.status(404).json({ error: 'Plant not found' });
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    const currentInterval = plant.current_interval as number;
-    const modifier = plant.heating_season_modifier as number | null;
-
-    // Apply seasonal adjustment when a heating-season config is available.
-    // current_interval in the DB remains unchanged; only next_water_date reflects the modifier.
-    const effectiveInterval = heatingConfig
-      ? getSeasonalAdjustedInterval(currentInterval, modifier, today, heatingConfig)
-      : currentInterval;
-    const idealDate = calculateNextWaterDate(today, effectiveInterval);
-    const existingSchedule = db.prepare(
-      `SELECT id, location, next_water_date as nextWaterDate
-         FROM plants
-         WHERE archived = 0 AND id != ? AND next_water_date IS NOT NULL`
-    ).all(plantId) as ScheduledPlant[];
-    const scheduled = scheduleNextWater(idealDate, (plant.location as string) ?? '', existingSchedule);
-    const nextWaterDate = scheduled.date;
-    const calibrationCycle = (plant.calibration_cycle as number) + 1;
-
-    // Capture pre-state so the event can be undone.
-    const preState = JSON.stringify({
-      last_watered_at: plant.last_watered_at ?? null,
-      next_water_date: plant.next_water_date ?? null,
-      calibration_cycle: plant.calibration_cycle ?? 0,
-    });
-
-    db.prepare(
-      `UPDATE plants SET
-         last_watered_at   = ?,
-         next_water_date   = ?,
-         calibration_cycle = ?,
-         updated_at        = datetime('now')
-       WHERE id = ?`
-    ).run(today, nextWaterDate, calibrationCycle, plantId);
-
-    logEvent(db, {
-      plantId,
-      eventType: 'watered',
-      oldValue: preState,
-      newValue: today,
-      reason: 'Plant watered',
-    });
-
-    if (effectiveInterval !== currentInterval) {
-      logEvent(db, {
-        plantId,
-        eventType: 'seasonal_adjustment',
-        oldValue: String(currentInterval),
-        newValue: String(effectiveInterval),
-        reason: `Heating season active; interval ${currentInterval} → ${effectiveInterval} (×${modifier})`,
-      });
-    }
-
-    logScheduleEvents(db, plantId, scheduled);
-
-    const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
-    res.json(updated);
+    const result = waterPlant(db, plantId, heatingConfig);
+    res.json(result.plant);
   });
 
   // POST /api/plants/:id/undo-water — revert the last watering + remove the event
