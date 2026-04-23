@@ -30,18 +30,22 @@ The renderer has no direct database access — it only talks to the API over the
 ## Features
 
 - **Self-calibrating watering schedules** — learns from daily check-ins; adjusts frequency up or down based on observation history
+- **Multi-plant scheduling** — bin-packer spreads waterings across days (max 2 per day, ±3-day search window, location-aware grouping); emits `overflow_rebalance` and `schedule_congested` events to the timeline when shifts happen
+- **Batch watering** — "Water all (N)" button on the dashboard when 2+ plants are due; sequential calibration walks non-converged plants one prompt at a time; 15-second batch undo restores all N plants in one tap
+- **7-day calendar strip** — horizontal lookahead on the dashboard showing plant counts per day, overdue rollup on today, vacation overlay; tap any cell to expand plant names
 - **Seasonal adjustment** — heating season modifies interval recommendations (configurable start/end dates; wraps correctly over year-end)
 - **Claude-driven enrichment** — auto-populates species, care profile, watering cadence, and placement on plant creation
 - **Plant fact rotation** — 150+ curated botanical facts served in non-repeating order
-- **Condition tracking** — observation-driven detection (overwatering, underwatering, rootbound, pests, light stress)
+- **Condition tracking** — observation-driven detection (overwatering, underwatering, rootbound, pests, light stress); user-flagged condition flow deferred to Wave 4
 - **Vacation mode** — pauses schedules and reschedules intelligently on return
 - **Plant identifiers** — optional per-plant label ("Hanging basket", "Blue pot") shown everywhere a plant appears, so multiple plants of the same species are easy to tell apart
-- **Watering undo** — revert the last water event with a 5-second toast; restores calibration state
-- **Archive with reason** — mark plants as died/gave away/moved/other with optional note; memorial shows "was in your care for X months"
+- **Pot size categories** — pick Extra Small / Small / Medium / Large / Extra Large / Other (with custom cm input); stored both as category name and numeric diameter
+- **Watering undo** — revert the last water event with a 15-second toast; restores calibration state
+- **Archive with reason + memorial toast** — mark plants as died/gave away/moved/other with an optional note; memorial message varies by reason ("Rest well. 🌿", "found a new home", "on its way to a new spot", etc.) and always includes duration in your care
 - **Feedback system** — floating action button on every page; capture bugs, ideas, and notes with a comment thread per item
-- **Timeline view** — paginated event history for each plant; shows all waterings, observations, and metadata updates
+- **Timeline view** — paginated event history for each plant; shows all waterings, seasonal adjustments, overflow rebalances, memorial events. Raw JSON state suppressed for human-readable rows.
 - **Welcome empty state** — contextual hints for new users on plant creation; celebration toast on first plant
-- **Mobile-first management UI** — optimised for iPhone 15 Pro; single-handed watering log in two taps
+- **Mobile-first management UI** — optimised for iPhone 15 Pro; single-handed watering log in two taps; 44px minimum touch targets throughout
 
 ## Tech Stack
 
@@ -89,9 +93,10 @@ npm run dev:renderer
 cd packages/api/client && npm run dev
 
 # Tests
-npm test               # All packages (244 API + 41 renderer)
-npm run test:api       # API only
+npm test               # All packages (316 API + 43 renderer + 16 client)
+npm run test:api       # API only (Node env)
 npm run test:renderer  # Renderer only
+cd packages/api/client && npm test   # Client only (jsdom env)
 ```
 
 Tests use [vitest](https://vitest.dev). TDD is the default workflow — tests are written before implementation.
