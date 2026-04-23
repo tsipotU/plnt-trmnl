@@ -12,11 +12,13 @@ export interface CalendarDay {
 
 interface Props {
   days: CalendarDay[];
+  selectedDate: string | null;
+  onDaySelect: (date: string | null) => void;
 }
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export function CalendarStrip({ days }: Props) {
+export function CalendarStrip({ days, selectedDate, onDaySelect }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const expandedDay = expanded ? days.find((d) => d.date === expanded) : null;
 
@@ -34,18 +36,24 @@ export function CalendarStrip({ days }: Props) {
           const dt = new Date(day.date + 'T00:00:00Z');
           const dow = DOW[dt.getUTCDay()];
           const dayNum = dt.getUTCDate();
+          const isSelected = selectedDate === day.date;
+          const isEmpty = day.count === 0;
+
           return (
             <button
               key={day.date}
-              onClick={() =>
-                setExpanded(expanded === day.date ? null : day.date)
-              }
+              onClick={() => {
+                setExpanded(expanded === day.date ? null : day.date);
+                onDaySelect(isSelected ? null : day.date);
+              }}
               style={{
                 minWidth: 56,
                 minHeight: 64,
                 padding: '0.25rem',
-                background: 'var(--bg-card)',
-                border: day.is_today
+                background: isSelected ? 'var(--accent-muted, rgba(0, 168, 107, 0.15))' : 'var(--bg-card)',
+                border: isSelected
+                  ? '2px solid var(--accent)'
+                  : day.is_today
                   ? '2px solid var(--accent)'
                   : '1px solid var(--border, #ddd)',
                 borderRadius: 8,
@@ -55,6 +63,7 @@ export function CalendarStrip({ days }: Props) {
                 alignItems: 'center',
                 gap: '0.1rem',
                 position: 'relative',
+                opacity: isEmpty ? 0.6 : 1,
               }}
             >
               <span
