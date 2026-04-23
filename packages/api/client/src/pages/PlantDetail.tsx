@@ -93,6 +93,8 @@ function severityColor(severity: string): string {
   return 'var(--accent)';
 }
 
+const ACTIVE_CONDITIONS_EXPLANATION = 'Conditions are problems affecting your plant — things like root rot, leaf yellowing, or pest infestations. When flagged, plnt-trmnl suggests how to address them.';
+
 // --- Inline editable field ---
 
 interface EditableFieldProps {
@@ -400,6 +402,13 @@ export function PlantDetail() {
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [notesEditing, setNotesEditing] = useState(false);
   const [notesDraft, setNotesDraft] = useState('');
+  const [conditionsHelpDismissed, setConditionsHelpDismissed] = useState(() => {
+    try {
+      return localStorage.getItem('plant-conditions-help-dismissed') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const notesRef = useRef<HTMLTextAreaElement>(null);
 
   // Fetch plant data
@@ -842,10 +851,86 @@ export function PlantDetail() {
 
       {/* Active conditions */}
       <div className="card" style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Conditions</h2>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Conditions</h2>
+          <button
+            onClick={() => {
+              setConditionsHelpDismissed(false);
+            }}
+            style={{
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border)',
+              borderRadius: '50%',
+              width: 20,
+              height: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              padding: 0,
+              minWidth: 20,
+              minHeight: 20,
+            }}
+            title="Learn about conditions"
+          >
+            ?
+          </button>
+        </div>
+
+        {!conditionsHelpDismissed && (
+          <div
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: 12,
+              marginBottom: 12,
+              fontSize: 14,
+              color: 'var(--text-primary)',
+              lineHeight: 1.5,
+            }}
+          >
+            <div style={{ marginBottom: 8 }}>
+              {ACTIVE_CONDITIONS_EXPLANATION}
+            </div>
+            <button
+              onClick={() => {
+                setConditionsHelpDismissed(true);
+                try {
+                  localStorage.setItem('plant-conditions-help-dismissed', 'true');
+                } catch {
+                  // localStorage not available
+                }
+              }}
+              style={{
+                background: 'transparent',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                padding: '6px 12px',
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Got it
+            </button>
+          </div>
+        )}
 
         {activeConditions.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>No active conditions</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+            No active conditions
+          </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {activeConditions.map((c) => (
@@ -924,21 +1009,36 @@ export function PlantDetail() {
                   {eventIcon(e.event_type)}
                 </span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>
-                    {e.event_type.replace(/_/g, ' ')}
-                  </div>
-                  {e.reason && (
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-                      {e.reason}
-                    </div>
-                  )}
-                  {['watered', 'overflow_rebalance', 'schedule_congested'].includes(e.event_type)
-                    ? null
-                    : (e.old_value || e.new_value) && (
+                  {e.event_type === 'enrichment_complete' ? (
+                    <>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>
+                        ✓ Care profile added
+                      </div>
+                      {e.reason && (
                         <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-                          {e.old_value} → {e.new_value}
+                          {e.reason.replace('Claude enrichment: ', '')}
                         </div>
                       )}
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>
+                        {e.event_type.replace(/_/g, ' ')}
+                      </div>
+                      {e.reason && (
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          {e.reason}
+                        </div>
+                      )}
+                      {['watered', 'overflow_rebalance', 'schedule_congested'].includes(e.event_type)
+                        ? null
+                        : (e.old_value || e.new_value) && (
+                            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                              {e.old_value} → {e.new_value}
+                            </div>
+                          )}
+                    </>
+                  )}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', flexShrink: 0, textAlign: 'right' }}>
                   {formatDate(e.created_at)}
