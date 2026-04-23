@@ -3,16 +3,16 @@
 Single-file briefing so a new session can pick up work without re-deriving context.
 If anything here goes stale, fix it in the same PR that made it stale.
 
-**Last updated:** 2026-04-23 (end of Wave 4)
+**Last updated:** 2026-04-23 (Wave 4 follow-ups landed)
 
 ---
 
 ## Where we are
 
-- **Waves 1–4 are done.** All 7 Wave 4 PRs landed 2026-04-23: #87, #88, #90, #91, #92, #93, #94 (see `git log --oneline main..origin/main` for details, or the commits on main).
-- **Test counts (main):** 340 API + 43 renderer + 35 client = **418 total, all green.**
+- **Waves 1–4 are done, including follow-ups.** Wave 4 shipped #87, #88, #90, #91, #92, #93, #94. Follow-up PRs on 2026-04-23 evening: #95 (pot_size_category on TRMNL screen), #96 (mother plant name), #97 (drop legacy plants.notes column).
+- **Test counts (main):** 338 API + 43 renderer + 35 client = **416 total, all green.** (One fewer than pre-#97 because the stores-optional-notes test was removed with the column.)
 - **Live instance:** runs on the Mac Mini under `npx tsx packages/api/src/index.ts` (port 3900). Restart procedure below.
-- **Open PRs:** only `docs/wave-4-progress-update` (the PR that ships *this* document — merge it last).
+- **Open PRs:** none — Wave 4 fully merged.
 
 ## What shipped in Wave 4
 
@@ -28,12 +28,19 @@ If anything here goes stale, fix it in the same PR that made it stale.
 
 ## Follow-ups surfaced during Wave 4 (file-level)
 
-These are **not blocking** — pick up when relevant:
+**Resolved 2026-04-23 evening (PRs #95–#97):**
+- ✅ **#16:** TRMNL screen payload now projects `pot_size_category` alongside `potSizeCm`. Renderer opt-in pending. E2E TODO resolved.
+- ✅ **#32:** legacy `plants.notes` column dropped from schema (CREATE + live-DB migration via new `dropColumnIfExists` helper). Client `Plant.notes` removed.
+- ✅ **#35:** `GET /api/plants/:id` now returns `mother_plant_name` via subquery join; UI shows "Seedling of Monstera" instead of `#3`.
+- **#35 remaining:** no separate `acquired_at` date column — `created_at` covers the common case. Low-priority.
 
-- **#16 follow-ups:** TRMNL screen card could also project `pot_size_category` (`screen.ts` today only returns `potSizeCm`). E2E test `lifecycle.test.ts` has an inline `TODO` for this.
-- **#32:** legacy `plants.notes` column is left in the schema but unread/unwritten. Safe to drop once nothing external depends on it. Test data was discarded per user decision.
-- **#35:** no separate `acquired_at` date column — `created_at` covers the common case. Mother-plant summary shows `#<id>`, not name; fetching name is a small follow-up.
-- **Wave 3 follow-ups** (still open): surface `useWeekSchedule` fetch errors, collapse vacation-end congestion bursts, parallelize `CalibrationSequence` fetch, type `getEventsForPlant`, bin-pack `POST /api/plants` initial schedule, drop AddPlant's 20 cm default. All low-priority.
+**Wave 3 follow-ups still open** (all low-priority, not blocking):
+- surface `useWeekSchedule` fetch errors
+- collapse vacation-end congestion bursts
+- parallelize `CalibrationSequence` fetch
+- type `getEventsForPlant`
+- bin-pack `POST /api/plants` initial schedule
+- drop AddPlant's 20 cm default
 
 ## Where to go next
 
