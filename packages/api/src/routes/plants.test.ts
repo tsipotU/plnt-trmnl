@@ -171,6 +171,54 @@ describe('POST /api/plants', () => {
     expect(res.status).toBe(201);
     expect(res.body.identifier).toBeNull();
   });
+
+  it('persists origin metadata (type + source)', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Monstera',
+        lastWateredAt: '2026-04-01',
+        origin_type: 'purchased',
+        origin_source: 'Intratuin Amsterdam',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.origin_type).toBe('purchased');
+    expect(res.body.origin_source).toBe('Intratuin Amsterdam');
+    expect(res.body.mother_plant_id).toBeNull();
+  });
+
+  it('persists mother_plant_id for seedling origin', async () => {
+    const mother = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Pothos', lastWateredAt: '2026-04-01' });
+
+    const child = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Pothos Jr.',
+        lastWateredAt: '2026-04-01',
+        origin_type: 'seedling',
+        mother_plant_id: mother.body.id,
+      });
+
+    expect(child.status).toBe(201);
+    expect(child.body.origin_type).toBe('seedling');
+    expect(child.body.mother_plant_id).toBe(mother.body.id);
+  });
+
+  it('rejects invalid origin_type', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Monstera',
+        lastWateredAt: '2026-04-01',
+        origin_type: 'bought',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Invalid origin_type');
+  });
 });
 
 describe('GET /api/plants/:id', () => {

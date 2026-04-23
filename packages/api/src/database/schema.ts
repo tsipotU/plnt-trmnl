@@ -33,6 +33,9 @@ export function initializeSchema(db: Database.Database): void {
       archived_at TEXT,
       archive_reason TEXT CHECK(archive_reason IN ('died', 'gave_away', 'moved', 'other')),
       archive_note TEXT,
+      origin_type TEXT CHECK(origin_type IN ('purchased', 'received', 'seedling', 'unknown')),
+      origin_source TEXT,
+      mother_plant_id INTEGER REFERENCES plants(id),
       notes TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
@@ -162,6 +165,9 @@ export function initializeSchema(db: Database.Database): void {
   addColumnIfMissing(db, 'plants', 'archive_reason', 'TEXT');
   addColumnIfMissing(db, 'plants', 'archive_note', 'TEXT');
   addColumnIfMissing(db, 'plants', 'pot_size_category', 'TEXT');
+  addColumnIfMissing(db, 'plants', 'origin_type', 'TEXT');
+  addColumnIfMissing(db, 'plants', 'origin_source', 'TEXT');
+  addColumnIfMissing(db, 'plants', 'mother_plant_id', 'INTEGER');
   addColumnIfMissing(db, 'event_log', 'batch_id', 'TEXT');
 }
 

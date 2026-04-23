@@ -114,6 +114,8 @@ const VALID_POT_SIZE_CATEGORIES = [
   'Other',
 ] as const;
 
+const VALID_ORIGIN_TYPES = ['purchased', 'received', 'seedling', 'unknown'] as const;
+
 export function createPlantsRouter(
   db: Database.Database,
   heatingConfig?: HeatingSeasonConfig,
@@ -151,6 +153,9 @@ export function createPlantsRouter(
     // Accept both camelCase (existing API) and snake_case (client payloads / dropdown form)
     const potSizeCm = req.body.potSizeCm ?? req.body.pot_size_cm;
     const potSizeCategory = req.body.pot_size_category;
+    const originType = req.body.origin_type ?? req.body.originType;
+    const originSource = req.body.origin_source ?? req.body.originSource;
+    const motherPlantId = req.body.mother_plant_id ?? req.body.motherPlantId;
 
     if (!name || !lastWateredAt) {
       res.status(400).json({ error: 'name and lastWateredAt are required' });
@@ -166,14 +171,23 @@ export function createPlantsRouter(
       return;
     }
 
+    if (
+      originType != null &&
+      (typeof originType !== 'string' ||
+        !(VALID_ORIGIN_TYPES as readonly string[]).includes(originType))
+    ) {
+      res.status(400).json({ error: 'Invalid origin_type' });
+      return;
+    }
+
     const currentInterval = 7;
     const nextWaterDate = calculateNextWaterDate(lastWateredAt, currentInterval);
 
     const result = db.prepare(
       `INSERT INTO plants
          (name, pot_size_cm, pot_size_category, plant_size, identifier, location, light_level, base_interval, current_interval,
-          last_watered_at, next_water_date, enrichment_status, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
+          last_watered_at, next_water_date, enrichment_status, notes, origin_type, origin_source, mother_plant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`
     ).run(
       name,
       potSizeCm ?? null,
@@ -186,7 +200,10 @@ export function createPlantsRouter(
       currentInterval,
       lastWateredAt,
       nextWaterDate,
-      notes ?? null
+      notes ?? null,
+      originType ?? null,
+      originSource ?? null,
+      motherPlantId ?? null,
     );
 
     const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(result.lastInsertRowid) as Record<string, unknown>;
@@ -233,6 +250,9 @@ export function createPlantsRouter(
     // Accept both camelCase and snake_case for pot_size_cm (client sends snake_case)
     const potSizeCm = req.body.potSizeCm ?? req.body.pot_size_cm;
     const potSizeCategory = req.body.pot_size_category;
+    const originType = req.body.origin_type ?? req.body.originType;
+    const originSource = req.body.origin_source ?? req.body.originSource;
+    const motherPlantId = req.body.mother_plant_id ?? req.body.motherPlantId;
 
     if (
       potSizeCategory != null &&
@@ -240,6 +260,15 @@ export function createPlantsRouter(
         !(VALID_POT_SIZE_CATEGORIES as readonly string[]).includes(potSizeCategory))
     ) {
       res.status(400).json({ error: 'Invalid pot_size_category' });
+      return;
+    }
+
+    if (
+      originType != null &&
+      (typeof originType !== 'string' ||
+        !(VALID_ORIGIN_TYPES as readonly string[]).includes(originType))
+    ) {
+      res.status(400).json({ error: 'Invalid origin_type' });
       return;
     }
 
@@ -297,6 +326,9 @@ export function createPlantsRouter(
          location          = COALESCE(?, location),
          light_level       = COALESCE(?, light_level),
          notes             = COALESCE(?, notes),
+         origin_type       = COALESCE(?, origin_type),
+         origin_source     = CASE WHEN ? = 1 THEN ? ELSE origin_source END,
+         mother_plant_id   = CASE WHEN ? = 1 THEN ? ELSE mother_plant_id END,
          current_interval  = ?,
          is_converged      = ?,
          next_water_date   = ?,
@@ -312,6 +344,11 @@ export function createPlantsRouter(
       location ?? null,
       lightLevel ?? null,
       notes ?? null,
+      originType ?? null,
+      originSource !== undefined ? 1 : 0,
+      originSource ?? null,
+      motherPlantId !== undefined ? 1 : 0,
+      motherPlantId ?? null,
       newInterval,
       isConverged,
       nextWaterDate,
