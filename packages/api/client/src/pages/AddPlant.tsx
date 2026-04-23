@@ -3,13 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 
-const POT_SIZE_OPTIONS: { value: string; label: string; cm: number | null }[] = [
+const POT_SIZE_OPTIONS: { value: string; label: string; cm: number }[] = [
   { value: 'Extra Small', label: 'Extra Small (5–10 cm)', cm: 8 },
   { value: 'Small', label: 'Small (10–15 cm)', cm: 13 },
   { value: 'Medium', label: 'Medium (15–20 cm)', cm: 18 },
   { value: 'Large', label: 'Large (20–30 cm)', cm: 25 },
   { value: 'Extra Large', label: 'Extra Large (30–50 cm)', cm: 40 },
-  { value: 'Other', label: 'Other', cm: null },
+  { value: 'Extra Extra Large', label: 'Extra Extra Large (50–100 cm)', cm: 70 },
 ];
 
 function today(): string {
@@ -30,9 +30,8 @@ export function AddPlant() {
   const [wateredWhen, setWateredWhen] = useState<WateredWhen>('today');
   const [pickedDate, setPickedDate] = useState(today());
   const [potCategory, setPotCategory] = useState<string>('');
-  const [potSizeCm, setPotSizeCm] = useState<number | ''>('');
   const [location, setLocation] = useState('');
-  const [lightLevel, setLightLevel] = useState<string>('medium');
+  const [lightLevel, setLightLevel] = useState<string>('');
   const [plantSize, setPlantSize] = useState<string>('medium');
 
   const [loading, setLoading] = useState(false);
@@ -57,20 +56,24 @@ export function AddPlant() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !potCategory || !location.trim() || !lightLevel) return;
 
     setLoading(true);
     setError(null);
 
+    // Resolve the cm value from the pot category
+    const selectedOption = POT_SIZE_OPTIONS.find((o) => o.value === potCategory);
+    const potSizeCm = selectedOption?.cm || 20;
+
     const payload = {
       name: name.trim(),
       identifier: identifier.trim() || null,
-      potSizeCm: potSizeCm !== '' ? Number(potSizeCm) : 20,
-      pot_size_category: potCategory || null,
-      pot_size_cm: potSizeCm === '' ? null : Number(potSizeCm),
+      potSizeCm: potSizeCm,
+      pot_size_category: potCategory,
+      pot_size_cm: potSizeCm,
       plantSize: plantSize || 'medium',
-      location: location.trim() || '',
-      lightLevel: lightLevel || 'medium',
+      location: location.trim(),
+      lightLevel: lightLevel,
       lastWateredAt: resolveLastWateredAt(),
     };
 
@@ -318,7 +321,7 @@ export function AddPlant() {
               marginBottom: -4,
             }}
           >
-            Optional details
+            Plant details
           </p>
 
           {/* Pot size */}
@@ -327,24 +330,14 @@ export function AddPlant() {
               htmlFor="potSize"
               style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
             >
-              Pot size
+              Pot size <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
             </label>
             <select
               id="potSize"
               value={potCategory}
-              onChange={(e) => {
-                const v = e.target.value;
-                setPotCategory(v);
-                const opt = POT_SIZE_OPTIONS.find((o) => o.value === v);
-                if (opt && opt.cm !== null) {
-                  setPotSizeCm(opt.cm);
-                } else if (v === 'Other') {
-                  setPotSizeCm('');
-                } else {
-                  setPotSizeCm('');
-                }
-              }}
+              onChange={(e) => setPotCategory(e.target.value)}
               style={{ width: '100%' }}
+              required
             >
               <option value="">Select size…</option>
               {POT_SIZE_OPTIONS.map((o) => (
@@ -353,27 +346,9 @@ export function AddPlant() {
                 </option>
               ))}
             </select>
-            {potCategory === 'Other' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                <input
-                  type="number"
-                  value={potSizeCm}
-                  onChange={(e) =>
-                    setPotSizeCm(e.target.value === '' ? '' : Number(e.target.value))
-                  }
-                  placeholder="Diameter in cm"
-                  min={1}
-                  max={150}
-                  style={{ flex: 1 }}
-                />
-                <span style={{ color: 'var(--text-secondary)', fontSize: 15, flexShrink: 0 }}>
-                  cm
-                </span>
-              </div>
-            )}
             {isFirstPlant && (
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                Pick a size range, or choose Other to enter an exact diameter in cm
+                Pick a size range
               </p>
             )}
           </div>
@@ -384,7 +359,7 @@ export function AddPlant() {
               htmlFor="location"
               style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
             >
-              Location
+              Location <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
             </label>
             <input
               id="location"
@@ -392,6 +367,7 @@ export function AddPlant() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Living room, Kitchen windowsill"
+              required
             />
             {isFirstPlant && (
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
@@ -406,13 +382,15 @@ export function AddPlant() {
               htmlFor="lightLevel"
               style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
             >
-              Light level
+              Light level <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
             </label>
             <select
               id="lightLevel"
               value={lightLevel}
               onChange={(e) => setLightLevel(e.target.value)}
+              required
             >
+              <option value="">Select light level…</option>
               <option value="low">Low light</option>
               <option value="medium">Medium light</option>
               <option value="bright_indirect">Bright indirect</option>
@@ -459,14 +437,14 @@ export function AddPlant() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading || !name.trim()}
+          disabled={loading || !name.trim() || !potCategory || !location.trim() || !lightLevel}
           style={{
             width: '100%',
             fontSize: 17,
             fontWeight: 600,
             padding: '14px 0',
             borderRadius: 12,
-            opacity: !name.trim() ? 0.5 : 1,
+            opacity: !name.trim() || !potCategory || !location.trim() || !lightLevel ? 0.5 : 1,
             marginTop: 4,
           }}
         >
