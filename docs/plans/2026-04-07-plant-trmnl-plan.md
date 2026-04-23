@@ -105,15 +105,15 @@ git commit -m "chore: project scaffolding — root workspace, tsconfig, env temp
 
 - [ ] **Step 1: Create build-app.md**
 
-Adapt the ATLAS workflow from baristi-v2 (source: `/Users/admin/Projects/baristi-v2/.agents/goals/build-app.md`). Replace all Baristi-specific references with Plant TRMNL equivalents: Docker Compose for orchestration, n8n for enrichment, TRMNL webhook API for display, SQLite for data.
+Adapt the ATLAS workflow from a related project. Replace all project-specific references with Plant TRMNL equivalents: Docker Compose for orchestration, n8n for enrichment, TRMNL webhook API for display, SQLite for data.
 
 - [ ] **Step 2: Create manage-project.md**
 
-Adapt the GROOM workflow from baristi-v2 (source: `/Users/admin/Projects/baristi-v2/.agents/goals/manage-project.md`). GitHub issues + milestones, same 5-step process.
+Adapt the GROOM workflow from a related project. GitHub issues + milestones, same 5-step process.
 
 - [ ] **Step 3: Create qa.md**
 
-Adapt FINE from CampingHappy (source: `/Users/admin/Projects/CampingHappy/.agents/goals/qa.md`). Focus on mobile web: touch targets >= 44px, calibration modal one-handed, iPhone Safari compatibility, dark theme contrast ratios.
+Adapt the FINE workflow from a related project. Focus on mobile web: touch targets >= 44px, calibration modal one-handed, iPhone Safari compatibility, dark theme contrast ratios.
 
 - [ ] **Step 4: Commit**
 

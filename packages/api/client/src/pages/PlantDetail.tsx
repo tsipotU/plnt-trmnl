@@ -259,7 +259,7 @@ function UndoToast({
   onExpire: () => void;
 }) {
   useEffect(() => {
-    const t = setTimeout(onExpire, 15000);
+    const t = setTimeout(onExpire, 7000);
     return () => clearTimeout(t);
   }, [onExpire]);
 
@@ -282,8 +282,16 @@ function UndoToast({
         alignItems: 'center',
         gap: 16,
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        animation: 'fadeOut 1s ease-in-out 6s forwards',
       }}
+      onAnimationEnd={onExpire}
     >
+      <style>{`
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+      `}</style>
       <span>{message}</span>
       <button
         onClick={onUndo}
@@ -296,6 +304,10 @@ function UndoToast({
           fontWeight: 700,
           borderRadius: 6,
           cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 28,
         }}
       >
         Undo
