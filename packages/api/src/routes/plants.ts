@@ -144,7 +144,9 @@ export function createPlantsRouter(
     const plant = db.prepare(
       `SELECT p.*,
               (SELECT COUNT(*) FROM plant_conditions
-               WHERE plant_id = p.id AND is_active = 1) AS active_conditions_count
+               WHERE plant_id = p.id AND is_active = 1) AS active_conditions_count,
+              (SELECT name FROM plants m
+               WHERE m.id = p.mother_plant_id) AS mother_plant_name
        FROM plants p
        WHERE p.id = ?`
     ).get(req.params.id) as Record<string, unknown> | undefined;
