@@ -61,4 +61,29 @@ describe('GET /api/schedule/week', () => {
     const day = res.body.days.find((d: any) => d.date === '2026-04-24');
     expect(day.count).toBe(0);
   });
+
+  it('returns 400 on invalid from param', async () => {
+    await request(app).get('/api/schedule/week?from=banana').expect(400);
+    await request(app).get('/api/schedule/week?from=2026-13-45').expect(400);
+  });
+
+  it('does not double-count overdue plants when from < today', async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400_000).toISOString().slice(0, 10);
+
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, location)
+       VALUES ('OverdueInWindow', 7, 7, ?, 'Living')`
+    ).run(yesterday);
+
+    const res = await request(app).get(`/api/schedule/week?from=${yesterday}`).expect(200);
+
+    // Yesterday's cell should include the plant in its natural bucket:
+    const yesterdayCell = res.body.days.find((d: any) => d.date === yesterday);
+    expect(yesterdayCell.plant_ids).toContain(1);
+
+    // Today's cell should NOT include this plant in overdue_ids (it's already visible):
+    const todayCell = res.body.days.find((d: any) => d.date === today);
+    expect(todayCell.overdue_ids).not.toContain(1);
+  });
 });

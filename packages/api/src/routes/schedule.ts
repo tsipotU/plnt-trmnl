@@ -12,7 +12,18 @@ export function createScheduleRouter(db: Database.Database): Router {
 
   router.get('/week', (req: Request, res: Response) => {
     const today = new Date().toISOString().slice(0, 10);
-    const from = typeof req.query.from === 'string' ? req.query.from : today;
+    const fromRaw = typeof req.query.from === 'string' ? req.query.from : undefined;
+
+    let from: string;
+    if (fromRaw === undefined || fromRaw === '') {
+      from = today;
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(fromRaw) || isNaN(new Date(fromRaw + 'T00:00:00Z').getTime())) {
+      res.status(400).json({ error: 'Invalid from param, expected YYYY-MM-DD' });
+      return;
+    } else {
+      from = fromRaw;
+    }
+
     const to = addDays(from, 6);
 
     const plants = db.prepare(
@@ -26,6 +37,10 @@ export function createScheduleRouter(db: Database.Database): Router {
       `SELECT id, name, next_water_date FROM plants
          WHERE archived = 0 AND next_water_date IS NOT NULL AND next_water_date < ?`
     ).all(today) as { id: number; name: string; next_water_date: string }[];
+
+    // De-dupe: exclude plants whose date is already in the visible window [from, to].
+    // Without this, plants dated in [from, today-1] show up in both their natural cell AND today's overdue rollup.
+    const overdueNotInWindow = overdue.filter(p => p.next_water_date < from);
 
     // Vacation state in this project is stored as a single `vacation_until` key in
     // `app_state` (end date only — open-ended start). A day is "in vacation" if it
@@ -50,10 +65,10 @@ export function createScheduleRouter(db: Database.Database): Router {
       let plant_names = bucket.map(p => p.name);
       let overdue_ids: number[] = [];
 
-      if (is_today && overdue.length > 0) {
-        overdue_ids = overdue.map(p => p.id);
+      if (is_today && overdueNotInWindow.length > 0) {
+        overdue_ids = overdueNotInWindow.map(p => p.id);
         plant_ids = [...overdue_ids, ...plant_ids];
-        plant_names = [...overdue.map(p => p.name), ...plant_names];
+        plant_names = [...overdueNotInWindow.map(p => p.name), ...plant_names];
       }
 
       const inVacation =
