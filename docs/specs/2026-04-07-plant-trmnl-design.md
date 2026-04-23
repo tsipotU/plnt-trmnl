@@ -220,8 +220,8 @@ Shown when 1 or 2 plants need watering today.
   - Calibration box: specific question (rotated per watering cycle), 1-5 scale with labels, "Answer in app before 12:00"
 - Footer: "Next: [plant name] — [date] · every [X] days"
 
-**1-plant reference:** `/Users/admin/Downloads/trmnl-1-plant-BjV-4oWY.png`
-**2-plant reference:** `/Users/admin/Downloads/trmnl-2-plants-Bn2iYAZV.png`
+**1-plant reference:** `docs/mockups/watering-1-plant.png`
+**2-plant reference:** `docs/mockups/watering-2-plants.png`
 
 #### 2. Rest Day
 
@@ -235,8 +235,8 @@ Shown when no plants need watering (or vacation mode is active).
 - "NEXT WATERING" section: plant thumbnail + name + date + interval
 - If plants are overdue: dark pill badge showing most urgent first. Single overdue: "Overdue: Pothos (3 days)". Multiple: "Overdue: Pothos (3 days) +2 more" — positioned between fact and next watering section
 
-**Normal rest day reference:** `/Users/admin/Downloads/trmnl-rest-day-DTZXFqYo.png`
-**Overdue rest day reference:** `/Users/admin/Downloads/trmnl-rest-day-overdue-CQA6HVEc.png`
+**Normal rest day reference:** `docs/mockups/rest-day.png`
+**Overdue rest day reference:** `docs/mockups/rest-day-overdue.png`
 
 ### Max 2 Cards Per Day
 
@@ -633,14 +633,14 @@ HEATING_SEASON_END=04-01
 
 ## Screen Design References
 
-All TRMNL screen designs use the Lovable mockups as canonical reference. Originals are in Downloads; copy to `docs/mockups/` during project setup for portability.
+All TRMNL screen designs use the Lovable mockups as canonical reference, checked into this repo for portability.
 
-| Screen | Source File | Repo Copy |
-|--------|------------|-----------|
-| Watering day (1 plant) | `/Users/admin/Downloads/trmnl-1-plant-BjV-4oWY.png` | `docs/mockups/watering-1-plant.png` |
-| Watering day (2 plants) | `/Users/admin/Downloads/trmnl-2-plants-Bn2iYAZV.png` | `docs/mockups/watering-2-plants.png` |
-| Rest day (normal) | `/Users/admin/Downloads/trmnl-rest-day-DTZXFqYo.png` | `docs/mockups/rest-day.png` |
-| Rest day (overdue) | `/Users/admin/Downloads/trmnl-rest-day-overdue-CQA6HVEc.png` | `docs/mockups/rest-day-overdue.png` |
+| Screen | Path |
+|--------|------|
+| Watering day (1 plant) | `docs/mockups/watering-1-plant.png` |
+| Watering day (2 plants) | `docs/mockups/watering-2-plants.png` |
+| Rest day (normal) | `docs/mockups/rest-day.png` |
+| Rest day (overdue) | `docs/mockups/rest-day-overdue.png` |
 
 Style: dark header bar, cream background (e-ink paper), botanical crosshatch line art (Ghibli-inspired), large serif typography for plant names, sans-serif for data fields, high contrast throughout.
 

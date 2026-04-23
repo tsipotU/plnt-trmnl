@@ -153,7 +153,7 @@ export function AddPlant() {
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* Plant name — primary field */}
+        {/* Plant species or type — primary field */}
         <div>
           <label
             htmlFor="name"
@@ -166,23 +166,26 @@ export function AddPlant() {
               letterSpacing: '0.05em',
             }}
           >
-            Plant Name
+            Plant species or type
           </label>
           <input
             id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Monstera, Peace Lily..."
+            placeholder="Monstera, Ficus, Pothos"
             autoFocus
             required
             style={{ fontSize: 20, fontWeight: 500 }}
           />
           {isFirstPlant && (
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-              Search for your plant by name
+              Search for your plant by species name
             </p>
           )}
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+            If you want to give this plant a personal name, use the Identifier field below
+          </p>
         </div>
 
         {/* Identifier — helps tell same-species plants apart */}
@@ -271,15 +274,23 @@ export function AddPlant() {
             ))}
           </div>
 
-          {wateredWhen === 'pick' && (
-            <input
-              type="date"
-              value={pickedDate}
-              max={today()}
-              onChange={(e) => setPickedDate(e.target.value)}
-              style={{ marginTop: 10 }}
-            />
-          )}
+          {/* Date picker container — reserve space to prevent jittering */}
+          <div
+            style={{
+              marginTop: 10,
+              minHeight: wateredWhen === 'pick' ? 'auto' : 44,
+            }}
+          >
+            {wateredWhen === 'pick' && (
+              <input
+                type="date"
+                value={pickedDate}
+                max={today()}
+                onChange={(e) => setPickedDate(e.target.value)}
+              />
+            )}
+          </div>
+
           {isFirstPlant && (
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
               When did you last water it? Pick &lsquo;Don&rsquo;t know&rsquo; if unsure
