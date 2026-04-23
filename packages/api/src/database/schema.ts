@@ -36,7 +36,6 @@ export function initializeSchema(db: Database.Database): void {
       origin_type TEXT CHECK(origin_type IN ('purchased', 'received', 'seedling', 'unknown')),
       origin_source TEXT,
       mother_plant_id INTEGER REFERENCES plants(id),
-      notes TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     )
@@ -179,6 +178,10 @@ export function initializeSchema(db: Database.Database): void {
   addColumnIfMissing(db, 'plants', 'origin_source', 'TEXT');
   addColumnIfMissing(db, 'plants', 'mother_plant_id', 'INTEGER');
   addColumnIfMissing(db, 'event_log', 'batch_id', 'TEXT');
+
+  // One-way migration: legacy `plants.notes` column superseded by the
+  // `plant_notes` table (#32). Safe to drop on live DBs created before v0.14.
+  dropColumnIfExists(db, 'plants', 'notes');
 }
 
 function addColumnIfMissing(
@@ -190,4 +193,14 @@ function addColumnIfMissing(
   const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
   if (cols.some((c) => c.name === column)) return;
   db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`).run();
+}
+
+function dropColumnIfExists(
+  db: Database.Database,
+  table: string,
+  column: string,
+): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === column)) return;
+  db.prepare(`ALTER TABLE ${table} DROP COLUMN ${column}`).run();
 }

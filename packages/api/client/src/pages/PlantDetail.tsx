@@ -27,7 +27,6 @@ interface Plant {
   next_water_date: string | null;
   last_watered_at: string | null;
   illustration_path: string | null;
-  notes: string | null;
   archived: number;
   origin_type: 'purchased' | 'received' | 'seedling' | 'unknown' | null;
   origin_source: string | null;

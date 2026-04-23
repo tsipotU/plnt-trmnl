@@ -158,7 +158,7 @@ export function createPlantsRouter(
 
   // POST /api/plants — create a new plant
   router.post('/', (req: Request, res: Response) => {
-    const { name, plantSize, identifier, location, lightLevel, lastWateredAt, notes } = req.body;
+    const { name, plantSize, identifier, location, lightLevel, lastWateredAt } = req.body;
     // Accept both camelCase (existing API) and snake_case (client payloads / dropdown form)
     const potSizeCm = req.body.potSizeCm ?? req.body.pot_size_cm;
     const potSizeCategory = req.body.pot_size_category;
@@ -195,8 +195,8 @@ export function createPlantsRouter(
     const result = db.prepare(
       `INSERT INTO plants
          (name, pot_size_cm, pot_size_category, plant_size, identifier, location, light_level, base_interval, current_interval,
-          last_watered_at, next_water_date, enrichment_status, notes, origin_type, origin_source, mother_plant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`
+          last_watered_at, next_water_date, enrichment_status, origin_type, origin_source, mother_plant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`
     ).run(
       name,
       potSizeCm ?? null,
@@ -209,7 +209,6 @@ export function createPlantsRouter(
       currentInterval,
       lastWateredAt,
       nextWaterDate,
-      notes ?? null,
       originType ?? null,
       originSource ?? null,
       motherPlantId ?? null,
@@ -255,7 +254,7 @@ export function createPlantsRouter(
       return;
     }
 
-    const { name, plantSize, identifier, location, lightLevel, notes } = req.body;
+    const { name, plantSize, identifier, location, lightLevel } = req.body;
     // Accept both camelCase and snake_case for pot_size_cm (client sends snake_case)
     const potSizeCm = req.body.potSizeCm ?? req.body.pot_size_cm;
     const potSizeCategory = req.body.pot_size_category;
@@ -334,7 +333,6 @@ export function createPlantsRouter(
          identifier        = CASE WHEN ? = 1 THEN ? ELSE identifier END,
          location          = COALESCE(?, location),
          light_level       = COALESCE(?, light_level),
-         notes             = COALESCE(?, notes),
          origin_type       = COALESCE(?, origin_type),
          origin_source     = CASE WHEN ? = 1 THEN ? ELSE origin_source END,
          mother_plant_id   = CASE WHEN ? = 1 THEN ? ELSE mother_plant_id END,
@@ -352,7 +350,6 @@ export function createPlantsRouter(
       identifier ?? null,
       location ?? null,
       lightLevel ?? null,
-      notes ?? null,
       originType ?? null,
       originSource !== undefined ? 1 : 0,
       originSource ?? null,
