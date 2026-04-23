@@ -54,27 +54,39 @@ Plant TRMNL will be published publicly for TRMNL community self-hosting. This is
 
 These are the hard design questions that shape what gets built:
 
-#### D1 — Enrichment provider model
+#### D1 — Enrichment provider model [DECIDED 2026-04-23]
 
-Current enrichment uses `@anthropic-ai/claude-agent-sdk` against Emiel's Claude Max subscription — works for dev but NOT for other users. Options under consideration:
+**Decision:** Hybrid catalog + LLM fallback with pluggable provider abstraction.
 
-- **A. Catalog-only.** Ship a ~250-plant JSON catalog in the repo. No LLM calls anywhere. Users get care data for common species instantly; rare species get a graceful "add your own care notes" fallback.
-- **B. User-supplied Anthropic API key.** `ANTHROPIC_API_KEY` env var. If set, LLM enrichment is enabled; otherwise skipped. Cost: ~$0.01/plant, user-borne.
-- **D. Hybrid A+B (recommended).** Ship catalog; Claude fallback only if the user opted in AND the species isn't in the catalog. Maps cleanly to Wave 5's existing issues #1 (catalog) and #4 (fact/care generation).
+- **Catalog** (issue #1) covers ~250 common species — no LLM calls, no API keys, works offline.
+- **LLM fallback** via `EnrichmentProvider` adapter interface ([issue #53](https://github.com/tsipotU/plant-trmnl/issues/53)) supports Claude, Gemini, Ollama, with a NoopProvider for catalog-only mode. User selects via `LLM_PROVIDER` env var + corresponding API key.
+- **n8n path ripped out** ([issue #52](https://github.com/tsipotU/plant-trmnl/issues/52)) — was tied to Emiel's personal n8n instance; unusable for others. Claude Agent SDK path becomes the baseline `ClaudeProvider` implementation.
 
-**Decision needed before:** Wave 5 planning. This directly shapes issues #1, #3, #4, #37, #39.
+**Critical billing note (discovered 2026-04-23):** As of April 4 2026 Anthropic no longer covers Agent SDK usage under Claude Max / Pro subscriptions. Every Agent SDK call requires an `ANTHROPIC_API_KEY` and is billed at pay-as-you-go API rates. Emiel should check his Anthropic Console for any unexpected charges since April 4 and decide whether to keep the Claude path as default or promote Gemini / Ollama.
 
-#### D2 — Image/card art strategy
+#### D5 — Agent SDK billing audit [NEW 2026-04-23]
 
-Users will want species-specific visuals on the TRMNL card. Options:
+Before deciding which provider is the "default" in D1, Emiel needs to:
+1. Check https://console.anthropic.com/ for API usage + billing since April 4, 2026
+2. Decide: pay-per-enrichment via Claude API (default), free via Ollama (self-hosted LLM), or free via catalog-only
+3. Document the chosen default in INSTALL.md so new users know what they're opting into
 
-- **Ship illustrations in repo.** Curated PNG/SVG set keyed by species slug. Generic fallback icon when no match. Contributors submit new art via PR. Lines up with issue #5.
-- **User-supplied image API key.** Replicate/Ideogram/DALL-E at plant-add time.
-- **No illustrations for v1.0.** Text-only cards; illustrations defer to v1.1+.
+No code work needed for D5 — it's a decision + docs task. Fold into Wave 5 or pre-release prep.
 
-**Recommendation:** ship illustrations in repo + generic fallback. Skip per-install image generation.
+#### D2 — Image/card art strategy [DECIDED 2026-04-23]
 
-**Decision needed before:** release infra starts, since build pipeline needs to know if there are large binary assets.
+**Decision:** Ship pre-generated illustrations in the repo, keyed by species slug. Generic fallback icon when no match.
+
+Generation pipeline: standalone CLI at `scripts/generate-illustrations/` ([issue #54](https://github.com/tsipotU/plant-trmnl/issues/54)) that:
+1. Reads species list (from catalog #1)
+2. Calls Gemini Imagen (recommended for cost) or Replicate (SD with style LoRA) with a locked prompt template
+3. Post-processes via ImageMagick/Sharp (1-bit dither for TRMNL-OG, 4-bit dither for TRMNL-X, resize, strip EXIF)
+4. Writes to `packages/api/illustrations/<slug>.png`
+5. Idempotent, resumable, rate-limited
+
+Estimated budget: ~$5 one-time for 250 species via Gemini. Contributors can re-run on new species added to the catalog.
+
+Per-install image generation ruled out — too slow, too expensive for users, quality too variable.
 
 #### D3 — Keys UX
 
@@ -242,11 +254,21 @@ Haiku audit run 2026-04-23 found the repo is mostly ready — no secrets in git 
 Status checklist — update as items land:
 
 - [x] Hardcoded-secrets audit complete (2026-04-23)
-- [ ] Blocker B: clean personal paths in docs/specs/ and docs/plans/ (Wave 4 spec task)
-- [ ] Blocker C: make docker-compose.yml backup mount portable (Wave 4)
+- [x] TRMNL-X dual-device research complete (2026-04-23) — filed as [issue #55](https://github.com/tsipotU/plant-trmnl/issues/55)
+- [x] D1 enrichment decision locked (2026-04-23) — catalog + LLM adapter, see [issue #53](https://github.com/tsipotU/plant-trmnl/issues/53)
+- [x] D2 image strategy locked (2026-04-23) — pre-generated illustrations pipeline, see [issue #54](https://github.com/tsipotU/plant-trmnl/issues/54)
+- [x] D3 keys UX locked — `.env` + INSTALL.md walkthrough
+- [ ] D5: Check Anthropic Console for API usage since April 4 2026; decide which provider is the default for new users
+- [ ] Blocker B: clean personal paths in `docs/specs/` and `docs/plans/` (Wave 4 spec task)
+- [ ] Blocker C: make `docker-compose.yml` backup mount portable (Wave 4)
 - [ ] Hygiene A: rotate TRMNL keys (anytime before first public tag)
-- [ ] D1 enrichment decision — including whether to rip out n8n per audit finding D
-- [ ] Audit findings addressed (Wave 4 target)
+- [ ] n8n rip-out — [issue #52](https://github.com/tsipotU/plant-trmnl/issues/52)
+- [ ] TRMNL-X support — [issue #55](https://github.com/tsipotU/plant-trmnl/issues/55)
+- [ ] LLM provider abstraction — [issue #53](https://github.com/tsipotU/plant-trmnl/issues/53)
+- [ ] Illustration generation pipeline — [issue #54](https://github.com/tsipotU/plant-trmnl/issues/54)
+- [ ] D4 settings-boundary list finalized (part of audit response)
+- [ ] Release Infra work complete
+- [ ] v1.0.0 tagged + released + announced
 - [ ] D1 enrichment decision made + implemented (likely Wave 5 via issues #1, #4)
 - [ ] D2 image decision made (scope for Wave 5 or v1.0 prep)
 - [ ] D4 settings-boundary list finalized (part of audit response)
