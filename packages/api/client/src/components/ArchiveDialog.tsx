@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDialogContext } from '../context/DialogContext';
 
 export const ARCHIVE_REASONS = [
   { value: 'died', label: 'It died 😢' },
@@ -37,11 +38,19 @@ const radioInputStyle = {
   margin: 0,
   padding: 0,
   background: 'transparent',
+  transition: 'border-color 0.2s ease',
+  flexShrink: 0,
 };
 
 export function ArchiveDialog({ onConfirm, onCancel }: ArchiveDialogProps) {
   const [reason, setReason] = useState<string>('');
   const [note, setNote] = useState('');
+  const { setArchiveDialogOpen } = useDialogContext();
+
+  useEffect(() => {
+    setArchiveDialogOpen(true);
+    return () => setArchiveDialogOpen(false);
+  }, [setArchiveDialogOpen]);
 
   return (
     <div
@@ -75,12 +84,15 @@ export function ArchiveDialog({ onConfirm, onCancel }: ArchiveDialogProps) {
                   ...radioRowStyle,
                   background: selected ? 'var(--bg-secondary)' : 'transparent',
                   border: `1px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
+                  position: 'relative',
                 }}
               >
                 <span
                   style={{
                     position: 'relative',
-                    display: 'inline-block',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     width: 18,
                     height: 18,
                     flexShrink: 0,
@@ -92,20 +104,22 @@ export function ArchiveDialog({ onConfirm, onCancel }: ArchiveDialogProps) {
                     value={r.value}
                     checked={selected}
                     onChange={() => setReason(r.value)}
-                    style={radioInputStyle}
+                    style={{
+                      ...radioInputStyle,
+                      borderColor: selected ? 'var(--accent)' : 'var(--border, #888)',
+                    }}
                   />
                   {selected && (
                     <span
                       style={{
                         position: 'absolute',
-                        top: 5,
-                        left: 5,
+                        pointerEvents: 'none',
                         width: 8,
                         height: 8,
                         borderRadius: '50%',
                         background: 'var(--accent)',
-                        pointerEvents: 'none',
                       }}
+                      aria-hidden="true"
                     />
                   )}
                 </span>
