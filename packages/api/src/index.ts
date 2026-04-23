@@ -18,6 +18,7 @@ import { createFactsRouter } from './routes/facts.js';
 import { createScreenRouter } from './routes/screen.js';
 import { createVacationRouter } from './routes/vacation.js';
 import { createFeedbackRouter } from './routes/feedback.js';
+import { createScheduleRouter } from './routes/schedule.js';
 import { createEnrichmentRouter } from './enrichment/callback.js';
 
 const config = loadConfig();
@@ -58,6 +59,7 @@ app.use(
 app.use('/api/vacation', createVacationRouter(db));
 app.use('/api/feedback', createFeedbackRouter(db));
 app.use('/api/enrichment', createEnrichmentRouter(db));
+app.use('/api/schedule', createScheduleRouter(db));
 
 // Proxy renderer endpoints (avoids CORS from browser → renderer direct)
 const rendererUrl = process.env.API_INTERNAL_URL?.replace(':3900', ':3901') || 'http://localhost:3901';

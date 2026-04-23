@@ -1,0 +1,64 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import request from 'supertest';
+import Database from 'better-sqlite3';
+import express from 'express';
+import { initializeSchema } from '../database/schema.js';
+import { createScheduleRouter } from './schedule.js';
+
+describe('GET /api/schedule/week', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  beforeEach(() => {
+    db = new Database(':memory:');
+    initializeSchema(db);
+    app = express();
+    app.use(express.json());
+    app.use('/api/schedule', createScheduleRouter(db));
+  });
+
+  it('returns 7 days starting from `from` param', async () => {
+    const res = await request(app).get('/api/schedule/week?from=2026-04-22').expect(200);
+    expect(res.body.days).toHaveLength(7);
+    expect(res.body.days[0].date).toBe('2026-04-22');
+    expect(res.body.days[6].date).toBe('2026-04-28');
+    expect(res.body.days[0].is_today).toBeDefined();
+  });
+
+  it('buckets plants by next_water_date', async () => {
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, location)
+       VALUES ('Monstera', 7, 7, '2026-04-24', 'Living')`
+    ).run();
+
+    const res = await request(app).get('/api/schedule/week?from=2026-04-22').expect(200);
+    const day = res.body.days.find((d: any) => d.date === '2026-04-24');
+    expect(day.count).toBe(1);
+    expect(day.plant_names).toContain('Monstera');
+  });
+
+  it('rolls overdue plants into today', async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400_000).toISOString().slice(0, 10);
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, location)
+       VALUES ('Overdue', 7, 7, ?, 'Living')`
+    ).run(yesterday);
+
+    const res = await request(app).get(`/api/schedule/week?from=${today}`).expect(200);
+    const today_row = res.body.days[0];
+    expect(today_row.overdue_ids).toHaveLength(1);
+    expect(today_row.count).toBeGreaterThan(0);
+  });
+
+  it('excludes archived plants', async () => {
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, archived, location)
+       VALUES ('Zombie', 7, 7, '2026-04-24', 1, 'Living')`
+    ).run();
+
+    const res = await request(app).get('/api/schedule/week?from=2026-04-22').expect(200);
+    const day = res.body.days.find((d: any) => d.date === '2026-04-24');
+    expect(day.count).toBe(0);
+  });
+});
