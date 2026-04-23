@@ -159,6 +159,16 @@ export function initializeSchema(db: Database.Database): void {
     )
   `).run();
 
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS plant_notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plant_id INTEGER NOT NULL REFERENCES plants(id) ON DELETE CASCADE,
+      body TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT
+    )
+  `).run();
+
   // Idempotent column additions for live databases created before the column existed.
   // CREATE TABLE IF NOT EXISTS above leaves existing tables untouched.
   addColumnIfMissing(db, 'plants', 'identifier', 'TEXT');

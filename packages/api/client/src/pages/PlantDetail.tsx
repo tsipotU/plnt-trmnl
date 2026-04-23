@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArchiveDialog } from '../components/ArchiveDialog';
+import { NotesLog } from '../components/NotesLog';
 import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
 import {
   daysBetween,
@@ -452,8 +453,6 @@ export function PlantDetail() {
   const [confirmRepot, setConfirmRepot] = useState<{ newSize: string; category: string | null } | null>(null);
   const [otherCmDraft, setOtherCmDraft] = useState<string>('');
   const [confirmArchive, setConfirmArchive] = useState(false);
-  const [notesEditing, setNotesEditing] = useState(false);
-  const [notesDraft, setNotesDraft] = useState('');
   const [conditionsHelpDismissed, setConditionsHelpDismissed] = useState(() => {
     try {
       return localStorage.getItem('plant-conditions-help-dismissed') === 'true';
@@ -461,7 +460,6 @@ export function PlantDetail() {
       return false;
     }
   });
-  const notesRef = useRef<HTMLTextAreaElement>(null);
 
   // Fetch plant data
   useEffect(() => {
@@ -474,7 +472,6 @@ export function PlantDetail() {
     ])
       .then(([p, c, e]) => {
         setPlant(p);
-        setNotesDraft(p.notes ?? '');
         setConditions(Array.isArray(c) ? c : []);
         setEvents(Array.isArray(e) ? e : []);
         setLoading(false);
@@ -627,17 +624,6 @@ export function PlantDetail() {
       showToast('Failed to archive plant');
     }
     setConfirmArchive(false);
-  }
-
-  // Save notes
-  async function handleNotesSave() {
-    try {
-      await updatePlant({ notes: notesDraft });
-      showToast('Notes saved');
-    } catch {
-      showToast('Failed to save notes');
-    }
-    setNotesEditing(false);
   }
 
   if (loading) {
@@ -1203,93 +1189,8 @@ export function PlantDetail() {
         )}
       </div>
 
-      {/* Notes */}
-      <div className="card" style={{ marginBottom: 12 }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 10,
-          }}
-        >
-          <h2 style={{ fontSize: 16, fontWeight: 600 }}>Notes</h2>
-          {!notesEditing && (
-            <button
-              onClick={() => {
-                setNotesEditing(true);
-                setTimeout(() => notesRef.current?.focus(), 50);
-              }}
-              style={{
-                background: 'transparent',
-                color: 'var(--accent)',
-                fontSize: 13,
-                padding: '4px 8px',
-              }}
-            >
-              Edit
-            </button>
-          )}
-        </div>
-        {notesEditing ? (
-          <>
-            <textarea
-              ref={notesRef}
-              value={notesDraft}
-              onChange={(e) => setNotesDraft(e.target.value)}
-              rows={5}
-              style={{
-                width: '100%',
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)',
-                padding: 12,
-                fontSize: 14,
-                resize: 'vertical',
-                fontFamily: 'inherit',
-                marginBottom: 10,
-              }}
-              placeholder="Add notes about this plant…"
-            />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                onClick={handleNotesSave}
-                style={{ flex: 1, fontSize: 14, padding: '10px 16px' }}
-              >
-                Save
-              </button>
-              <button
-                onClick={() => {
-                  setNotesDraft(plant.notes ?? '');
-                  setNotesEditing(false);
-                }}
-                style={{
-                  flex: 1,
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  fontSize: 14,
-                  padding: '10px 16px',
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </>
-        ) : (
-          <p
-            style={{
-              fontSize: 14,
-              color: plant.notes ? 'var(--text-primary)' : 'var(--text-secondary)',
-              lineHeight: 1.6,
-              whiteSpace: 'pre-wrap',
-            }}
-            onClick={() => setNotesEditing(true)}
-          >
-            {plant.notes || 'Tap to add notes…'}
-          </p>
-        )}
-      </div>
+      {/* Notes log */}
+      <NotesLog plantId={Number(id)} showToast={showToast} />
 
       {/* Archive plant */}
       <button
