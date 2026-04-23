@@ -12,6 +12,7 @@ import { seedFacts } from './database/seed.js';
 import { seedOrnaments } from './database/seed-ornaments.js';
 import { performBackup } from './database/backup.js';
 import { createPlantsRouter } from './routes/plants.js';
+import { createPlantNotesRouter } from './routes/plant-notes.js';
 import { createCalibrationRouter } from './routes/calibration.js';
 import { createConditionsRouter } from './routes/conditions.js';
 import { createFactsRouter } from './routes/facts.js';
@@ -46,6 +47,7 @@ app.use('/api/plants', createPlantsRouter(db, {
   heatingSeasonStart: config.heatingSeasonStart,
   heatingSeasonEnd: config.heatingSeasonEnd,
 }));
+app.use('/api/plants', createPlantNotesRouter(db));
 app.use('/api', createCalibrationRouter(db));
 app.use('/api', createConditionsRouter(db));
 app.use('/api', createFactsRouter(db));
