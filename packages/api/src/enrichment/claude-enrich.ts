@@ -2,7 +2,8 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 import type Database from 'better-sqlite3';
 import pino from 'pino';
 import { calculateNextWaterDate } from '../scheduling/engine.js';
-import { logEvent } from '../database/event-log.js';
+import { logEvent, logScheduleEvents } from '../database/event-log.js';
+import { scheduleNextWater, type ScheduledPlant } from '../scheduling/bin-packer.js';
 
 const logger = pino({ name: 'enrichment.claude' });
 
@@ -119,9 +120,21 @@ export async function enrichPlantWithClaude(
     // Update plant with enrichment data
     const existingPlant = db.prepare('SELECT * FROM plants WHERE id = ?').get(plantId) as Record<string, unknown>;
     const lastWateredAt = existingPlant.last_watered_at as string | null;
-    const nextWaterDate = lastWateredAt
+    const idealDate = lastWateredAt
       ? calculateNextWaterDate(lastWateredAt, data.base_interval)
       : null;
+
+    let scheduled: ReturnType<typeof scheduleNextWater> | null = null;
+    let nextWaterDate: string | null = null;
+    if (idealDate) {
+      const existing = db.prepare(
+        `SELECT id, location, next_water_date as nextWaterDate
+           FROM plants
+           WHERE archived = 0 AND id != ? AND next_water_date IS NOT NULL`
+      ).all(plantId) as ScheduledPlant[];
+      scheduled = scheduleNextWater(idealDate, (existingPlant.location as string) ?? '', existing);
+      nextWaterDate = scheduled.date;
+    }
 
     db.prepare(
       `UPDATE plants SET
@@ -183,6 +196,10 @@ export async function enrichPlantWithClaude(
       newValue: `interval=${data.base_interval}, ratio=${data.water_ratio}`,
       reason: `Claude enrichment: ${data.species}`,
     });
+
+    if (scheduled) {
+      logScheduleEvents(db, plantId, scheduled);
+    }
 
     logger.info({ plantId, species: data.species, interval: data.base_interval }, 'Claude enrichment complete');
   } catch (err) {

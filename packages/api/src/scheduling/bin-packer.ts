@@ -74,3 +74,35 @@ export function findBestDate(
   // Step 5: fall back to ideal date if nothing found
   return bestDate ?? idealDate;
 }
+
+export interface ScheduleResult {
+  date: string;
+  originalIdeal: string;
+  overflowShifted: boolean;
+  congested: boolean;
+}
+
+/**
+ * Schedule a plant's next watering date with overflow/congestion metadata.
+ *
+ * Wraps findBestDate to return shift info callers can use for event logging:
+ * - overflowShifted: chosen date differs from ideal (bin-packer moved it)
+ * - congested: ideal kept AND at capacity (±3-day window also full)
+ *
+ * These flags are mutually exclusive by construction.
+ */
+export function scheduleNextWater(
+  idealDate: string,
+  location: string,
+  existing: ScheduledPlant[],
+): ScheduleResult {
+  const countAtIdeal = existing.filter(p => p.nextWaterDate === idealDate).length;
+  const chosen = findBestDate(idealDate, location, existing);
+
+  if (chosen !== idealDate) {
+    return { date: chosen, originalIdeal: idealDate, overflowShifted: true, congested: false };
+  }
+  // chosen === idealDate: either ideal had room, or window was full and we fell back.
+  const congested = countAtIdeal >= MAX_PLANTS_PER_DAY;
+  return { date: chosen, originalIdeal: idealDate, overflowShifted: false, congested };
+}

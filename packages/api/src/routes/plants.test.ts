@@ -398,6 +398,52 @@ describe('POST /api/plants/:id/water', () => {
   });
 });
 
+describe('POST /api/plants/:id/water — overflow rebalance', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  beforeEach(() => {
+    ({ app, db } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('logs overflow_rebalance and shifts next_water_date when ideal date is at capacity', async () => {
+    // Today is computed in the route; target date is today+7 (default interval).
+    const today = new Date().toISOString().split('T')[0];
+    const t = new Date(today);
+    t.setUTCDate(t.getUTCDate() + 7);
+    const idealDate = t.toISOString().split('T')[0];
+
+    // Seed two plants already scheduled on the ideal date (at capacity).
+    db.prepare(
+      `INSERT INTO plants (name, location, base_interval, current_interval, next_water_date)
+       VALUES ('Existing A', 'Living', 7, 7, ?)`
+    ).run(idealDate);
+    db.prepare(
+      `INSERT INTO plants (name, location, base_interval, current_interval, next_water_date)
+       VALUES ('Existing B', 'Living', 7, 7, ?)`
+    ).run(idealDate);
+
+    // Plant C — when watered today, ideal next water = today+7 (full).
+    const { lastInsertRowid: plantCId } = db.prepare(
+      `INSERT INTO plants (name, location, base_interval, current_interval, next_water_date)
+       VALUES ('Plant C', 'Living', 7, 7, NULL)`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${plantCId}/water`);
+    expect(res.status).toBe(200);
+    expect(res.body.next_water_date).not.toBe(idealDate);
+
+    const events = db.prepare(
+      `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'overflow_rebalance'`
+    ).all(plantCId);
+    expect(events.length).toBe(1);
+  });
+});
+
 describe('POST /api/plants/:id/archive', () => {
   let app: express.Express;
   let db: Database.Database;
