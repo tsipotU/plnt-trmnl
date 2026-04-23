@@ -19,6 +19,7 @@ interface PlantRow {
   identifier: string | null;
   location: string | null;
   pot_size_cm: number | null;
+  pot_size_category: string | null;
   water_ratio: number | null;
   water_description: string | null;
   heating_season_modifier: number;
@@ -217,6 +218,7 @@ export function createScreenRouter(
           identifier: plant.identifier ?? null,
           location: plant.location ?? null,
           potSizeCm: plant.pot_size_cm ?? null,
+          potSizeCategory: plant.pot_size_category ?? null,
           waterAmountMl,
           waterDescription: plant.water_description ?? null,
           fertilizerDue,
