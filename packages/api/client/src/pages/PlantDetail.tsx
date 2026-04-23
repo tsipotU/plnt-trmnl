@@ -541,7 +541,7 @@ export function PlantDetail() {
   async function handleResolveCondition(conditionId: number) {
     if (!id) return;
     try {
-      await fetch(`/api/plants/${id}/conditions/${conditionId}/resolve`, { method: 'POST' });
+      await fetch(`/api/conditions/${conditionId}/resolve`, { method: 'POST' });
       setConditions((prev) => prev.filter((c) => c.id !== conditionId));
       showToast('Condition resolved');
     } catch {
