@@ -42,7 +42,6 @@ describe('PlantDetail - Timeline Rendering', () => {
       next_water_date: null,
       last_watered_at: null,
       illustration_path: null,
-      notes: null,
       archived: 0,
     };
 
@@ -102,7 +101,6 @@ describe('PlantDetail - Timeline Rendering', () => {
       next_water_date: null,
       last_watered_at: null,
       illustration_path: null,
-      notes: null,
       archived: 0,
     };
 
@@ -167,7 +165,6 @@ describe('PlantDetail - Active Conditions Help', () => {
       next_water_date: null,
       last_watered_at: null,
       illustration_path: null,
-      notes: null,
       archived: 0,
     };
 
@@ -214,7 +211,6 @@ describe('PlantDetail - Active Conditions Help', () => {
       next_water_date: null,
       last_watered_at: null,
       illustration_path: null,
-      notes: null,
       archived: 0,
     };
 
@@ -274,7 +270,6 @@ describe('PlantDetail - Active Conditions Help', () => {
       next_water_date: null,
       last_watered_at: null,
       illustration_path: null,
-      notes: null,
       archived: 0,
     };
 
