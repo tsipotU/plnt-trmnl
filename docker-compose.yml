@@ -10,7 +10,7 @@ services:
       - .env
     volumes:
       - db-data:/data
-      - ${HOME}/Backups/plant-trmnl:/backups
+      - ${BACKUP_PATH:-./backups}:/backups
       - ./assets:/app/assets:ro
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3900/health"]

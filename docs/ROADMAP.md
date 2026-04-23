@@ -6,6 +6,8 @@ Issues live at [github.com/tsipotU/plant-trmnl/issues](https://github.com/tsipot
 
 ## Wave 4 — Timeline polish, visuals, E2E (next)
 
+**Pre-triage items:**
+
 - **[#5](https://github.com/tsipotU/plant-trmnl/issues/5) Botanical illustration pipeline per species** — visual polish for TRMNL cards
 - **[#9](https://github.com/tsipotU/plant-trmnl/issues/9) End-to-end watering lifecycle validation** — integration smoke tests including Wave 2/3 features
 - **[#16](https://github.com/tsipotU/plant-trmnl/issues/16) Watering history & plant health timeline (UI)** — API shipped in #20; UI missing
@@ -14,7 +16,22 @@ Issues live at [github.com/tsipotU/plant-trmnl/issues](https://github.com/tsipot
 - **[#34](https://github.com/tsipotU/plant-trmnl/issues/34) Condition remediation** — track resolution; pairs with the deferred #28 Flag-Condition flow
 - **[#35](https://github.com/tsipotU/plant-trmnl/issues/35) Plant origin story** — purchase/gift/seedling tracking
 
+**New from feedback triage 2026-04-23** ([plan](plans/2026-04-23-feedback-triage-plan.md)):
+
+- **[#61](https://github.com/tsipotU/plant-trmnl/issues/61) Date ribbon: make day cards clickable** — turn the ribbon shipped in #12 into a functional day-selector
+- **[#62](https://github.com/tsipotU/plant-trmnl/issues/62) Rename "Plant name" field to "Plant species or type"** — label what users are actually typing
+- **[#63](https://github.com/tsipotU/plant-trmnl/issues/63) AddPlant form: stop jittering on last-watered change** — layout stability bug
+- **[#64](https://github.com/tsipotU/plant-trmnl/issues/64) Pot size: drop numeric input, drop Other, add XXL 50–100cm** — finishes what #31 started
+- **[#65](https://github.com/tsipotU/plant-trmnl/issues/65) Timeline: hide raw enrichment debug line** — extends the pattern from #25 to enrichment events
+- **[#66](https://github.com/tsipotU/plant-trmnl/issues/66) Explain what "active conditions" means** — tooltip/help copy
+- **[#67](https://github.com/tsipotU/plant-trmnl/issues/67) Watered toast: 15s → 7s + undo button text-centering**
+- **[#68](https://github.com/tsipotU/plant-trmnl/issues/68) Archive dialog: style radio inputs themselves** — iOS native radios render as ovals; extend #29
+- **[#69](https://github.com/tsipotU/plant-trmnl/issues/69) Archive popup z-index: stop hiding the feedback FAB**
+- **[#73](https://github.com/tsipotU/plant-trmnl/issues/73) AddPlant: optional fields become mandatory** — moved to Wave 4 because it depends on the pot-size refactor in #64
+
 ## Wave 5 — Catalog + intelligence
+
+**Pre-triage items:**
 
 - **[#1](https://github.com/tsipotU/plant-trmnl/issues/1) Plant catalog** — 250+ houseplant database with searchable dropdown (blocks #2, #3, #4, #5, #37, #39)
 - **[#2](https://github.com/tsipotU/plant-trmnl/issues/2) Streamlined add-plant flow** — dropdown-first with free-text fallback
@@ -24,12 +41,32 @@ Issues live at [github.com/tsipotU/plant-trmnl/issues](https://github.com/tsipot
 - **[#37](https://github.com/tsipotU/plant-trmnl/issues/37) Deep plant info on detail page** — names, origin, lore
 - **[#38](https://github.com/tsipotU/plant-trmnl/issues/38) Plant facts: daily rotation on TRMNL** — mark-as-shown tracking, reset when pool empties, TRMNL-only surface
 - **[#39](https://github.com/tsipotU/plant-trmnl/issues/39) Enrichment fallback** — did-you-mean suggestions when species unknown
+- **[#60](https://github.com/tsipotU/plant-trmnl/issues/60) Calibration UX** — explanation, progress, convergence celebration, drift detection
+
+**New from feedback triage 2026-04-23** ([plan](plans/2026-04-23-feedback-triage-plan.md)):
+
+- **[#70](https://github.com/tsipotU/plant-trmnl/issues/70) "Don't know" last-watered → soil-feel dropdown seeds calibration**
+- **[#71](https://github.com/tsipotU/plant-trmnl/issues/71) Help text for "low / medium / bright" light levels**
+- **[#72](https://github.com/tsipotU/plant-trmnl/issues/72) Post-add enrichment splash: confirm species + preview care profile** — the big one
+- **[#74](https://github.com/tsipotU/plant-trmnl/issues/74) Enrichment visibility: prominent species name + optional dev-info toggle** — scope-reduced from original feedback
+- **[#75](https://github.com/tsipotU/plant-trmnl/issues/75) Active conditions: add, edit, remove** — closes the conditions loop
+- **[#76](https://github.com/tsipotU/plant-trmnl/issues/76) Flag mismatch between ideal and actual living conditions** — subtle "!" badge
+- **[#77](https://github.com/tsipotU/plant-trmnl/issues/77) Feedback submissions: support image attachments** — feature parity with goat-tracker
 
 ## Wave 6 — Design + deferred
+
+**Pre-triage items:**
 
 - **[#7](https://github.com/tsipotU/plant-trmnl/issues/7) TRMNL template visual redesign** — match Lovable mockups
 - **[#18](https://github.com/tsipotU/plant-trmnl/issues/18) Auto-detect conditions from calibration patterns**
 - **[#40](https://github.com/tsipotU/plant-trmnl/issues/40) Frontend design pass** — holistic web client UI refresh
+
+**New from feedback triage 2026-04-23** ([plan](plans/2026-04-23-feedback-triage-plan.md)):
+
+- **[#78](https://github.com/tsipotU/plant-trmnl/issues/78) Rename app to PLNT throughout copy**
+- **[#79](https://github.com/tsipotU/plant-trmnl/issues/79) 🪴 emoji as logo, favicon, and PWA icon** — pairs with #59
+- **[#80](https://github.com/tsipotU/plant-trmnl/issues/80) Hamburger menu in top nav** — Add / Archive / Feedback / Settings / Setup / About
+- **[#81](https://github.com/tsipotU/plant-trmnl/issues/81) Move "Vacation" out of dashboard into Settings** — depends on #80
 
 ## Wave 3 follow-ups (captured during review, to be slotted)
 
@@ -78,15 +115,6 @@ Plant-trmnl becomes a catalog + data store + API. Enrichment happens outside the
 [Issue #53 closed](https://github.com/tsipotU/plant-trmnl/issues/53) — LLM provider adapter abstraction is no longer needed in-app. [Issue #52](https://github.com/tsipotU/plant-trmnl/issues/52) expanded to remove ALL in-app LLM integration (Claude Agent SDK + n8n webhook).
 
 **Critical billing note (April 4, 2026):** Anthropic stopped covering Agent SDK under Max. This architecture sidesteps that entirely — plant-trmnl no longer embeds any SDK.
-
-#### D5 — Agent SDK billing audit [NEW 2026-04-23]
-
-Before deciding which provider is the "default" in D1, Emiel needs to:
-1. Check https://console.anthropic.com/ for API usage + billing since April 4, 2026
-2. Decide: pay-per-enrichment via Claude API (default), free via Ollama (self-hosted LLM), or free via catalog-only
-3. Document the chosen default in INSTALL.md so new users know what they're opting into
-
-No code work needed for D5 — it's a decision + docs task. Fold into Wave 5 or pre-release prep.
 
 #### D2 — Image/card art strategy [DECIDED 2026-04-23]
 
@@ -258,12 +286,12 @@ Haiku audit run 2026-04-23 found the repo is mostly ready — no secrets in git 
 **A. Hygiene action (not a blocker, but do before public release):**
 - Rotate your TRMNL API key + plugin UUID in the TRMNL dashboard. Your current values live in `.env` only (never committed to git, so not leaked), but rotating once before going public is defensive hygiene in case the file ever gets copied off your machine.
 
-**B. Personal paths to clean (blocker):**
-- `docs/specs/2026-04-07-plant-trmnl-design.md` lines 223-224, 238-239, 640-643 — references to `[redacted-path]/Downloads/trmnl-1-plant-BjV-4oWY.png`. Either relocate referenced images to `docs/mockups/` (some already exist there), or update the paths to be relative/sanitized.
-- `docs/plans/2026-04-07-plant-trmnl-plan.md` lines 108, 112, 116 — references to `[redacted-path]/Projects/[private-repo]/.agents/goals/build-app.md`. Rewrite as "adapt the ATLAS workflow from a related project" without the absolute path. `[private-repo]` is a private repo; its existence doesn't need to surface in a public doc.
+**B. Personal paths to clean (blocker) — RESOLVED 2026-04-23:**
+- Design spec image references switched from absolute Downloads paths to relative `docs/mockups/` paths (mockups already checked into the repo).
+- Implementation plan references to other private projects rewritten as generic "related project" language.
 
-**C. Docker Compose portability (blocker):**
-- `docker-compose.yml` line 13 uses `${HOME}/Backups/plant-trmnl:/backups`. For public distribution, change to `./backups:/backups` and document in INSTALL.md that users need to create a `backups/` directory (or have the compose file create it via a named volume).
+**C. Docker Compose portability (blocker) — RESOLVED 2026-04-23:**
+- `docker-compose.yml` backup mount now uses `${BACKUP_PATH:-./backups}:/backups` — defaults to a project-relative path, overridable via `.env` for users who want a different location. `.env.example` documents the override.
 
 **D. Discovery — n8n IS in the enrichment path:**
 - `.env.example` declares `N8N_ENRICHMENT_WEBHOOK_URL`. There's an n8n-based enrichment webhook wired alongside the Claude Agent SDK path. This matters for the D1 decision (enrichment provider model) — the n8n workflow points to a personal n8n instance and won't work for other users. Decisions:
@@ -294,10 +322,9 @@ Status checklist — update as items land:
 - [x] D2 image strategy locked (2026-04-23) — pre-generated illustrations pipeline, see [issue #54](https://github.com/tsipotU/plant-trmnl/issues/54)
 - [x] D3 keys UX locked — `.env` + INSTALL.md walkthrough
 - [x] D6 license locked — PolyForm Noncommercial 1.0.0
-- [ ] D5: Check Anthropic Console for API usage since April 4 2026 (Emiel action)
-- [ ] Blocker B: clean personal paths in `docs/specs/` and `docs/plans/` (Wave 4 spec task)
-- [ ] Blocker C: make `docker-compose.yml` backup mount portable (Wave 4)
-- [ ] Hygiene A: rotate TRMNL keys (anytime before first public tag)
+- [x] Blocker B: clean personal paths in `docs/specs/` and `docs/plans/` (2026-04-23)
+- [x] Blocker C: make `docker-compose.yml` backup mount portable (2026-04-23 — `${BACKUP_PATH:-./backups}` pattern)
+- [ ] Hygiene A: rotate TRMNL keys (anytime before first public tag — not required for development)
 - [ ] Remove ALL in-app LLM integration — [issue #52](https://github.com/tsipotU/plant-trmnl/issues/52) (expanded scope: n8n + Claude Agent SDK)
 - [ ] TRMNL-X support — [issue #55](https://github.com/tsipotU/plant-trmnl/issues/55)
 - [ ] Illustration generation pipeline — [issue #54](https://github.com/tsipotU/plant-trmnl/issues/54)
@@ -305,13 +332,8 @@ Status checklist — update as items land:
 - [ ] Copy-prompt-to-clipboard UX — [issue #56](https://github.com/tsipotU/plant-trmnl/issues/56)
 - [ ] Enrichment API endpoints — included in [issue #52](https://github.com/tsipotU/plant-trmnl/issues/52) scope
 - [ ] D4 settings-boundary list finalized (part of audit response)
-- [ ] Release Infra work complete
-- [ ] Release process playbook + CHANGELOG — [issue #57](https://github.com/tsipotU/plant-trmnl/issues/57) (AFTER v1.0.0)
-- [ ] v1.0.0 tagged + released + announced
-- [ ] D1 enrichment decision made + implemented (likely Wave 5 via issues #1, #4)
-- [ ] D2 image decision made (scope for Wave 5 or v1.0 prep)
-- [ ] D4 settings-boundary list finalized (part of audit response)
 - [ ] Release Infra work complete (LICENSE, CONTRIBUTING, INSTALL, CI, issue templates, etc.)
+- [ ] Release process playbook + CHANGELOG — [issue #57](https://github.com/tsipotU/plant-trmnl/issues/57) (AFTER v1.0.0)
 - [ ] Wave 5 merged
 - [ ] Fresh-install smoke test passed on Pi + Linux server
 - [ ] v1.0.0 tagged + released + announced
