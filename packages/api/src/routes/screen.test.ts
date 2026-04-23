@@ -391,6 +391,29 @@ describe('GET /api/screen/today', () => {
       expect(res.body.plants).toHaveLength(2);
     });
 
+    it('returns two plants when two are due today', async () => {
+      const id1 = insertPlant(db, {
+        name: 'Monstera',
+        next_water_date: '2026-04-07',
+      });
+      insertCalibrationQuestion(db, id1);
+
+      const id2 = insertPlant(db, {
+        name: 'Pothos',
+        next_water_date: '2026-04-07',
+      });
+      insertCalibrationQuestion(db, id2);
+
+      const app = buildApp(db);
+      const res = await request(app).get('/api/screen/today?date=2026-04-07');
+
+      expect(res.status).toBe(200);
+      expect(res.body.type).toBe('watering');
+      expect(res.body.plants).toHaveLength(2);
+      const names = (res.body.plants as Array<{ name: string }>).map((p) => p.name).sort();
+      expect(names).toEqual(['Monstera', 'Pothos']);
+    });
+
     it('includes fertilizer due status — true when due', async () => {
       // Not heating season (Apr 7), last fertilized > 4 weeks ago
       const plantId = insertPlant(db, {
