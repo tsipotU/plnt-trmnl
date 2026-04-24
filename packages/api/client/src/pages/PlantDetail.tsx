@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArchiveDialog } from '../components/ArchiveDialog';
+import { ConditionsPicker } from '../components/ConditionsPicker';
 import { NotesLog } from '../components/NotesLog';
 import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
 import { useDevInfo } from '../hooks/useDevInfo.js';
@@ -10,6 +11,7 @@ import {
   trendLabel,
   countWaterings,
 } from '../utils/stats';
+import { GENERIC_CONDITIONS } from '../data/genericConditions';
 
 // --- Types ---
 
@@ -593,6 +595,8 @@ export function PlantDetail() {
   const [events, setEvents] = useState<PlantEvent[]>([]);
   const [catalogEntry, setCatalogEntry] = useState<CatalogEntry | null>(null);
   const [showAllCatalogConditions, setShowAllCatalogConditions] = useState(false);
+  // #75 — Add-condition picker (generic + species + free-text)
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -814,6 +818,45 @@ export function PlantDetail() {
       showToast(`Flagged: ${c.name}`);
     } catch {
       showToast('Failed to flag condition');
+    }
+  }
+
+  // #75 — Flag an arbitrary condition (generic list, species row, or free text).
+  // Funnels through the same POST /api/plants/:id/conditions path as the
+  // catalog picker in #3.
+  async function handleFlagCondition(payload: {
+    name: string;
+    symptoms?: string | null;
+    remedy?: string | null;
+    severity?: 'info' | 'warning' | 'critical';
+  }): Promise<boolean> {
+    if (!id) return false;
+    const alreadyActive = conditions.some(
+      (existing) => existing.is_active && existing.condition_name === payload.name,
+    );
+    if (alreadyActive) {
+      showToast('Already flagged as active');
+      return false;
+    }
+    try {
+      const res = await fetch(`/api/plants/${id}/conditions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conditionName: payload.name,
+          symptoms: payload.symptoms ?? null,
+          remedy: payload.remedy ?? null,
+          severity: payload.severity ?? 'info',
+        }),
+      });
+      if (!res.ok) throw new Error('flag failed');
+      const created = (await res.json()) as Condition;
+      setConditions((prev) => [created, ...prev]);
+      showToast(`Flagged: ${payload.name}`);
+      return true;
+    } catch {
+      showToast('Failed to flag condition');
+      return false;
     }
   }
 
@@ -1292,6 +1335,25 @@ export function PlantDetail() {
           >
             ?
           </button>
+          {/* #75 — Explicit "Add condition" entry point */}
+          <button
+            onClick={() => {
+              setPickerOpen(true);
+            }}
+            aria-label="Add condition"
+            style={{
+              marginLeft: 'auto',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: '6px 12px',
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            + Add condition
+          </button>
         </div>
 
         {!conditionsHelpDismissed && (
@@ -1378,6 +1440,8 @@ export function PlantDetail() {
                 </div>
                 <button
                   onClick={() => handleResolveCondition(c.id)}
+                  aria-label={`Remove ${c.condition_name}`}
+                  title="Mark resolved"
                   style={{
                     background: 'var(--bg-secondary)',
                     color: 'var(--text-secondary)',
@@ -1842,6 +1906,32 @@ export function PlantDetail() {
           onCancel={() => setConfirmArchive(false)}
         />
       )}
+
+      {/* #75 — Conditions picker (generic + species + free-text) */}
+      <ConditionsPicker
+        open={pickerOpen}
+        speciesConditions={
+          catalogEntry
+            ? catalogEntry.conditions.filter((c) => c.is_common).slice(0, 5).map((c) => ({
+                name: c.name,
+                symptoms: c.symptoms,
+                remedy: c.remedy,
+                severity: c.severity,
+                prevention: c.prevention,
+              }))
+            : []
+        }
+        activeNames={activeConditions.map((c) => c.condition_name)}
+        onClose={() => setPickerOpen(false)}
+        onPick={(p) =>
+          handleFlagCondition({
+            name: p.name,
+            symptoms: p.symptoms ?? null,
+            remedy: p.remedy ?? null,
+            severity: p.severity,
+          })
+        }
+      />
 
       {/* Toast */}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
