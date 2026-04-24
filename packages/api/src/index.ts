@@ -23,6 +23,8 @@ import { createVacationRouter } from './routes/vacation.js';
 import { createFeedbackRouter } from './routes/feedback.js';
 import { createScheduleRouter } from './routes/schedule.js';
 import { createEnrichmentRouter } from './enrichment/callback.js';
+import { pickDailyFact } from './facts/pick-daily.js';
+import { DAILY_FACT_CRON } from './facts/cron-schedule.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -123,6 +125,20 @@ cron.schedule('0 0 * * *', async () => {
     console.log(`Backup created: ${backupPath}`);
   } catch (err) {
     console.error('Backup failed:', err);
+  }
+});
+
+// Daily fact rotation (#38) — pick today's fact at 6 AM.
+cron.schedule(DAILY_FACT_CRON, () => {
+  try {
+    const picked = pickDailyFact(db);
+    if (picked) {
+      console.log(`[cron] Daily fact picked: id=${picked.id}`);
+    } else {
+      console.log('[cron] Daily fact: no eligible facts');
+    }
+  } catch (err) {
+    console.error('[cron] Daily fact pick failed:', err);
   }
 });
 

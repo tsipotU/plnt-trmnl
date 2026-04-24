@@ -2,7 +2,6 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Dashboard } from './pages/Dashboard.js';
 import { AddPlant } from './pages/AddPlant.js';
 import { PlantDetail } from './pages/PlantDetail.js';
-import { FactManagement } from './pages/FactManagement.js';
 import { TrmnlPreview } from './pages/TrmnlPreview.js';
 import { TrmnlSetup } from './pages/TrmnlSetup.js';
 import { FeedbackList } from './pages/FeedbackList.js';
@@ -48,15 +47,6 @@ function Header() {
           }}
         >
           + Add
-        </Link>
-        <Link
-          to="/facts"
-          style={{
-            color: location.pathname === '/facts' ? 'var(--accent)' : 'var(--text-secondary)',
-            fontSize: 14,
-          }}
-        >
-          Facts
         </Link>
         <Link
           to="/preview"
@@ -120,7 +110,6 @@ export function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/plants/:id" element={<PlantDetail />} />
             <Route path="/add" element={<AddPlant />} />
-            <Route path="/facts" element={<FactManagement />} />
             <Route path="/preview" element={<TrmnlPreview />} />
             <Route path="/setup" element={<TrmnlSetup />} />
             <Route path="/archived" element={<ArchivedPlants />} />

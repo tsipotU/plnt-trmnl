@@ -21,7 +21,7 @@ interface ScreenData {
   date: string;
   plants?: ScreenPlant[];
   nextWatering?: { name: string; date: string; interval: number } | null;
-  fact?: { text: string };
+  fact?: { id?: number; text: string } | null;
   ornament?: { imagePath: string };
   overdue?: Array<{ name: string; daysOverdue: number }>;
 }
@@ -37,6 +37,10 @@ function buildMergeVariables(data: ScreenData): Record<string, unknown> {
     screen_type: data.type,
     date: formatDate(data.date),
   };
+
+  // Today's rotating fact (#38) — available on both screen types.
+  vars.fact_text = data.fact?.text || '';
+  vars.has_fact = !!data.fact?.text;
 
   if (data.type === 'watering' && data.plants) {
     vars.plant_count = data.plants.length;
@@ -83,7 +87,6 @@ function buildMergeVariables(data: ScreenData): Record<string, unknown> {
   }
 
   if (data.type === 'rest') {
-    vars.fact_text = data.fact?.text || '';
     vars.has_overdue = (data.overdue?.length ?? 0) > 0;
     if (data.overdue && data.overdue.length > 0) {
       vars.overdue_name = data.overdue[0].name;
