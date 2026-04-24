@@ -24,8 +24,13 @@ import { createFeedbackRouter } from './routes/feedback.js';
 import { createScheduleRouter } from './routes/schedule.js';
 import { createEnrichmentRouter } from './enrichment/callback.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const config = loadConfig();
 const db = createDatabase(config.databasePath);
+
+const feedbackUploadDir = path.resolve(__dirname, '..', 'feedback-uploads');
+fs.mkdirSync(feedbackUploadDir, { recursive: true });
 
 const seedFactsPath = path.join(config.assetsDir, 'seed-facts.json');
 if (fs.existsSync(seedFactsPath)) {
@@ -65,7 +70,7 @@ app.use(
   })
 );
 app.use('/api/vacation', createVacationRouter(db));
-app.use('/api/feedback', createFeedbackRouter(db));
+app.use('/api/feedback', createFeedbackRouter(db, { uploadDir: feedbackUploadDir }));
 app.use('/api/enrichment', createEnrichmentRouter(db));
 app.use('/api/schedule', createScheduleRouter(db));
 
@@ -97,7 +102,6 @@ app.use('/api', (_req, res) => {
 });
 
 // Static client files (built output from packages/api/client)
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const clientPath = path.join(__dirname, '..', 'dist', 'client');
 
 app.use(express.static(clientPath));
