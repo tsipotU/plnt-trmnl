@@ -28,6 +28,12 @@ export interface Catalog {
   all(): readonly CatalogEntry[];
   get(slug: string): CatalogEntry | undefined;
   search(query: string, limit?: number): CatalogSearchResult[];
+  /**
+   * Fuzzy "did you mean" lookup. Returns up to `limit` catalog matches that are
+   * similar-but-not-identical to `query` (normalised Levenshtein >= threshold).
+   * Used by the enrichment fallback flow when Claude can't recognise a typo.
+   */
+  suggest(query: string, limit?: number): CatalogSearchResult[];
 }
 
 interface IndexedEntry {
@@ -200,7 +206,116 @@ export function createCatalog(entries: readonly CatalogEntry[]): Catalog {
 
       return scored.slice(0, limit).map(({ entry }) => toResult(entry));
     },
+    suggest(query: string, limit = 3) {
+      const q = query.trim().toLowerCase();
+      if (q.length === 0) return [];
+
+      // Strategy:
+      //   - For SINGLE-token queries (e.g. "snake", "monstra"), score against
+      //     each indexed token — catches short common-name hits like
+      //     "snake" → "Snake plant".
+      //   - For MULTI-token queries (e.g. "monstera diliciosa"), score
+      //     against whole haystacks only. This prevents false positives like
+      //     "xyzzy plant" matching every entry that contains the word
+      //     "plant".
+      const queryTokens = q.split(/[\s\-_]+/).filter(Boolean);
+      const isSingleToken = queryTokens.length <= 1;
+      const scored: Array<{ sim: number; entry: CatalogEntry }> = [];
+
+      for (const { entry, haystacks, tokens } of indexed) {
+        let best = 0;
+
+        if (isSingleToken) {
+          for (const tok of tokens) {
+            const sim = similarity(q, tok);
+            if (sim > best) best = sim;
+          }
+        } else {
+          for (const h of haystacks) {
+            const sim = similarity(q, h);
+            if (sim > best) best = sim;
+          }
+          // Guard against matches that only win on a shared trailing word
+          // (e.g. "xyzzy plant" vs "ZZ plant"). Require every meaningful
+          // (length >= 4) query token to have a reasonably close neighbour
+          // in the entry's tokens. If any significant token has no such
+          // neighbour, we treat this as an unknown name, not a typo.
+          if (best >= SUGGEST_THRESHOLD) {
+            const allMeaningfulTokensSupported = queryTokens.every((qt) => {
+              if (qt.length < 4) return true;
+              for (const tok of tokens) {
+                if (similarity(qt, tok) >= SUGGEST_TOKEN_SUPPORT) return true;
+              }
+              return false;
+            });
+            if (!allMeaningfulTokensSupported) best = 0;
+          }
+        }
+
+        if (best >= SUGGEST_THRESHOLD) {
+          scored.push({ sim: best, entry });
+        }
+      }
+
+      scored.sort((a, b) => {
+        if (b.sim !== a.sim) return b.sim - a.sim;
+        return a.entry.latin_name.localeCompare(b.entry.latin_name);
+      });
+
+      return scored.slice(0, limit).map(({ entry }) => toResult(entry));
+    },
   };
+}
+
+// Minimum normalised similarity (0..1) for a catalog entry to count as a
+// "did you mean" suggestion. Tuned so "monstera diliciosa" → "Monstera
+// deliciosa" lands comfortably above the bar while "xyzzy plant" stays out.
+const SUGGEST_THRESHOLD = 0.7;
+// For multi-token queries, each meaningful (length >= 4) query token must
+// find at least one entry token with this much similarity. Prevents a single
+// shared trailing word (e.g. "plant") from dragging a totally unrelated
+// query over the line.
+const SUGGEST_TOKEN_SUPPORT = 0.6;
+
+/**
+ * Normalised similarity in [0, 1], where 1 == identical and 0 == totally
+ * different. Uses Levenshtein edit distance over the longer string length.
+ * Exported for tests.
+ */
+export function similarity(a: string, b: string): number {
+  const aa = a.toLowerCase();
+  const bb = b.toLowerCase();
+  if (aa.length === 0 && bb.length === 0) return 1;
+  const maxLen = Math.max(aa.length, bb.length);
+  if (maxLen === 0) return 1;
+  const d = levenshtein(aa, bb);
+  return 1 - d / maxLen;
+}
+
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  // Two-row DP to keep memory small for short plant names.
+  let prev = new Array<number>(b.length + 1);
+  let curr = new Array<number>(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+      curr[j] = Math.min(
+        curr[j - 1] + 1,       // insertion
+        prev[j] + 1,           // deletion
+        prev[j - 1] + cost,    // substitution
+      );
+    }
+    [prev, curr] = [curr, prev];
+  }
+
+  return prev[b.length];
 }
 
 function scoreMatch(
