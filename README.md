@@ -49,7 +49,7 @@ The renderer has no direct database access — it only talks to the API over the
 
 ## Roadmap
 
-Forward-looking plans live in [`docs/ROADMAP.md`](docs/ROADMAP.md). Near-term: Wave 4 (timeline polish, visuals, E2E tests) and Wave 5 (plant catalog, fact generation, deep care info).
+Current state and forward-looking plans live in [`docs/HANDOFF.md`](docs/HANDOFF.md). The most recent waves shipped nav shell + PLNT branding (Wave 6) and removed the n8n dead path (Wave 7). Next: PWA install + offline read (Wave 8, issue #59).
 
 ## Tech Stack
 
