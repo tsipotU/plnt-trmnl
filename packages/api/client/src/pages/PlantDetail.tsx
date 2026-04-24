@@ -175,7 +175,7 @@ function severityColor(severity: string): string {
   return 'var(--accent)';
 }
 
-const ACTIVE_CONDITIONS_EXPLANATION = 'Conditions are problems affecting your plant — things like root rot, leaf yellowing, or pest infestations. When flagged, plnt-trmnl suggests how to address them.';
+const ACTIVE_CONDITIONS_EXPLANATION = 'Conditions are problems affecting your plant — things like root rot, leaf yellowing, or pest infestations. When flagged, PLNT suggests how to address them.';
 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (

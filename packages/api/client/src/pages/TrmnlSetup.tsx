@@ -65,7 +65,7 @@ export function TrmnlSetup() {
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700 }}>TRMNL Setup</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>
-          Connect your TRMNL e-ink display to Plant TRMNL
+          Connect your TRMNL e-ink display to PLNT
         </p>
       </div>
 
