@@ -718,3 +718,190 @@ describe('PlantDetail - About this plant card (#37)', () => {
     expect(screen.queryByText('Etymology')).not.toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// #75 — Active conditions add/edit/remove picker
+// ---------------------------------------------------------------------------
+
+describe('PlantDetail #75 — Add condition picker', () => {
+  beforeEach(() => {
+    localStorage.setItem('plant-conditions-help-dismissed', 'true');
+    vi.clearAllMocks();
+  });
+
+  it('shows an "Add condition" button in the Active Conditions section', async () => {
+    const fetchImpl = buildFetch({ plant: plantFixture(), catalog: CATALOG_FIXTURE });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /add condition/i })).toBeInTheDocument();
+    });
+  });
+
+  it('opens a picker modal with both generic and species sections on click', async () => {
+    const fetchImpl = buildFetch({ plant: plantFixture(), catalog: CATALOG_FIXTURE });
+    RenderWithRouter('1', fetchImpl);
+
+    const addBtn = await screen.findByRole('button', { name: /add condition/i });
+    await userEvent.click(addBtn);
+
+    const dialog = (await screen.findByRole('dialog', { name: /add condition/i })) as HTMLElement;
+    expect(dialog).toBeInTheDocument();
+    // Both section headers render
+    expect(dialog).toHaveTextContent(/common to any plant/i);
+    expect(dialog).toHaveTextContent(/common for this species/i);
+    // Generic entries from module
+    expect(dialog).toHaveTextContent('Root rot');
+    expect(dialog).toHaveTextContent('Overwatering');
+    // Species entries from catalog fixture (top 5 common)
+    expect(dialog).toHaveTextContent('Top condition 1');
+  });
+
+  it('tapping a generic row POSTs and adds the condition to the active list', async () => {
+    const postBodies: unknown[] = [];
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+      postConditionSpy: (body) => postBodies.push(body),
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    const addBtn = await screen.findByRole('button', { name: /add condition/i });
+    await userEvent.click(addBtn);
+
+    await userEvent.click(screen.getByRole('button', { name: /flag Root rot as active/i }));
+
+    await waitFor(() => {
+      expect(postBodies).toHaveLength(1);
+    });
+    expect(postBodies[0]).toMatchObject({
+      conditionName: 'Root rot',
+      severity: 'critical',
+    });
+    // Appears in the active conditions list (picker closes on pick)
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /add condition/i })).not.toBeInTheDocument();
+    });
+    expect(screen.getAllByText('Root rot').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('tapping a species row POSTs and adds the condition to the active list', async () => {
+    const postBodies: unknown[] = [];
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+      postConditionSpy: (body) => postBodies.push(body),
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    const addBtn = await screen.findByRole('button', { name: /add condition/i });
+    await userEvent.click(addBtn);
+
+    // The species rows live in the picker. The #3 catalog section also renders
+    // one outside the dialog; pick the dialog scope explicitly.
+    const dialog = await screen.findByRole('dialog', { name: /add condition/i });
+    const speciesBtn = (dialog as HTMLElement).querySelector(
+      'button[aria-label="Flag Top condition 2 as active"]',
+    ) as HTMLButtonElement | null;
+    expect(speciesBtn).not.toBeNull();
+    await userEvent.click(speciesBtn!);
+
+    await waitFor(() => {
+      expect(postBodies).toHaveLength(1);
+    });
+    expect(postBodies[0]).toMatchObject({
+      conditionName: 'Top condition 2',
+      severity: 'warning',
+    });
+  });
+
+  it('free-text fallback creates a condition with the typed name', async () => {
+    const postBodies: unknown[] = [];
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+      postConditionSpy: (body) => postBodies.push(body),
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    const addBtn = await screen.findByRole('button', { name: /add condition/i });
+    await userEvent.click(addBtn);
+
+    // Expand the "Other — describe" fallback
+    await userEvent.click(screen.getByRole('button', { name: /other — describe/i }));
+
+    const textarea = screen.getByPlaceholderText(/describe the condition/i);
+    await userEvent.type(textarea, 'Weird brown specks');
+
+    await userEvent.click(screen.getByRole('button', { name: /^add$/i }));
+
+    await waitFor(() => {
+      expect(postBodies).toHaveLength(1);
+    });
+    expect(postBodies[0]).toMatchObject({ conditionName: 'Weird brown specks' });
+  });
+
+  it('hides the species section when no catalog entry is found', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture({ species: 'Unknown sp.' }),
+      // no catalog
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    const addBtn = await screen.findByRole('button', { name: /add condition/i });
+    await userEvent.click(addBtn);
+
+    expect(screen.getByText(/common to any plant/i)).toBeInTheDocument();
+    expect(screen.queryByText(/common for this species/i)).not.toBeInTheDocument();
+  });
+
+  it('removes an active condition via the resolve endpoint', async () => {
+    const resolveCalls: string[] = [];
+    const activeCondition = {
+      id: 42,
+      plant_id: 1,
+      condition_name: 'Root rot',
+      symptoms: 'mushy',
+      remedy: 'repot',
+      severity: 'critical',
+      is_active: 1,
+    };
+    const fetchImpl = async (url: string, init?: RequestInit) => {
+      if (init?.method === 'POST' && url.includes('/api/conditions/42/resolve')) {
+        resolveCalls.push(url);
+        return { ok: true, json: () => Promise.resolve({ ...activeCondition, is_active: 0 }) };
+      }
+      if (url.includes('/api/catalog/entry')) {
+        return { ok: true, json: () => Promise.resolve(CATALOG_FIXTURE) };
+      }
+      if (url.includes('/api/plants/1/conditions')) {
+        return { ok: true, json: () => Promise.resolve([activeCondition]) };
+      }
+      if (url.includes('/api/plants/1/events')) {
+        return { ok: true, json: () => Promise.resolve([]) };
+      }
+      if (url.includes('/api/plants/1')) {
+        return { ok: true, json: () => Promise.resolve(plantFixture()) };
+      }
+      return { ok: false, json: () => Promise.resolve(null) };
+    };
+    RenderWithRouter('1', fetchImpl as (url: string) => Promise<any>);
+
+    // Wait for the active condition row to appear
+    await waitFor(() => {
+      // The remove affordance (existing "Resolve" button) should be present
+      const resolveBtns = screen.getAllByRole('button', { name: /resolve|remove/i });
+      expect(resolveBtns.length).toBeGreaterThan(0);
+    });
+
+    const removeBtn = screen
+      .getAllByRole('button', { name: /resolve|remove/i })
+      .find((b) => (b as HTMLButtonElement).textContent?.match(/resolve|remove/i));
+    expect(removeBtn).toBeDefined();
+    await userEvent.click(removeBtn!);
+
+    await waitFor(() => {
+      expect(resolveCalls).toHaveLength(1);
+    });
+  });
+});
