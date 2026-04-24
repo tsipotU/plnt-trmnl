@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LightLevelTooltip } from '../components/LightLevelTooltip';
 import { DidYouMeanSplash, type SuggestionOption } from '../components/DidYouMeanSplash';
@@ -11,6 +11,28 @@ interface ExistingPlant {
   id: number;
   name: string;
 }
+
+interface CatalogSearchResult {
+  slug: string;
+  latin_name: string;
+  category: string;
+  primary_common_name: string;
+}
+
+// Common rooms surfaced as tappable chips (#2). Custom locations remain supported
+// via the free-text input — these are just shortcuts.
+const COMMON_ROOMS: string[] = [
+  'Living room',
+  'Bedroom',
+  'Kitchen',
+  'Bathroom',
+  'Office',
+  'Balcony',
+];
+
+// Debounce delay for /api/catalog/search-as-you-type lookups. Kept short so the
+// dropdown feels responsive while still coalescing rapid keystrokes.
+const CATALOG_SEARCH_DEBOUNCE_MS = 200;
 
 const SOIL_FEEL_OPTIONS: { value: Exclude<SoilFeel, ''>; label: string }[] = [
   { value: 'bone_dry', label: 'Bone dry' },
@@ -43,6 +65,13 @@ export function AddPlant() {
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
+  // Catalog dropdown state (#2) — when the user picks a suggestion we lock in
+  // the slug so POST /api/plants can apply baselines immediately. Typing after
+  // selection clears the slug (free-text fallback).
+  const [catalogSlug, setCatalogSlug] = useState<string | null>(null);
+  const [catalogResults, setCatalogResults] = useState<CatalogSearchResult[]>([]);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
   const [identifier, setIdentifier] = useState('');
   const [wateredWhen, setWateredWhen] = useState<WateredWhen>('today');
   const [pickedDate, setPickedDate] = useState(today());
@@ -85,6 +114,59 @@ export function AddPlant() {
       });
   }, []);
 
+  // Debounced catalog search (#2). Triggers on every name change; skips when
+  // the user has already locked in a selection (catalogSlug set + name matches
+  // a selected entry) or when the query is empty/too short.
+  useEffect(() => {
+    const query = name.trim();
+    if (query.length < 2) {
+      setCatalogResults([]);
+      setCatalogOpen(false);
+      return;
+    }
+    // If the input still exactly matches the selected catalog entry, don't
+    // re-query — user hasn't typed since selection.
+    if (catalogSlug) {
+      setCatalogOpen(false);
+      return;
+    }
+
+    let cancelled = false;
+    const handle = setTimeout(() => {
+      fetch(`/api/catalog/search?q=${encodeURIComponent(query)}&limit=8`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: unknown) => {
+          if (cancelled) return;
+          const results = Array.isArray(data) ? (data as CatalogSearchResult[]) : [];
+          setCatalogResults(results);
+          setCatalogOpen(results.length > 0);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setCatalogResults([]);
+          setCatalogOpen(false);
+        });
+    }, CATALOG_SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [name, catalogSlug]);
+
+  function handleSelectCatalog(entry: CatalogSearchResult): void {
+    setName(entry.latin_name);
+    setCatalogSlug(entry.slug);
+    setCatalogOpen(false);
+    setCatalogResults([]);
+  }
+
+  function handleNameChange(value: string): void {
+    setName(value);
+    // Any typing after a selection breaks the lock and reverts to free-text.
+    if (catalogSlug) setCatalogSlug(null);
+  }
+
   function resolveLastWateredAt(): string {
     if (wateredWhen === 'today') return today();
     if (wateredWhen === 'pick') return pickedDate;
@@ -108,6 +190,7 @@ export function AddPlant() {
 
     const payload = {
       name: name.trim(),
+      catalog_slug: catalogSlug,
       identifier: identifier.trim() || null,
       potSizeCm: potSizeCm,
       pot_size_category: potCategory,
@@ -328,19 +411,93 @@ export function AddPlant() {
           >
             Plant species or type
           </label>
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Monstera, Ficus, Pothos"
-            autoFocus
-            required
-            style={{ fontSize: 20, fontWeight: 500 }}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              id="name"
+              ref={nameInputRef}
+              type="text"
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onFocus={() => {
+                if (catalogResults.length > 0 && !catalogSlug) setCatalogOpen(true);
+              }}
+              onBlur={() => {
+                // Delay close so mousedown on an option can register before blur.
+                setTimeout(() => setCatalogOpen(false), 120);
+              }}
+              placeholder="Monstera, Ficus, Pothos"
+              autoFocus
+              required
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={catalogOpen}
+              aria-controls="catalog-suggestions"
+              aria-autocomplete="list"
+              style={{ fontSize: 20, fontWeight: 500, width: '100%' }}
+            />
+            {catalogOpen && catalogResults.length > 0 && (
+              <ul
+                id="catalog-suggestions"
+                role="listbox"
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  margin: '4px 0 0 0',
+                  padding: 4,
+                  listStyle: 'none',
+                  background: 'var(--bg-primary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 8,
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.18)',
+                  zIndex: 10,
+                  maxHeight: 280,
+                  overflowY: 'auto',
+                }}
+              >
+                {catalogResults.map((r) => (
+                  <li
+                    key={r.slug}
+                    role="option"
+                    aria-label={r.latin_name}
+                    aria-selected={catalogSlug === r.slug}
+                    onMouseDown={(e) => {
+                      // Prevent blur before click lands.
+                      e.preventDefault();
+                      handleSelectCatalog(r);
+                    }}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      fontSize: 15,
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.background =
+                        'var(--bg-secondary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'transparent';
+                    }}
+                  >
+                    <div style={{ fontWeight: 500 }}>{r.latin_name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                      {r.primary_common_name}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           {isFirstPlant && (
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
               Search for your plant by species name
+            </p>
+          )}
+          {catalogSlug && (
+            <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4 }}>
+              ✓ Catalog match — care baselines will be applied instantly.
             </p>
           )}
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
@@ -564,7 +721,7 @@ export function AddPlant() {
             )}
           </div>
 
-          {/* Location */}
+          {/* Location — room picker + free-text (#2) */}
           <div>
             <label
               htmlFor="location"
@@ -572,17 +729,52 @@ export function AddPlant() {
             >
               Location <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
             </label>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 6,
+                marginBottom: 8,
+              }}
+            >
+              {COMMON_ROOMS.map((room) => {
+                const active = location.trim().toLowerCase() === room.toLowerCase();
+                return (
+                  <button
+                    key={room}
+                    type="button"
+                    onClick={() => setLocation(room)}
+                    aria-pressed={active}
+                    style={{
+                      background: active ? 'var(--accent)' : 'var(--bg-primary)',
+                      color: active ? 'white' : 'var(--text-primary)',
+                      border: active
+                        ? '1px solid var(--accent)'
+                        : '1px solid var(--border)',
+                      borderRadius: 999,
+                      padding: '6px 12px',
+                      fontSize: 13,
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      minHeight: 32,
+                    }}
+                  >
+                    {room}
+                  </button>
+                );
+              })}
+            </div>
             <input
               id="location"
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Living room, Kitchen windowsill"
+              placeholder="Or type your own (e.g. Kitchen windowsill)"
               required
             />
             {isFirstPlant && (
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                Where in your home is this plant?
+                Tap a room or type a custom location
               </p>
             )}
           </div>

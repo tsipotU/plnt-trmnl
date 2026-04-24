@@ -19,7 +19,7 @@ async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>) {
   await user.selectOptions(screen.getByLabelText(/Pot size/i), 'Medium');
   await user.type(screen.getByLabelText(/Location/i), 'Living room');
   await user.selectOptions(
-    screen.getByLabelText(/Light level/i),
+    screen.getByRole('combobox', { name: /Light level/i }),
     'bright_indirect',
   );
 }
@@ -266,5 +266,179 @@ describe('AddPlant — soil-feel fallback (issue #70)', () => {
       const body = JSON.parse((postCall![1] as RequestInit).body as string);
       expect(body.soil_feel).toBeNull();
     });
+  });
+});
+
+describe('AddPlant — catalog dropdown (issue #2)', () => {
+  beforeEach(() => {
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (typeof url === 'string' && url.startsWith('/api/catalog/search')) {
+        return {
+          ok: true,
+          json: async () => [
+            {
+              slug: 'monstera-deliciosa',
+              latin_name: 'Monstera deliciosa',
+              category: 'foliage',
+              primary_common_name: 'Swiss cheese plant',
+            },
+            {
+              slug: 'monstera-adansonii',
+              latin_name: 'Monstera adansonii',
+              category: 'foliage',
+              primary_common_name: 'Swiss cheese vine',
+            },
+          ],
+        } as Response;
+      }
+      if (url === '/api/plants' && init?.method === 'POST') {
+        const body = init.body ? JSON.parse(init.body as string) : {};
+        return {
+          ok: true,
+          json: async () => ({ id: 101, ...body }),
+        } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/plants/101/enrichment-status')) {
+        return {
+          ok: true,
+          json: async () => ({ id: 101, enrichment_status: 'complete' }),
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+  });
+
+  it('shows catalog search suggestions as the user types', async () => {
+    const user = userEvent.setup();
+    renderAddPlant();
+
+    const input = await screen.findByLabelText(/Plant species or type/i);
+    await user.type(input, 'mon');
+
+    // Suggestion list renders after debounce
+    await screen.findByRole('option', { name: /Monstera deliciosa/i });
+    expect(
+      screen.getByRole('option', { name: /Monstera adansonii/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('selecting a catalog entry fills the name and submits catalog_slug', async () => {
+    const user = userEvent.setup();
+    renderAddPlant();
+
+    const input = await screen.findByLabelText(/Plant species or type/i);
+    await user.type(input, 'mon');
+
+    const option = await screen.findByRole('option', { name: /Monstera deliciosa/i });
+    await user.click(option);
+
+    // Name field now shows latin_name
+    expect(
+      (screen.getByLabelText(/Plant species or type/i) as HTMLInputElement).value,
+    ).toBe('Monstera deliciosa');
+
+    await user.selectOptions(screen.getByLabelText(/Pot size/i), 'Medium');
+    await user.type(screen.getByLabelText(/Location/i), 'Living room');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /Light level/i }),
+      'bright_indirect',
+    );
+
+    await user.click(screen.getByRole('button', { name: /Add Plant/i }));
+
+    await waitFor(() => {
+      const calls = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
+      const postCall = calls.find(
+        (c: unknown[]) =>
+          typeof c[1] === 'object' &&
+          c[1] !== null &&
+          (c[1] as RequestInit).method === 'POST' &&
+          (c[0] as string) === '/api/plants',
+      );
+      expect(postCall).toBeDefined();
+      const body = JSON.parse((postCall![1] as RequestInit).body as string);
+      expect(body.catalog_slug).toBe('monstera-deliciosa');
+      expect(body.name).toBe('Monstera deliciosa');
+    });
+  });
+
+  it('free-text name (no selection) submits without catalog_slug', async () => {
+    const user = userEvent.setup();
+    renderAddPlant();
+
+    const input = await screen.findByLabelText(/Plant species or type/i);
+    await user.type(input, 'Rare Orchid Hybrid');
+    // Do NOT click a suggestion — fall through as free-text.
+
+    await user.selectOptions(screen.getByLabelText(/Pot size/i), 'Medium');
+    await user.type(screen.getByLabelText(/Location/i), 'Living room');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /Light level/i }),
+      'medium',
+    );
+
+    await user.click(screen.getByRole('button', { name: /Add Plant/i }));
+
+    await waitFor(() => {
+      const calls = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
+      const postCall = calls.find(
+        (c: unknown[]) =>
+          typeof c[1] === 'object' &&
+          c[1] !== null &&
+          (c[1] as RequestInit).method === 'POST' &&
+          (c[0] as string) === '/api/plants',
+      );
+      expect(postCall).toBeDefined();
+      const body = JSON.parse((postCall![1] as RequestInit).body as string);
+      expect(body.catalog_slug).toBeNull();
+      expect(body.name).toBe('Rare Orchid Hybrid');
+    });
+  });
+});
+
+describe('AddPlant — room picker (issue #2)', () => {
+  beforeEach(() => {
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/plants' && init?.method === 'POST') {
+        const body = init.body ? JSON.parse(init.body as string) : {};
+        return {
+          ok: true,
+          json: async () => ({ id: 1, ...body }),
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+  });
+
+  it('renders common room suggestion chips', async () => {
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+    // Suggestions expected by issue #2.
+    expect(screen.getByRole('button', { name: /^Living room$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Bedroom$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Kitchen$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Bathroom$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Office$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Balcony$/i })).toBeInTheDocument();
+  });
+
+  it('clicking a room suggestion fills the location input', async () => {
+    const user = userEvent.setup();
+    renderAddPlant();
+
+    await screen.findByLabelText(/Plant species or type/i);
+    await user.click(screen.getByRole('button', { name: /^Kitchen$/i }));
+    const input = screen.getByLabelText(/Location/i) as HTMLInputElement;
+    expect(input.value).toBe('Kitchen');
+  });
+
+  it('custom free-text location is accepted', async () => {
+    const user = userEvent.setup();
+    renderAddPlant();
+
+    await screen.findByLabelText(/Plant species or type/i);
+    const input = screen.getByLabelText(/Location/i) as HTMLInputElement;
+    await user.type(input, 'Hallway shelf');
+    expect(input.value).toBe('Hallway shelf');
   });
 });
