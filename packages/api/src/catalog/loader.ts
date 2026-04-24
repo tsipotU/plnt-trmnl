@@ -26,6 +26,7 @@ const VALID_SIZE: readonly SizeCategory[] = ['small', 'medium', 'large', 'tree']
 const VALID_DIFFICULTY: readonly Difficulty[] = ['beginner', 'intermediate', 'expert'];
 const VALID_SEVERITY: readonly ConditionSeverity[] = ['info', 'warning', 'critical'];
 const REQUIRED_CONDITIONS_COUNT = 15;
+const REQUIRED_FACTS_COUNT = 15;
 
 export interface Catalog {
   all(): readonly CatalogEntry[];
@@ -206,6 +207,21 @@ function validateEntry(raw: unknown, index: number): CatalogEntry {
     }
     if (typeof cond.is_common !== 'boolean') {
       throw new Error(`${cloc}.is_common must be a boolean`);
+    }
+  });
+
+  // #4: facts — exactly 15 non-empty strings.
+  if (!Array.isArray(e.facts)) {
+    throw new Error(`${loc}.facts must be an array`);
+  }
+  if (e.facts.length !== REQUIRED_FACTS_COUNT) {
+    throw new Error(
+      `${loc}.facts must have exactly ${REQUIRED_FACTS_COUNT} entries (got ${e.facts.length})`
+    );
+  }
+  e.facts.forEach((f, j) => {
+    if (typeof f !== 'string' || f.trim().length === 0) {
+      throw new Error(`${loc}.facts[${j}] must be a non-empty string`);
     }
   });
 

@@ -86,8 +86,9 @@ export function initializeSchema(db: Database.Database): void {
     CREATE TABLE IF NOT EXISTS facts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       plant_id INTEGER REFERENCES plants(id),
+      species TEXT,
       text TEXT,
-      source TEXT CHECK(source IN ('seed', 'enrichment')),
+      source TEXT CHECK(source IN ('seed', 'enrichment', 'catalog')),
       shown_count INTEGER DEFAULT 0,
       is_disabled INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now'))
@@ -193,6 +194,12 @@ export function initializeSchema(db: Database.Database): void {
   // One-way migration: legacy `plants.notes` column superseded by the
   // `plant_notes` table (#32). Safe to drop on live DBs created before v0.14.
   dropColumnIfExists(db, 'plants', 'notes');
+
+  // Issue #4: catalog-sourced facts. Add `species` column and relax the
+  // `source` CHECK to accept 'catalog'. On live DBs created before #4 the
+  // CHECK must be rebuilt (SQLite can't ALTER a CHECK in place).
+  addColumnIfMissing(db, 'facts', 'species', 'TEXT');
+  relaxFactsSourceCheckIfNeeded(db);
 }
 
 function addColumnIfMissing(
@@ -214,4 +221,48 @@ function dropColumnIfExists(
   const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
   if (!cols.some((c) => c.name === column)) return;
   db.prepare(`ALTER TABLE ${table} DROP COLUMN ${column}`).run();
+}
+
+/**
+ * Issue #4: the original `facts` table was created with
+ *   source TEXT CHECK(source IN ('seed', 'enrichment'))
+ * To allow `source='catalog'` on live databases we need to rebuild the
+ * table — SQLite does not support altering a CHECK constraint in place.
+ * This migration is idempotent: it inspects the stored CREATE statement in
+ * sqlite_master and only rebuilds when the old constraint is present.
+ */
+function relaxFactsSourceCheckIfNeeded(db: Database.Database): void {
+  const row = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'facts'`)
+    .get() as { sql?: string } | undefined;
+  if (!row?.sql) return;
+  if (row.sql.includes("'catalog'")) return; // already migrated
+  if (!row.sql.includes('CHECK(source IN')) return; // no CHECK at all, nothing to fix
+
+  const tx = db.transaction(() => {
+    db.prepare(`
+      CREATE TABLE facts_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plant_id INTEGER REFERENCES plants(id),
+        species TEXT,
+        text TEXT,
+        source TEXT CHECK(source IN ('seed', 'enrichment', 'catalog')),
+        shown_count INTEGER DEFAULT 0,
+        is_disabled INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `).run();
+    // species column may not exist in the old table (addColumnIfMissing
+    // runs just before us, so it does, but we guard just in case).
+    const cols = db.prepare(`PRAGMA table_info(facts)`).all() as Array<{ name: string }>;
+    const hasSpecies = cols.some((c) => c.name === 'species');
+    const speciesExpr = hasSpecies ? 'species' : 'NULL';
+    db.prepare(
+      `INSERT INTO facts_new (id, plant_id, species, text, source, shown_count, is_disabled, created_at)
+       SELECT id, plant_id, ${speciesExpr}, text, source, shown_count, is_disabled, created_at FROM facts`
+    ).run();
+    db.prepare(`DROP TABLE facts`).run();
+    db.prepare(`ALTER TABLE facts_new RENAME TO facts`).run();
+  });
+  tx();
 }
