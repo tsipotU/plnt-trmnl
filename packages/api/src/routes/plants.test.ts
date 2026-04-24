@@ -1118,6 +1118,132 @@ describe('POST /api/plants/:id/water — seasonal adjustment', () => {
   });
 });
 
+describe('POST /api/plants/:id/water — growing / dormancy multiplier (#36)', () => {
+  const fullConfig = {
+    heatingSeasonStart: { month: 10, day: 1 },
+    heatingSeasonEnd: { month: 4, day: 1 },
+    growingSeasonStart: { month: 4, day: 1 },
+    growingSeasonEnd: { month: 9, day: 30 },
+    growingSeasonMultiplier: 0.8,
+    dormancyMultiplier: 1.3,
+  };
+
+  function createApp() {
+    const db = new Database(':memory:');
+    initializeSchema(db);
+    const app = express();
+    app.use(express.json());
+    app.use('/api/plants', createPlantsRouter(db, fullConfig));
+    return { app, db };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shortens interval in growing season (May)', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-15T12:00:00Z'));
+    const { app, db } = createApp();
+
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Monstera', 10, 10, 1.0, '2026-05-15')`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    expect(res.status).toBe(200);
+    // 10 * 1.0 (no heating) * 0.8 (growing) = 8 → 2026-05-15 + 8 = 2026-05-23
+    expect(res.body.next_water_date).toBe('2026-05-23');
+    // Underlying current_interval unchanged
+    expect(res.body.current_interval).toBe(10);
+    db.close();
+  });
+
+  it('lengthens interval in dormancy (January, plant with neutral heating mod)', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+    const { app, db } = createApp();
+
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Cactus', 10, 10, 1.0, '2026-01-15')`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    // 10 * 1.0 (heating neutral) * 1.3 (dormancy) = 13 → 2026-01-15 + 13 = 2026-01-28
+    expect(res.body.next_water_date).toBe('2026-01-28');
+    db.close();
+  });
+
+  it('stacks heating × dormancy multiplicatively', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+    const { app, db } = createApp();
+
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Pothos', 10, 10, 0.7, '2026-01-15')`
+    ).run();
+
+    const res = await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    // 10 * 0.7 * 1.3 = 9.1 → round 9 → 2026-01-15 + 9 = 2026-01-24
+    expect(res.body.next_water_date).toBe('2026-01-24');
+    db.close();
+  });
+
+  it('seasonal_adjustment event fires with layered reason', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-15T12:00:00Z'));
+    const { app, db } = createApp();
+
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date)
+       VALUES ('Ficus', 10, 10, 1.0, '2026-05-15')`
+    ).run();
+
+    await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+    const events = db.prepare(
+      `SELECT reason FROM event_log WHERE plant_id = ? AND event_type = 'seasonal_adjustment'`
+    ).all(lastInsertRowid) as Array<{ reason: string }>;
+    expect(events).toHaveLength(1);
+    expect(events[0].reason).toMatch(/growing/);
+    db.close();
+  });
+
+  it('scheduleNextWater funnel preserved — overflow_rebalance still fires', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-15T12:00:00Z'));
+    const { app, db } = createApp();
+
+    // Fill the ideal target date (2026-05-23, after 0.8×10=8 days growing) at capacity.
+    // MAX_PLANTS_PER_DAY is 2.
+    db.prepare(
+      `INSERT INTO plants (name, current_interval, next_water_date, location)
+       VALUES ('Filler A', 7, '2026-05-23', 'living room'),
+              ('Filler B', 7, '2026-05-23', 'living room')`
+    ).run();
+
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants
+         (name, base_interval, current_interval, heating_season_modifier, next_water_date, location)
+       VALUES ('Overflow Plant', 10, 10, 1.0, '2026-05-15', 'living room')`
+    ).run();
+
+    await request(app).post(`/api/plants/${lastInsertRowid}/water`);
+
+    const overflowEvents = db.prepare(
+      `SELECT * FROM event_log WHERE plant_id = ? AND event_type IN ('overflow_rebalance', 'schedule_congested')`
+    ).all(lastInsertRowid);
+    expect(overflowEvents.length).toBeGreaterThan(0);
+    db.close();
+  });
+});
+
 describe('POST /api/plants/:id/undo-water', () => {
   let app: express.Express;
   let db: Database.Database;

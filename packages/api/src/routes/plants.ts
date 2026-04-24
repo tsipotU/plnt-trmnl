@@ -4,13 +4,58 @@ import type Database from 'better-sqlite3';
 import { calculateNextWaterDate, calculateRepotAdjustment } from '../scheduling/engine.js';
 import { logEvent, getEventsForPlant, logScheduleEvents } from '../database/event-log.js';
 import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
-import { getSeasonalAdjustedInterval } from '../scheduling/seasonal.js';
+import { applySeasonalMultipliers, type SeasonalConfig } from '../scheduling/seasonal.js';
 import { scheduleNextWater, type ScheduledPlant, type ScheduleResult } from '../scheduling/bin-packer.js';
 import type { Config } from '../config.js';
 import type { Catalog } from '../catalog/loader.js';
 import type { PlantAbout } from '../catalog/types.js';
 
 type HeatingSeasonConfig = Pick<Config, 'heatingSeasonStart' | 'heatingSeasonEnd'>;
+// Full seasonal config (heating + growing) — accepted by waterPlant for #36.
+// Back-compat: callers may still pass just the heating-season fields; the
+// growing-season knobs then fall back to sensible defaults (Apr–Sep, 0.8/1.3).
+type MaybeSeasonalConfig = HeatingSeasonConfig | SeasonalConfig | undefined;
+
+const DEFAULT_GROWING_CONFIG: Pick<
+  Config,
+  'growingSeasonStart' | 'growingSeasonEnd' | 'growingSeasonMultiplier' | 'dormancyMultiplier'
+> = {
+  growingSeasonStart: { month: 4, day: 1 },
+  growingSeasonEnd: { month: 9, day: 30 },
+  growingSeasonMultiplier: 0.8,
+  dormancyMultiplier: 1.3,
+};
+
+/**
+ * Normalise a caller-provided config into a SeasonalConfig. When the caller
+ * passes only heating-season fields (legacy signature / test fixtures), we
+ * opt them OUT of the new growing/dormancy layer by neutralising its
+ * multipliers to 1.0. Real prod wiring in `index.ts` always supplies the
+ * full config.
+ */
+function toSeasonalConfig(cfg: MaybeSeasonalConfig): SeasonalConfig | undefined {
+  if (!cfg) return undefined;
+  const heating: HeatingSeasonConfig = {
+    heatingSeasonStart: cfg.heatingSeasonStart,
+    heatingSeasonEnd: cfg.heatingSeasonEnd,
+  };
+  const hasGrowing = 'growingSeasonStart' in cfg && 'growingSeasonMultiplier' in cfg;
+  const growing = hasGrowing
+    ? {
+        growingSeasonStart: (cfg as SeasonalConfig).growingSeasonStart,
+        growingSeasonEnd: (cfg as SeasonalConfig).growingSeasonEnd,
+        growingSeasonMultiplier: (cfg as SeasonalConfig).growingSeasonMultiplier,
+        dormancyMultiplier: (cfg as SeasonalConfig).dormancyMultiplier,
+      }
+    : {
+        growingSeasonStart: DEFAULT_GROWING_CONFIG.growingSeasonStart,
+        growingSeasonEnd: DEFAULT_GROWING_CONFIG.growingSeasonEnd,
+        // Neutral — back-compat with legacy heating-only callers
+        growingSeasonMultiplier: 1.0,
+        dormancyMultiplier: 1.0,
+      };
+  return { ...heating, ...growing };
+}
 
 export interface WaterPlantOptions {
   batchId?: string;
@@ -36,7 +81,7 @@ export interface WaterPlantResult {
 export function waterPlant(
   db: Database.Database,
   plantId: number,
-  heatingConfig: HeatingSeasonConfig | undefined,
+  heatingConfig: MaybeSeasonalConfig,
   options: WaterPlantOptions = {},
 ): WaterPlantResult {
   const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as
@@ -49,9 +94,16 @@ export function waterPlant(
   const currentInterval = plant.current_interval as number;
   const modifier = plant.heating_season_modifier as number | null;
 
-  const effectiveInterval = heatingConfig
-    ? getSeasonalAdjustedInterval(currentInterval, modifier, today, heatingConfig)
-    : currentInterval;
+  const seasonalConfig = toSeasonalConfig(heatingConfig);
+  const seasonal = seasonalConfig
+    ? applySeasonalMultipliers({
+        baseInterval: currentInterval,
+        perPlantHeatingModifier: modifier,
+        today,
+        config: seasonalConfig,
+      })
+    : null;
+  const effectiveInterval = seasonal?.interval ?? currentInterval;
 
   const idealDate = calculateNextWaterDate(today, effectiveInterval);
   const existing = db.prepare(
@@ -86,14 +138,16 @@ export function waterPlant(
     batchId,
   });
 
-  const seasonalApplied = effectiveInterval !== currentInterval;
-  if (seasonalApplied) {
+  const seasonalApplied = seasonal?.intervalChanged === true;
+  if (seasonalApplied && seasonal) {
     logEvent(db, {
       plantId,
       eventType: 'seasonal_adjustment',
       oldValue: String(currentInterval),
       newValue: String(effectiveInterval),
-      reason: `Heating season active; interval ${currentInterval} → ${effectiveInterval} (×${modifier})`,
+      reason:
+        seasonal.reason ||
+        `Seasonal adjustment: interval ${currentInterval} → ${effectiveInterval}`,
       batchId,
     });
   }
@@ -160,11 +214,47 @@ function buildAbout(
   };
 }
 
+export interface PlantsRouterConfig {
+  heatingSeasonStart?: HeatingSeasonConfig['heatingSeasonStart'];
+  heatingSeasonEnd?: HeatingSeasonConfig['heatingSeasonEnd'];
+  growingSeasonStart?: Config['growingSeasonStart'];
+  growingSeasonEnd?: Config['growingSeasonEnd'];
+  growingSeasonMultiplier?: number;
+  dormancyMultiplier?: number;
+  dryDaysBase?: number;
+}
+
 export function createPlantsRouter(
   db: Database.Database,
-  heatingConfig?: HeatingSeasonConfig,
+  routerConfig?: PlantsRouterConfig | HeatingSeasonConfig,
   catalog?: Catalog,
 ): Router {
+  const rc = routerConfig as PlantsRouterConfig | undefined;
+  // Only activate the growing/dormancy layer when the caller provided its
+  // knobs (prod wires them via index.ts). Legacy heating-only callers are
+  // preserved by toSeasonalConfig's neutral fallback.
+  const hasGrowingKnobs = rc
+    ? rc.growingSeasonStart !== undefined || rc.growingSeasonMultiplier !== undefined
+    : false;
+  const heatingConfig: MaybeSeasonalConfig = rc
+    ? hasGrowingKnobs
+      ? {
+          heatingSeasonStart: rc.heatingSeasonStart ?? { month: 10, day: 1 },
+          heatingSeasonEnd: rc.heatingSeasonEnd ?? { month: 4, day: 1 },
+          growingSeasonStart:
+            rc.growingSeasonStart ?? DEFAULT_GROWING_CONFIG.growingSeasonStart,
+          growingSeasonEnd: rc.growingSeasonEnd ?? DEFAULT_GROWING_CONFIG.growingSeasonEnd,
+          growingSeasonMultiplier:
+            rc.growingSeasonMultiplier ?? DEFAULT_GROWING_CONFIG.growingSeasonMultiplier,
+          dormancyMultiplier:
+            rc.dormancyMultiplier ?? DEFAULT_GROWING_CONFIG.dormancyMultiplier,
+        }
+      : {
+          heatingSeasonStart: rc.heatingSeasonStart ?? { month: 10, day: 1 },
+          heatingSeasonEnd: rc.heatingSeasonEnd ?? { month: 4, day: 1 },
+        }
+    : undefined;
+  const dryDaysBase = rc?.dryDaysBase ?? 7;
   const router = Router();
 
   // GET /api/plants — list active plants ordered by next_water_date ASC
@@ -247,11 +337,12 @@ export function createPlantsRouter(
       return;
     }
 
-    // Soil-feel fallback (issue #70): when set, seed initial calibration
-    // interval and mark the first upcoming calibration to be skipped.
+    // Soil-feel fallback (issue #70) takes precedence. Otherwise #36:
+    // seed from configurable DRY_DAYS_BASE. Enrichment overwrites within
+    // seconds once Claude responds.
     const seededInterval =
       typeof soilFeel === 'string' ? SOIL_FEEL_INTERVAL_MAP[soilFeel] : null;
-    const currentInterval = seededInterval ?? 7;
+    const currentInterval = seededInterval ?? dryDaysBase;
     const skipNextCalibration = seededInterval !== null ? 1 : 0;
     const nextWaterDate = calculateNextWaterDate(lastWateredAt, currentInterval);
 

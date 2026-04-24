@@ -42,3 +42,38 @@ describe('checkConvergence', () => {
     expect(checkConvergence([])).toBe(false);
   });
 });
+
+describe('dry-days target convergence (simulation, #36)', () => {
+  // Simulate: user waters plant and rates 3 (just right) once the dry-days
+  // target matches reality. With a plant that actually wants 5 dry days, the
+  // target should converge there regardless of starting point.
+  function simulate(startTarget: number, actualDryDays: number, iterations: number): number {
+    let target = startTarget;
+    const answers: number[] = [];
+    for (let i = 0; i < iterations; i++) {
+      let answer: number;
+      if (target < actualDryDays - 1) answer = 4; // waiting longer is ok
+      else if (target < actualDryDays) answer = 4;
+      else if (target === actualDryDays) answer = 3;
+      else if (target === actualDryDays + 1) answer = 2;
+      else answer = 1;
+      answers.push(answer);
+      target = adjustInterval(target, answer);
+      if (checkConvergence(answers)) break;
+    }
+    return target;
+  }
+
+  it('converges on actual dry-days target from below', () => {
+    expect(simulate(3, 5, 50)).toBe(5);
+  });
+
+  it('converges on actual dry-days target from above', () => {
+    expect(simulate(10, 5, 50)).toBe(5);
+  });
+
+  it('respects the minimum of 2 dry days', () => {
+    // Plant wants 1 dry day but we clamp at 2
+    expect(simulate(5, 1, 50)).toBe(2);
+  });
+});
