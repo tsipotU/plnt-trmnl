@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlantCard } from '../components/PlantCard.js';
-import { VacationToggle } from '../components/VacationToggle.js';
 import { CalibrationModal } from '../components/CalibrationModal.js';
 import { CalibrationSequence } from '../components/CalibrationSequence.js';
 import { BatchUndoToast } from '../components/BatchUndoToast.js';
@@ -92,7 +91,6 @@ export function Dashboard() {
         >
           My Plants
         </h1>
-        <VacationToggle />
       </div>
 
       {/* 7-day upcoming watering calendar */}
@@ -176,7 +174,7 @@ export function Dashboard() {
               marginBottom: 8,
             }}
           >
-            Welcome to Plant TRMNL
+            Welcome to PLNT
           </h2>
           <p
             style={{
