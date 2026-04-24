@@ -16,6 +16,8 @@ import { createPlantNotesRouter } from './routes/plant-notes.js';
 import { createCalibrationRouter } from './routes/calibration.js';
 import { createConditionsRouter } from './routes/conditions.js';
 import { createFactsRouter } from './routes/facts.js';
+import { createCatalogRouter } from './routes/catalog.js';
+import { loadCatalog } from './catalog/loader.js';
 import { createScreenRouter } from './routes/screen.js';
 import { createVacationRouter } from './routes/vacation.js';
 import { createFeedbackRouter } from './routes/feedback.js';
@@ -31,6 +33,9 @@ if (fs.existsSync(seedFactsPath)) {
   seedFacts(db, facts);
 }
 seedOrnaments(db, path.join(config.assetsDir, 'ornaments'));
+
+// Plant catalog (#1a) — read-only JSON, validated on boot, indexed in memory
+const catalog = loadCatalog();
 
 const app = express();
 
@@ -51,6 +56,7 @@ app.use('/api/plants', createPlantNotesRouter(db));
 app.use('/api', createCalibrationRouter(db));
 app.use('/api', createConditionsRouter(db));
 app.use('/api', createFactsRouter(db));
+app.use('/api/catalog', createCatalogRouter(catalog));
 app.use(
   '/api',
   createScreenRouter(db, {
