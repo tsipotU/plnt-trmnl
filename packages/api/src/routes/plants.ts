@@ -116,6 +116,22 @@ const VALID_POT_SIZE_CATEGORIES = [
 
 const VALID_ORIGIN_TYPES = ['purchased', 'received', 'seedling', 'unknown'] as const;
 
+/**
+ * Soil-feel seeding map (issue #70). When the user picks "don't know" for
+ * last-watered date on AddPlant, we ask how the soil feels and seed the
+ * initial calibration interval from that reading. Base interval is 7 days;
+ * bone-dry soil implies the plant dries faster than baseline (shorter
+ * interval), wet soil implies it retains moisture longer (longer interval).
+ */
+const SOIL_FEEL_INTERVAL_MAP: Record<string, number> = {
+  bone_dry: 5,
+  dry: 6,
+  slightly_moist: 7,
+  moist: 8,
+  wet: 9,
+};
+const VALID_SOIL_FEEL = Object.keys(SOIL_FEEL_INTERVAL_MAP);
+
 export function createPlantsRouter(
   db: Database.Database,
   heatingConfig?: HeatingSeasonConfig,
@@ -167,6 +183,7 @@ export function createPlantsRouter(
     const originType = req.body.origin_type ?? req.body.originType;
     const originSource = req.body.origin_source ?? req.body.originSource;
     const motherPlantId = req.body.mother_plant_id ?? req.body.motherPlantId;
+    const soilFeel = req.body.soil_feel ?? req.body.soilFeel;
 
     if (!name || !lastWateredAt) {
       res.status(400).json({ error: 'name and lastWateredAt are required' });
@@ -191,14 +208,27 @@ export function createPlantsRouter(
       return;
     }
 
-    const currentInterval = 7;
+    if (
+      soilFeel != null &&
+      (typeof soilFeel !== 'string' || !VALID_SOIL_FEEL.includes(soilFeel))
+    ) {
+      res.status(400).json({ error: 'Invalid soil_feel' });
+      return;
+    }
+
+    // Soil-feel fallback (issue #70): when set, seed initial calibration
+    // interval and mark the first upcoming calibration to be skipped.
+    const seededInterval =
+      typeof soilFeel === 'string' ? SOIL_FEEL_INTERVAL_MAP[soilFeel] : null;
+    const currentInterval = seededInterval ?? 7;
+    const skipNextCalibration = seededInterval !== null ? 1 : 0;
     const nextWaterDate = calculateNextWaterDate(lastWateredAt, currentInterval);
 
     const result = db.prepare(
       `INSERT INTO plants
          (name, pot_size_cm, pot_size_category, plant_size, identifier, location, light_level, base_interval, current_interval,
-          last_watered_at, next_water_date, enrichment_status, origin_type, origin_source, mother_plant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`
+          last_watered_at, next_water_date, enrichment_status, origin_type, origin_source, mother_plant_id, skip_next_calibration)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`
     ).run(
       name,
       potSizeCm ?? null,
@@ -214,13 +244,24 @@ export function createPlantsRouter(
       originType ?? null,
       originSource ?? null,
       motherPlantId ?? null,
+      skipNextCalibration,
     );
 
-    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(result.lastInsertRowid) as Record<string, unknown>;
+    const plantId = result.lastInsertRowid as number;
+
+    if (seededInterval !== null) {
+      logEvent(db, {
+        plantId,
+        eventType: 'calibration_seeded',
+        newValue: soilFeel as string,
+        reason: `Initial calibration seeded from soil feel: ${soilFeel} (interval=${seededInterval}d)`,
+      });
+    }
+
+    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<string, unknown>;
     res.status(201).json(plant);
 
     // Fire Claude enrichment in the background (don't block the response)
-    const plantId = result.lastInsertRowid as number;
     enrichPlantWithClaude(db, plantId, {
       name,
       potSizeCm: potSizeCm ?? null,
