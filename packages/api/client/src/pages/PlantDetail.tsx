@@ -602,6 +602,10 @@ export function PlantDetail() {
 
   // Show "first plant" celebration if navigated here after adding the very first plant
   const isFirstPlant = (location.state as { firstPlant?: boolean } | null)?.firstPlant === true;
+  // Show "still enriching" badge (#72) when the splash timed out at 10s and
+  // enrichment hasn't completed yet.
+  const stillEnrichingHint =
+    (location.state as { stillEnriching?: boolean } | null)?.stillEnriching === true;
 
   const [toast, setToast] = useState<string | null>(isFirstPlant ? 'Your first plant! 🌱' : null);
   const [undoToast, setUndoToast] = useState<string | null>(null);
@@ -962,6 +966,31 @@ export function PlantDetail() {
         </button>
         <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Dashboard</span>
       </div>
+
+      {/* #72 — "Still enriching" badge. Shown when the post-add splash timed
+          out at 10s and the server is still working. Auto-hides once the
+          plant row reports enrichment_status 'complete'. */}
+      {stillEnrichingHint && plant.enrichment_status !== 'complete' && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
+            padding: '10px 14px',
+            marginBottom: 16,
+            fontSize: 13,
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span aria-hidden="true">⏳</span>
+          <span>Still enriching — check back shortly</span>
+        </div>
+      )}
 
       {/* Hero illustration */}
       <div

@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LightLevelTooltip } from '../components/LightLevelTooltip';
 import { DidYouMeanSplash, type SuggestionOption } from '../components/DidYouMeanSplash';
+import {
+  EnrichmentSplash,
+  type EnrichmentSplashPreview,
+} from '../components/EnrichmentSplash';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
@@ -86,8 +90,21 @@ export function AddPlant() {
   const [existingPlants, setExistingPlants] = useState<ExistingPlant[]>([]);
 
   const [loading, setLoading] = useState(false);
-  const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Post-add enrichment splash (#72). Three modes:
+  //   - 'enriching'  → waiting on Claude callback, showing spinner
+  //   - 'success'    → preview with Looks right / Not quite
+  //   - 'correcting' → user typing a correction
+  //   - null         → splash is closed (form visible)
+  const [splashMode, setSplashMode] = useState<
+    'enriching' | 'success' | 'correcting' | null
+  >(null);
+  const [splashPlantId, setSplashPlantId] = useState<number | null>(null);
+  const [splashTypedName, setSplashTypedName] = useState<string>('');
+  const [splashPreview, setSplashPreview] =
+    useState<EnrichmentSplashPreview | null>(null);
+  const [splashSubmitting, setSplashSubmitting] = useState(false);
 
   // Did-you-mean fallback state (issue #39). When enrichment fails, we pull
   // the top fuzzy suggestion from /api/catalog/suggest and offer it here.
@@ -225,7 +242,9 @@ export function AddPlant() {
 
       const plant = await res.json();
       setLoading(false);
-      setEnriching(true);
+      setSplashPlantId(plant.id);
+      setSplashTypedName(name.trim());
+      setSplashMode('enriching');
 
       await waitForEnrichment(plant.id, name.trim());
     } catch {
@@ -235,12 +254,15 @@ export function AddPlant() {
   }
 
   /**
-   * Poll enrichment status. On success → navigate to the plant detail.
-   * On failure → fetch a fuzzy suggestion and show the did-you-mean splash.
+   * Poll enrichment status. On success → show the #72 confirmation splash.
+   * On failure → fetch a fuzzy suggestion and show the #39 did-you-mean splash.
+   * On 10s timeout → navigate to plant detail with a "still enriching" badge.
+   *
+   * Polling cadence: 1s to keep network quiet; 10s hard ceiling per issue #72.
    */
   async function waitForEnrichment(plantId: number, typedName: string): Promise<void> {
-    const deadline = Date.now() + 30_000;
-    const interval = 600;
+    const deadline = Date.now() + 10_000;
+    const interval = 1000;
 
     while (Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, interval));
@@ -249,7 +271,7 @@ export function AddPlant() {
         if (r.ok) {
           const data = (await r.json()) as { enrichment_status?: string };
           if (data && data.enrichment_status === 'complete') {
-            navigate(`/plants/${plantId}`, { state: { firstPlant: isFirstPlant } });
+            await showSuccessSplash(plantId, typedName);
             return;
           }
           if (data && data.enrichment_status === 'failed') {
@@ -263,9 +285,122 @@ export function AddPlant() {
       }
     }
 
-    // Timed out: proceed anyway — the plant detail page has its own enrichment
-    // status banner.
-    navigate(`/plants/${plantId}`, { state: { firstPlant: isFirstPlant } });
+    // Timed out: land on detail with a "still enriching" badge cue. The badge
+    // on the detail page renders when enrichment_status is still 'pending'.
+    setSplashMode(null);
+    setSplashPlantId(null);
+    navigate(`/plants/${plantId}`, {
+      state: { firstPlant: isFirstPlant, stillEnriching: true },
+    });
+  }
+
+  /**
+   * After enrichment completes, fetch the full plant + (optional) catalog entry
+   * so the splash can show species, illustration, and a one-line care preview.
+   */
+  async function showSuccessSplash(plantId: number, typedName: string): Promise<void> {
+    let preview: EnrichmentSplashPreview = {
+      species: null,
+      illustrationPath: null,
+      lightLevel: null,
+      waterFrequency: null,
+      placementHint: null,
+    };
+
+    try {
+      const r = await fetch(`/api/plants/${plantId}`);
+      if (r.ok) {
+        const plant = (await r.json()) as Record<string, unknown>;
+        const species = (plant.species as string | null) ?? null;
+        const illustrationPath = (plant.illustration_path as string | null) ?? null;
+        const lightLevel = (plant.light_level as string | null) ?? null;
+        const currentInterval = (plant.current_interval as number | null) ?? null;
+        const waterDescription = (plant.water_description as string | null) ?? null;
+
+        preview = {
+          species,
+          illustrationPath,
+          lightLevel,
+          waterFrequency:
+            waterDescription ??
+            (currentInterval != null ? `Every ${currentInterval} days` : null),
+          placementHint: null,
+        };
+
+        // Best-effort: pull first placement tip from the catalog entry for the
+        // species. A missing or failing catalog lookup just leaves the hint
+        // unset — the splash degrades gracefully.
+        if (species) {
+          try {
+            const c = await fetch(
+              `/api/catalog/entry?species=${encodeURIComponent(species)}`,
+            );
+            if (c.ok) {
+              const entry = (await c.json()) as
+                | { placement_tips?: string[] }
+                | null;
+              const tip = entry?.placement_tips?.[0];
+              if (typeof tip === 'string' && tip.length > 0) {
+                preview.placementHint = tip;
+              }
+            }
+          } catch {
+            // Ignore — placement hint is decorative.
+          }
+        }
+      }
+    } catch {
+      // Swallow — we still show a minimal splash.
+    }
+
+    setSplashPreview(preview);
+    setSplashMode('success');
+  }
+
+  function handleLooksRight(): void {
+    if (splashPlantId == null) return;
+    navigate(`/plants/${splashPlantId}`, { state: { firstPlant: isFirstPlant } });
+  }
+
+  function handleNotQuite(): void {
+    setSplashMode('correcting');
+  }
+
+  function handleCancelCorrection(): void {
+    setSplashMode('success');
+  }
+
+  async function handleSubmitCorrection(corrected: string): Promise<void> {
+    if (splashPlantId == null) return;
+    const trimmed = corrected.trim();
+    if (trimmed.length === 0) return;
+
+    setSplashSubmitting(true);
+    try {
+      const r = await fetch(
+        `/api/plants/${splashPlantId}/retry-enrichment`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: trimmed }),
+        },
+      );
+      if (!r.ok) {
+        setSplashSubmitting(false);
+        setSplashMode('success');
+        return;
+      }
+      const plantId = splashPlantId;
+      setSplashSubmitting(false);
+      setSplashTypedName(trimmed);
+      setSplashPreview(null);
+      setName(trimmed);
+      setSplashMode('enriching');
+      await waitForEnrichment(plantId, trimmed);
+    } catch {
+      setSplashSubmitting(false);
+      setSplashMode('success');
+    }
   }
 
   async function showDidYouMean(plantId: number, typedName: string): Promise<void> {
@@ -284,7 +419,9 @@ export function AddPlant() {
       // Ignore — we'll just offer the edit-name path with no suggestion.
     }
 
-    setEnriching(false);
+    // Close the splash so did-you-mean can own the viewport (issue #39 handoff).
+    setSplashMode(null);
+    setSplashPreview(null);
     setFallbackPlantId(plantId);
     setFallbackTypedName(typedName);
     setFallbackSuggestion(top);
@@ -312,7 +449,12 @@ export function AddPlant() {
       setFallbackSuggestion(null);
       setFallbackTypedName('');
       setRetrying(false);
-      setEnriching(true);
+      // Re-enter the #72 splash flow with the corrected name so the user sees
+      // the new match confirmation (or falls into did-you-mean again).
+      setSplashPlantId(plantId);
+      setSplashTypedName(suggestion.latin_name);
+      setSplashPreview(null);
+      setSplashMode('enriching');
       setName(suggestion.latin_name);
       await waitForEnrichment(plantId, suggestion.latin_name);
     } catch {
@@ -329,7 +471,11 @@ export function AddPlant() {
     setFallbackSuggestion(null);
     setFallbackTypedName('');
     setRetrying(false);
-    setEnriching(false);
+    // Return fully to the form — also clears any splash state.
+    setSplashMode(null);
+    setSplashPlantId(null);
+    setSplashPreview(null);
+    setSplashTypedName('');
   }
 
   if (fallbackPlantId !== null) {
@@ -344,25 +490,20 @@ export function AddPlant() {
     );
   }
 
-  if (enriching) {
+  if (splashMode !== null) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60dvh',
-          gap: 16,
-          textAlign: 'center',
+      <EnrichmentSplash
+        mode={splashMode}
+        typedName={splashTypedName || name}
+        preview={splashPreview}
+        onLooksRight={handleLooksRight}
+        onNotQuite={handleNotQuite}
+        onSubmitCorrection={(v) => {
+          void handleSubmitCorrection(v);
         }}
-      >
-        <div style={{ fontSize: 48 }}>✨</div>
-        <p style={{ fontSize: 18, fontWeight: 600 }}>Enriching {name}...</p>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-          Looking up care info and illustration
-        </p>
-      </div>
+        onCancelCorrection={handleCancelCorrection}
+        submitting={splashSubmitting}
+      />
     );
   }
 

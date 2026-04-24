@@ -1,13 +1,35 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AddPlant } from './AddPlant';
 
 function renderAddPlant() {
   return render(
     <MemoryRouter>
       <AddPlant />
+    </MemoryRouter>,
+  );
+}
+
+// Probe component that exposes the current route location so splash
+// navigations can be asserted by the #72 tests.
+function LocationProbe() {
+  const loc = useLocation();
+  return (
+    <div data-testid="route-probe" data-pathname={loc.pathname}>
+      {JSON.stringify(loc.state ?? null)}
+    </div>
+  );
+}
+
+function renderAddPlantWithRoutes() {
+  return render(
+    <MemoryRouter initialEntries={['/add']}>
+      <Routes>
+        <Route path="/add" element={<AddPlant />} />
+        <Route path="/plants/:id" element={<LocationProbe />} />
+      </Routes>
     </MemoryRouter>,
   );
 }
@@ -440,5 +462,275 @@ describe('AddPlant — room picker (issue #2)', () => {
     const input = screen.getByLabelText(/Location/i) as HTMLInputElement;
     await user.type(input, 'Hallway shelf');
     expect(input.value).toBe('Hallway shelf');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #72 — Post-add enrichment splash
+// ---------------------------------------------------------------------------
+
+async function fillFormAndSubmit(
+  user: ReturnType<typeof userEvent.setup>,
+  name = 'sanseveria',
+) {
+  await user.type(screen.getByLabelText(/Plant species or type/i), name);
+  await user.selectOptions(screen.getByLabelText(/Pot size/i), 'Medium');
+  await user.type(screen.getByLabelText(/Location/i), 'Living room');
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: /Light level/i }),
+    'bright_indirect',
+  );
+  await user.click(screen.getByRole('button', { name: /Add Plant/i }));
+}
+
+describe('AddPlant — post-add enrichment splash (issue #72)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows a splash with species + care preview when enrichment completes', async () => {
+    const user = userEvent.setup();
+
+    let statusCalls = 0;
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/plants' && init?.method === 'POST') {
+        const body = init.body ? JSON.parse(init.body as string) : {};
+        return {
+          ok: true,
+          json: async () => ({ id: 7, ...body }),
+        } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/plants/7/enrichment-status')) {
+        statusCalls++;
+        return {
+          ok: true,
+          json: async () => ({ id: 7, enrichment_status: 'complete' }),
+        } as Response;
+      }
+      if (url === '/api/plants/7') {
+        return {
+          ok: true,
+          json: async () => ({
+            id: 7,
+            name: 'sanseveria',
+            species: 'Sansevieria trifasciata',
+            illustration_path: 'sansevieria.png',
+            light_level: 'bright_indirect',
+            current_interval: 14,
+            water_description: 'Every 14 days',
+          }),
+        } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/catalog/entry')) {
+        return {
+          ok: true,
+          json: async () => ({
+            placement_tips: ['Bright, indirect light — tolerates low light'],
+          }),
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+
+    renderAddPlantWithRoutes();
+    await user.clear(screen.getByLabelText(/Plant species or type/i)).catch(() => {});
+    await fillFormAndSubmit(user, 'sanseveria');
+
+    // Splash shows the enriched species prominently
+    await screen.findByRole('dialog', { name: /Sansevieria trifasciata/i });
+    expect(screen.getByText(/We found/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sansevieria trifasciata/i)).toBeInTheDocument();
+
+    // Care preview fields appear
+    expect(screen.getByText(/Bright indirect/i)).toBeInTheDocument();
+    expect(screen.getByText(/Every 14 days/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Bright, indirect light — tolerates low light/i),
+    ).toBeInTheDocument();
+
+    // Action buttons present
+    expect(screen.getByRole('button', { name: /Looks right/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Not quite/i })).toBeInTheDocument();
+
+    // The splash appeared — not the detail route yet
+    expect(screen.queryByTestId('route-probe')).toBeNull();
+    expect(statusCalls).toBeGreaterThanOrEqual(1);
+  });
+
+  it('"Looks right" navigates to the plant detail page', async () => {
+    const user = userEvent.setup();
+
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/plants' && init?.method === 'POST') {
+        return { ok: true, json: async () => ({ id: 12 }) } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/plants/12/enrichment-status')) {
+        return {
+          ok: true,
+          json: async () => ({ id: 12, enrichment_status: 'complete' }),
+        } as Response;
+      }
+      if (url === '/api/plants/12') {
+        return {
+          ok: true,
+          json: async () => ({
+            id: 12,
+            species: 'Monstera deliciosa',
+            illustration_path: null,
+            light_level: 'bright_indirect',
+            current_interval: 7,
+            water_description: null,
+          }),
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+
+    renderAddPlantWithRoutes();
+    await fillFormAndSubmit(user, 'Monstera');
+
+    const ok = await screen.findByRole('button', { name: /Looks right/i });
+    await user.click(ok);
+
+    await waitFor(() => {
+      const probe = screen.getByTestId('route-probe');
+      expect(probe.getAttribute('data-pathname')).toBe('/plants/12');
+    });
+  });
+
+  it('"Not quite" opens a correction input that retries enrichment', async () => {
+    const user = userEvent.setup();
+    const retryBodies: unknown[] = [];
+
+    let statusCalls = 0;
+
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/plants' && init?.method === 'POST') {
+        return { ok: true, json: async () => ({ id: 33 }) } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/plants/33/enrichment-status')) {
+        statusCalls++;
+        return {
+          ok: true,
+          json: async () => ({ id: 33, enrichment_status: 'complete' }),
+        } as Response;
+      }
+      if (
+        typeof url === 'string' &&
+        url === '/api/plants/33/retry-enrichment' &&
+        init?.method === 'POST'
+      ) {
+        retryBodies.push(JSON.parse(init.body as string));
+        return { ok: true, json: async () => ({ ok: true }) } as Response;
+      }
+      if (url === '/api/plants/33') {
+        return {
+          ok: true,
+          json: async () => ({
+            id: 33,
+            species: 'Sansevieria trifasciata',
+            illustration_path: null,
+            light_level: 'low',
+            current_interval: 21,
+            water_description: null,
+          }),
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+
+    renderAddPlantWithRoutes();
+    await fillFormAndSubmit(user, 'sanseveria');
+
+    const notQuite = await screen.findByRole('button', { name: /Not quite/i });
+    await user.click(notQuite);
+
+    // Correction UI appears
+    const input = await screen.findByLabelText(/Corrected plant name/i);
+    await user.type(input, 'Aglaonema');
+    await user.click(screen.getByRole('button', { name: /Retry enrichment/i }));
+
+    await waitFor(() => expect(retryBodies.length).toBe(1));
+    expect(retryBodies[0]).toEqual({ name: 'Aglaonema' });
+
+    // Re-polling resumes — splash shows success again once callback completes
+    await screen.findByRole('button', { name: /Looks right/i });
+    expect(statusCalls).toBeGreaterThanOrEqual(2);
+  });
+
+  it('times out after 10s and navigates to detail with "stillEnriching" hint', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    const user = userEvent.setup({
+      advanceTimers: (ms: number) => vi.advanceTimersByTime(ms),
+    });
+
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/plants' && init?.method === 'POST') {
+        return { ok: true, json: async () => ({ id: 99 }) } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/plants/99/enrichment-status')) {
+        // Always pending — forces the splash to time out.
+        return {
+          ok: true,
+          json: async () => ({ id: 99, enrichment_status: 'pending' }),
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+
+    renderAddPlantWithRoutes();
+    await fillFormAndSubmit(user, 'Monstera');
+
+    // Fast-forward past the 10s polling deadline.
+    await vi.advanceTimersByTimeAsync(12_000);
+
+    await waitFor(() => {
+      const probe = screen.getByTestId('route-probe');
+      expect(probe.getAttribute('data-pathname')).toBe('/plants/99');
+    });
+
+    const state = JSON.parse(
+      screen.getByTestId('route-probe').textContent ?? 'null',
+    );
+    expect(state).toMatchObject({ stillEnriching: true });
+  });
+
+  it('delegates to the #39 did-you-mean splash when enrichment fails', async () => {
+    const user = userEvent.setup();
+
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/plants' && init?.method === 'POST') {
+        return { ok: true, json: async () => ({ id: 55 }) } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/plants/55/enrichment-status')) {
+        return {
+          ok: true,
+          json: async () => ({ id: 55, enrichment_status: 'failed' }),
+        } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/catalog/suggest')) {
+        return {
+          ok: true,
+          json: async () => [
+            {
+              slug: 'sansevieria-trifasciata',
+              latin_name: 'Sansevieria trifasciata',
+              category: 'foliage',
+              primary_common_name: 'Snake plant',
+            },
+          ],
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+
+    renderAddPlantWithRoutes();
+    await fillFormAndSubmit(user, 'sanseveria');
+
+    // #39 splash takes over — no "Looks right" visible.
+    await screen.findByText(/Can.?t find.*sanseveria/i, {}, { timeout: 5000 });
+    expect(screen.queryByRole('button', { name: /Looks right/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /Yes, that.?s it/i })).toBeInTheDocument();
   });
 });
