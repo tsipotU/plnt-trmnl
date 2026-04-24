@@ -90,6 +90,7 @@ export function initializeSchema(db: Database.Database): void {
       text TEXT,
       source TEXT CHECK(source IN ('seed', 'enrichment', 'catalog')),
       shown_count INTEGER DEFAULT 0,
+      shown_at TEXT,
       is_disabled INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now'))
     )
@@ -200,6 +201,10 @@ export function initializeSchema(db: Database.Database): void {
   // CHECK must be rebuilt (SQLite can't ALTER a CHECK in place).
   addColumnIfMissing(db, 'facts', 'species', 'TEXT');
   relaxFactsSourceCheckIfNeeded(db);
+
+  // Issue #38: shown_at tracking for daily fact rotation. Nullable timestamp,
+  // set when a fact is picked for the day. NULL = never shown this cycle.
+  addColumnIfMissing(db, 'facts', 'shown_at', 'TEXT');
 }
 
 function addColumnIfMissing(
@@ -248,6 +253,7 @@ function relaxFactsSourceCheckIfNeeded(db: Database.Database): void {
         text TEXT,
         source TEXT CHECK(source IN ('seed', 'enrichment', 'catalog')),
         shown_count INTEGER DEFAULT 0,
+        shown_at TEXT,
         is_disabled INTEGER DEFAULT 0,
         created_at TEXT DEFAULT (datetime('now'))
       )
@@ -257,9 +263,11 @@ function relaxFactsSourceCheckIfNeeded(db: Database.Database): void {
     const cols = db.prepare(`PRAGMA table_info(facts)`).all() as Array<{ name: string }>;
     const hasSpecies = cols.some((c) => c.name === 'species');
     const speciesExpr = hasSpecies ? 'species' : 'NULL';
+    const hasShownAt = cols.some((c) => c.name === 'shown_at');
+    const shownAtExpr = hasShownAt ? 'shown_at' : 'NULL';
     db.prepare(
-      `INSERT INTO facts_new (id, plant_id, species, text, source, shown_count, is_disabled, created_at)
-       SELECT id, plant_id, ${speciesExpr}, text, source, shown_count, is_disabled, created_at FROM facts`
+      `INSERT INTO facts_new (id, plant_id, species, text, source, shown_count, shown_at, is_disabled, created_at)
+       SELECT id, plant_id, ${speciesExpr}, text, source, shown_count, ${shownAtExpr}, is_disabled, created_at FROM facts`
     ).run();
     db.prepare(`DROP TABLE facts`).run();
     db.prepare(`ALTER TABLE facts_new RENAME TO facts`).run();

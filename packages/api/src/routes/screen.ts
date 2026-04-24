@@ -6,6 +6,7 @@ import {
   type MonthDay,
 } from '../scheduling/water-calculator.js';
 import { isFertilizerDue } from '../scheduling/engine.js';
+import { pickDailyFact, getTodayFact, type PickedFact } from '../facts/pick-daily.js';
 
 interface HeatingSeasonConfig {
   heatingSeasonStart: MonthDay;
@@ -162,6 +163,13 @@ export function createScreenRouter(
           )
           .all(today) as PlantRow[]);
 
+    // Today's rotating fact (#38). The daily cron seeds app_state; if
+    // nothing is cached (first run / missed cron / test fixture), pick now.
+    let todaysFact: PickedFact | null = getTodayFact(db, today);
+    if (!todaysFact) {
+      todaysFact = pickDailyFact(db);
+    }
+
     if (duePlants.length > 0) {
       // ── Watering day ─────────────────────────────────────────────────────
       const isHeatingSeason = isHeatingSeasonActive(
@@ -236,25 +244,18 @@ export function createScreenRouter(
         date: today,
         plants: plantPayloads,
         nextWatering,
+        fact: todaysFact
+          ? { id: todaysFact.id, text: todaysFact.text }
+          : null,
       });
       return;
     }
 
     // ── Rest day ────────────────────────────────────────────────────────────
 
-    // Get next fact (lowest shown_count, not disabled)
-    const fact = db
-      .prepare(
-        `SELECT * FROM facts
-         WHERE is_disabled = 0
-         ORDER BY shown_count ASC, RANDOM()
-         LIMIT 1`
-      )
-      .get() as FactRow | undefined;
-
-    if (fact) {
-      db.prepare(`UPDATE facts SET shown_count = shown_count + 1 WHERE id = ?`).run(fact.id);
-    }
+    // Today's fact (#38) — picked once per day by the cron; otherwise
+    // lazily selected above.
+    const fact = todaysFact;
 
     // Get next ornament (lowest shown_count)
     const ornament = db

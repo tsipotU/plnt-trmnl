@@ -147,17 +147,26 @@ describe('GET /api/screen/today', () => {
       expect(updated.shown_count).toBe(1);
     });
 
-    it('picks fact with the lowest shown_count', async () => {
-      insertFact(db, 'Fact A', 5);
-      const lowId = insertFact(db, 'Fact B', 1);
-      insertFact(db, 'Fact C', 10);
+    it('picks a never-shown fact over already-shown facts (#38)', async () => {
+      // Two facts already shown, one never shown. New picker prefers shown_at=NULL.
+      db.prepare(
+        `INSERT INTO facts (text, source, shown_count, shown_at) VALUES (?, 'seed', ?, ?)`,
+      ).run('Fact A', 5, '2026-04-01 00:00:00');
+      const neverShownId = db
+        .prepare(
+          `INSERT INTO facts (text, source, shown_count, shown_at) VALUES (?, 'seed', 0, NULL)`,
+        )
+        .run('Fact B — never shown').lastInsertRowid as number;
+      db.prepare(
+        `INSERT INTO facts (text, source, shown_count, shown_at) VALUES (?, 'seed', ?, ?)`,
+      ).run('Fact C', 10, '2026-04-02 00:00:00');
       insertOrnament(db, '/assets/ornaments/ornament-1.png');
 
       const app = buildApp(db);
       const res = await request(app).get('/api/screen/today?date=2026-04-07');
 
-      expect(res.body.fact.id).toBe(lowId);
-      expect(res.body.fact.text).toBe('Fact B');
+      expect(res.body.fact.id).toBe(neverShownId);
+      expect(res.body.fact.text).toBe('Fact B — never shown');
     });
 
     it('includes an ornament', async () => {
@@ -571,6 +580,29 @@ describe('GET /api/screen/today', () => {
       const res = await request(app).get('/api/screen/today?date=2026-04-07');
 
       expect(res.body.nextWatering).toBeNull();
+    });
+
+    it("includes today's fact on a watering day (#38)", async () => {
+      const plantId = insertPlant(db, { name: 'Monstera', next_water_date: '2026-04-07' });
+      insertCalibrationQuestion(db, plantId);
+      const factId = insertFact(db, 'Monsteras love humidity');
+
+      const app = buildApp(db);
+      const res = await request(app).get('/api/screen/today?date=2026-04-07');
+
+      expect(res.body.type).toBe('watering');
+      expect(res.body.fact).toMatchObject({ id: factId, text: 'Monsteras love humidity' });
+    });
+
+    it("fact is null on a watering day when no facts exist (#38)", async () => {
+      const plantId = insertPlant(db, { name: 'Monstera', next_water_date: '2026-04-07' });
+      insertCalibrationQuestion(db, plantId);
+
+      const app = buildApp(db);
+      const res = await request(app).get('/api/screen/today?date=2026-04-07');
+
+      expect(res.body.type).toBe('watering');
+      expect(res.body.fact).toBeNull();
     });
   });
 
