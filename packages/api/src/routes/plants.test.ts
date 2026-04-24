@@ -4,6 +4,8 @@ import express from 'express';
 import Database from 'better-sqlite3';
 import { initializeSchema } from '../database/schema.js';
 import { createPlantsRouter } from './plants.js';
+import { createCatalog } from '../catalog/loader.js';
+import type { CatalogEntry } from '../catalog/types.js';
 
 // Prevent real Claude Agent SDK calls from firing in tests.
 // Existing POST /api/plants and new species-correction PUT both trigger
@@ -20,6 +22,40 @@ function createTestApp() {
   app.use(express.json());
   app.use('/api/plants', createPlantsRouter(db));
   return { app, db };
+}
+
+function createTestAppWithCatalog(entries: CatalogEntry[]) {
+  const db = new Database(':memory:');
+  initializeSchema(db);
+  const catalog = createCatalog(entries);
+  const app = express();
+  app.use(express.json());
+  app.use('/api/plants', createPlantsRouter(db, undefined, catalog));
+  return { app, db };
+}
+
+function catalogFixture(): CatalogEntry[] {
+  return [
+    {
+      slug: 'monstera-deliciosa',
+      latin_name: 'Monstera deliciosa',
+      aliases: ['Split-leaf philodendron'],
+      common_names: { en: ['Swiss cheese plant', 'Monstera'], nl: ['Gatenplant'] },
+      category: 'foliage',
+      care: {
+        base_interval_days: 7,
+        light_preference: 'bright_indirect',
+        placement_hints: 'Moss pole helps.',
+        toxicity: 'Toxic to pets (calcium oxalate crystals).',
+        size_category: 'large',
+        difficulty: 'beginner',
+      },
+      origin: 'Southern Mexico and Central America',
+      common_conditions: ['yellowing leaves'],
+      lore: 'Named for its holey leaves, reminiscent of Swiss cheese.',
+      etymology: 'Monstera from Latin "monstrum"; deliciosa refers to the edible fruit.',
+    },
+  ];
 }
 
 function createTestAppWithHeating(heatingConfig: {
@@ -426,6 +462,77 @@ describe('GET /api/plants/:id', () => {
   it('returns 404 for unknown plant', async () => {
     const res = await request(app).get('/api/plants/9999');
     expect(res.status).toBe(404);
+  });
+
+  describe('"about" catalog payload (#37)', () => {
+    it('includes about when plant species matches a catalog entry', async () => {
+      const { app, db } = createTestAppWithCatalog(catalogFixture());
+      const { lastInsertRowid } = db.prepare(
+        `INSERT INTO plants (name, species, base_interval, current_interval, next_water_date)
+         VALUES ('My Monstera', 'Monstera deliciosa', 7, 7, '2026-04-12')`
+      ).run();
+
+      const res = await request(app).get(`/api/plants/${lastInsertRowid}`);
+      expect(res.status).toBe(200);
+      expect(res.body.about).toBeTruthy();
+      expect(res.body.about.common_names.en).toContain('Swiss cheese plant');
+      expect(res.body.about.common_names.nl).toContain('Gatenplant');
+      expect(res.body.about.origin).toMatch(/Mexico/);
+      expect(res.body.about.toxicity).toMatch(/Toxic/);
+      expect(res.body.about.lore).toMatch(/Swiss cheese/);
+      expect(res.body.about.etymology).toMatch(/Latin/);
+      db.close();
+    });
+
+    it('matches against common_name when species is null', async () => {
+      const { app, db } = createTestAppWithCatalog(catalogFixture());
+      const { lastInsertRowid } = db.prepare(
+        `INSERT INTO plants (name, common_name, base_interval, current_interval, next_water_date)
+         VALUES ('Mossy', 'Swiss cheese plant', 7, 7, '2026-04-12')`
+      ).run();
+
+      const res = await request(app).get(`/api/plants/${lastInsertRowid}`);
+      expect(res.status).toBe(200);
+      expect(res.body.about?.common_names.nl).toContain('Gatenplant');
+      db.close();
+    });
+
+    it('returns about:null when species has no catalog match', async () => {
+      const { app, db } = createTestAppWithCatalog(catalogFixture());
+      const { lastInsertRowid } = db.prepare(
+        `INSERT INTO plants (name, species, base_interval, current_interval, next_water_date)
+         VALUES ('Mystery', 'Totally made up plant', 7, 7, '2026-04-12')`
+      ).run();
+
+      const res = await request(app).get(`/api/plants/${lastInsertRowid}`);
+      expect(res.status).toBe(200);
+      expect(res.body.about).toBeNull();
+      db.close();
+    });
+
+    it('returns about:null when plant has no species and no common_name', async () => {
+      const { app, db } = createTestAppWithCatalog(catalogFixture());
+      const { lastInsertRowid } = db.prepare(
+        `INSERT INTO plants (name, base_interval, current_interval, next_water_date)
+         VALUES ('Nameless', 7, 7, '2026-04-12')`
+      ).run();
+
+      const res = await request(app).get(`/api/plants/${lastInsertRowid}`);
+      expect(res.status).toBe(200);
+      expect(res.body.about).toBeNull();
+      db.close();
+    });
+
+    it('returns about:null when no catalog is wired', async () => {
+      const { lastInsertRowid } = db.prepare(
+        `INSERT INTO plants (name, species, base_interval, current_interval, next_water_date)
+         VALUES ('Monster', 'Monstera deliciosa', 7, 7, '2026-04-12')`
+      ).run();
+
+      const res = await request(app).get(`/api/plants/${lastInsertRowid}`);
+      expect(res.status).toBe(200);
+      expect(res.body.about).toBeNull();
+    });
   });
 });
 

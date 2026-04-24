@@ -42,6 +42,25 @@ export interface CatalogEntry {
   care: CatalogEntryCare;
   origin: string;
   common_conditions: string[];
+  /** Folk history, cultural notes (issue #37). Optional — not all entries populated. */
+  lore?: string;
+  /** Naming origin / word roots (issue #37). Optional. */
+  etymology?: string;
+}
+
+/**
+ * "About this plant" payload returned alongside GET /api/plants/:id.
+ * Sourced from the catalog by species match. Null when no match.
+ */
+export interface PlantAbout {
+  common_names: {
+    en: string[];
+    nl: string[];
+  };
+  origin: string;
+  toxicity: string;
+  lore?: string;
+  etymology?: string;
 }
 
 /** Shape returned by GET /api/catalog/search. */
