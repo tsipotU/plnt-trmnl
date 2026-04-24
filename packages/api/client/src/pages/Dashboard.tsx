@@ -174,7 +174,7 @@ export function Dashboard() {
               marginBottom: 8,
             }}
           >
-            Welcome to Plant TRMNL
+            Welcome to PLNT
           </h2>
           <p
             style={{
