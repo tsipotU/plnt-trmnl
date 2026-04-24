@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { LightLevelTooltip } from '../components/LightLevelTooltip';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
@@ -402,12 +403,16 @@ export function AddPlant() {
 
           {/* Light level */}
           <div>
-            <label
-              htmlFor="lightLevel"
-              style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
-            >
-              Light level <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label
+                htmlFor="lightLevel"
+                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 0 }}
+              >
+                Light level <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
+              </label>
+              <LightLevelTooltip />
+            </div>
+            <div style={{ marginTop: 6 }}></div>
             <select
               id="lightLevel"
               value={lightLevel}
