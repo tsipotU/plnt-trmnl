@@ -905,3 +905,54 @@ describe('PlantDetail #75 — Add condition picker', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// #72 — "Still enriching" badge on post-add splash timeout
+// ---------------------------------------------------------------------------
+
+describe('PlantDetail — still-enriching badge (issue #72)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  function RenderWithState(state: Record<string, unknown>, plant: ReturnType<typeof plantFixture>) {
+    (global.fetch as any).mockImplementation(async (url: string) => {
+      if (url.includes('/conditions')) return { ok: true, json: () => Promise.resolve([]) };
+      if (url.includes('/events')) return { ok: true, json: () => Promise.resolve([]) };
+      if (url.includes('/api/plants/1')) return { ok: true, json: () => Promise.resolve(plant) };
+      return { ok: false, json: () => Promise.resolve(null) };
+    });
+    return render(
+      <MemoryRouter initialEntries={[{ pathname: '/plants/1', state }]}>
+        <Routes>
+          <Route path="/plants/:id" element={<PlantDetail />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  it('shows the badge when navigated with stillEnriching: true and enrichment still pending', async () => {
+    RenderWithState(
+      { stillEnriching: true },
+      plantFixture({ enrichment_status: 'pending' }),
+    );
+    await screen.findByText(/Still enriching — check back shortly/i);
+  });
+
+  it('hides the badge when enrichment_status is already complete', async () => {
+    RenderWithState(
+      { stillEnriching: true },
+      plantFixture({ enrichment_status: 'complete' }),
+    );
+    // Wait for the page to render, then assert the badge is NOT present.
+    await screen.findByText(/My Monstera/);
+    expect(screen.queryByText(/Still enriching/i)).toBeNull();
+  });
+
+  it('does not show the badge when stillEnriching flag is absent', async () => {
+    RenderWithState({}, plantFixture({ enrichment_status: 'pending' }));
+    await screen.findByText(/My Monstera/);
+    expect(screen.queryByText(/Still enriching/i)).toBeNull();
+  });
+});
