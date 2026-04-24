@@ -5,6 +5,14 @@ import Database from 'better-sqlite3';
 import { initializeSchema } from '../database/schema.js';
 import { createPlantsRouter } from './plants.js';
 
+// Prevent real Claude Agent SDK calls from firing in tests.
+// Existing POST /api/plants and new species-correction PUT both trigger
+// background enrichment — we stub it to a no-op resolved promise.
+vi.mock('../enrichment/claude-enrich.js', () => ({
+  enrichPlantWithClaude: vi.fn(async () => undefined),
+  updateCareForCondition: vi.fn(async () => null),
+}));
+
 function createTestApp() {
   const db = new Database(':memory:');
   initializeSchema(db);
@@ -531,6 +539,64 @@ describe('PUT /api/plants/:id', () => {
     ).all(plantId);
 
     expect(events).toHaveLength(1);
+  });
+
+  it('updates species when provided and logs a species_corrected event', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, species, base_interval, current_interval, enrichment_status, next_water_date)
+       VALUES ('Palm', 'Kentia palm', 7, 7, 'complete', '2026-04-08')`
+    ).run();
+
+    const res = await request(app)
+      .put(`/api/plants/${lastInsertRowid}`)
+      .send({ species: 'Areca palm' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.species).toBe('Areca palm');
+    // Re-enrichment marker: status flipped back to pending.
+    expect(res.body.enrichment_status).toBe('pending');
+
+    const events = db
+      .prepare(`SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'species_corrected'`)
+      .all(lastInsertRowid) as Array<{ old_value: string; new_value: string }>;
+    expect(events).toHaveLength(1);
+    expect(events[0].old_value).toBe('Kentia palm');
+    expect(events[0].new_value).toBe('Areca palm');
+  });
+
+  it('does NOT log a species_corrected event when species is unchanged', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, species, base_interval, current_interval, enrichment_status, next_water_date)
+       VALUES ('Palm', 'Kentia palm', 7, 7, 'complete', '2026-04-08')`
+    ).run();
+
+    const res = await request(app)
+      .put(`/api/plants/${lastInsertRowid}`)
+      .send({ species: 'Kentia palm' });
+
+    expect(res.status).toBe(200);
+    // Status stays complete — no re-enrichment triggered.
+    expect(res.body.enrichment_status).toBe('complete');
+
+    const events = db
+      .prepare(`SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'species_corrected'`)
+      .all(lastInsertRowid);
+    expect(events).toHaveLength(0);
+  });
+
+  it('ignores species when it is an empty/whitespace string', async () => {
+    const { lastInsertRowid } = db.prepare(
+      `INSERT INTO plants (name, species, base_interval, current_interval, enrichment_status, next_water_date)
+       VALUES ('Palm', 'Kentia palm', 7, 7, 'complete', '2026-04-08')`
+    ).run();
+
+    const res = await request(app)
+      .put(`/api/plants/${lastInsertRowid}`)
+      .send({ species: '   ' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.species).toBe('Kentia palm');
+    expect(res.body.enrichment_status).toBe('complete');
   });
 });
 
