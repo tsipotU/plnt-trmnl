@@ -1,4 +1,4 @@
-// One-off: rasterize public/favicon.svg into a PNG icon set.
+// One-off: rasterize ../public/favicon.svg into a PNG icon set.
 // Run locally on macOS — sharp (via libvips+librsvg+fontconfig) uses
 // Apple Color Emoji to render the 🪴 glyph. Ubuntu CI runners lack
 // color-emoji fonts, so this script is not wired into CI.
@@ -6,17 +6,13 @@
 // Output PNGs are committed; this script exists so the set can be
 // regenerated if the source SVG ever changes.
 
+import sharp from 'sharp';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const clientDir = join(__dirname, '..', 'packages', 'api', 'client');
-const publicDir = join(clientDir, 'public');
-
-// Dynamically import sharp from client's node_modules
-const sharpModule = await import(join(clientDir, 'node_modules', 'sharp', 'lib', 'index.js'));
-const sharp = sharpModule.default;
+const publicDir = join(__dirname, '..', 'public');
 
 const svg = readFileSync(join(publicDir, 'favicon.svg'));
 
