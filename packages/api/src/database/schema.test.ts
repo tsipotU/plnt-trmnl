@@ -31,6 +31,25 @@ describe('initializeSchema', () => {
     expect(names).toContain('event_log');
     expect(names).toContain('enrichment_queue');
     expect(names).toContain('app_state');
+    expect(names).toContain('feedback_images');
+  });
+
+  it('feedback_images cascades on feedback deletion', () => {
+    initializeSchema(db);
+    const fb = db.prepare(
+      `INSERT INTO feedback (title, category) VALUES (?, ?)`
+    ).run('Test', 'bug');
+    const feedbackId = fb.lastInsertRowid as number;
+    db.prepare(
+      `INSERT INTO feedback_images (feedback_id, filename) VALUES (?, ?)`
+    ).run(feedbackId, 'abc.png');
+
+    db.prepare(`DELETE FROM feedback WHERE id = ?`).run(feedbackId);
+
+    const imgs = db.prepare(
+      `SELECT * FROM feedback_images WHERE feedback_id = ?`
+    ).all(feedbackId);
+    expect(imgs).toHaveLength(0);
   });
 
   it('is idempotent — can run twice without error', () => {

@@ -12,6 +12,13 @@ interface Comment {
   updated_at: string | null;
 }
 
+interface FeedbackImage {
+  id: number;
+  filename: string;
+  url: string;
+  created_at: string;
+}
+
 interface Feedback {
   id: number;
   title: string;
@@ -22,6 +29,7 @@ interface Feedback {
   created_at: string;
   updated_at: string | null;
   comments: Comment[];
+  images: FeedbackImage[];
 }
 
 const CATEGORY_LABELS: Record<Category, string> = {
@@ -60,6 +68,8 @@ export function FeedbackDetail() {
 
   const [newComment, setNewComment] = useState('');
   const [posting, setPosting] = useState(false);
+
+  const [enlargedImage, setEnlargedImage] = useState<FeedbackImage | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -289,6 +299,46 @@ export function FeedbackDetail() {
                 {item.description}
               </p>
             )}
+            {item.images && item.images.length > 0 && (
+              <div
+                data-testid="feedback-image-grid"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 8,
+                  marginTop: 12,
+                }}
+              >
+                {item.images.map((img, i) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => setEnlargedImage(img)}
+                    aria-label={`Enlarge image ${i + 1}`}
+                    style={{
+                      padding: 0,
+                      border: 0,
+                      background: 'var(--bg-secondary)',
+                      aspectRatio: '1 / 1',
+                      borderRadius: 'var(--radius)',
+                      overflow: 'hidden',
+                      cursor: 'zoom-in',
+                    }}
+                  >
+                    <img
+                      src={img.url}
+                      alt={`Attachment ${i + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
             <div
               style={{
                 fontSize: 12,
@@ -382,6 +432,56 @@ export function FeedbackDetail() {
       </form>
 
       <div style={{ height: 80 }} />
+
+      {enlargedImage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Enlarged image"
+          onClick={() => setEnlargedImage(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.9)',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <img
+            src={enlargedImage.url}
+            alt="Enlarged attachment"
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setEnlargedImage(null)}
+            aria-label="Close image"
+            style={{
+              position: 'fixed',
+              top: 16,
+              right: 16,
+              background: 'rgba(0, 0, 0, 0.6)',
+              color: 'white',
+              borderRadius: '50%',
+              width: 40,
+              height: 40,
+              padding: 0,
+              minWidth: 0,
+              minHeight: 0,
+              fontSize: 20,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }
