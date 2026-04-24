@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useRef, useState } from 'react';
 import { Routes, Route, Link, MemoryRouter } from 'react-router-dom';
 import { MenuDrawer } from './MenuDrawer';
 
@@ -109,5 +110,71 @@ describe('MenuDrawer — close affordances', () => {
     );
     await user.click(screen.getByRole('link', { name: /go archived/i }));
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('MenuDrawer — focus management', () => {
+  it('focuses the first link when open transitions false→true', () => {
+    const { rerender } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={false} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    rerender(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={true} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    const firstLink = screen.getByRole('link', { name: /add plant/i });
+    expect(firstLink).toHaveFocus();
+  });
+
+  it('restores focus to the trigger button when closed', async () => {
+    function Harness() {
+      const [open, setOpen] = useState(true);
+      const triggerRef = useRef<HTMLButtonElement>(null);
+      return (
+        <MemoryRouter initialEntries={['/']}>
+          <button ref={triggerRef} data-testid="trigger">menu</button>
+          <MenuDrawer open={open} onClose={() => setOpen(false)} triggerRef={triggerRef} />
+          <button onClick={() => setOpen(false)} data-testid="close-externally">close</button>
+        </MemoryRouter>
+      );
+    }
+    render(<Harness />);
+    const close = screen.getByTestId('close-externally');
+    const user = userEvent.setup();
+    await user.click(close);
+    const trigger = screen.getByTestId('trigger');
+    expect(trigger).toHaveFocus();
+  });
+
+  it('wraps Tab from the last link back to the first', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={true} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    const addLink = screen.getByRole('link', { name: /add plant/i });
+    const aboutLink = screen.getByRole('link', { name: /about/i });
+    aboutLink.focus();
+    expect(aboutLink).toHaveFocus();
+    await user.tab();
+    expect(addLink).toHaveFocus();
+  });
+
+  it('wraps Shift+Tab from the first link back to the last', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={true} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    const addLink = screen.getByRole('link', { name: /add plant/i });
+    const aboutLink = screen.getByRole('link', { name: /about/i });
+    addLink.focus();
+    await user.tab({ shift: true });
+    expect(aboutLink).toHaveFocus();
   });
 });

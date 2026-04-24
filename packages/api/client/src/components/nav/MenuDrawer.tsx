@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
+import type { RefObject } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MenuDrawerProps {
   open: boolean;
   onClose: () => void;
+  triggerRef?: RefObject<HTMLButtonElement | null>;
 }
 
-export function MenuDrawer({ open, onClose }: MenuDrawerProps) {
+export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
   const location = useLocation();
   const initialPathname = useRef(location.pathname);
 
@@ -28,6 +30,36 @@ export function MenuDrawer({ open, onClose }: MenuDrawerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
+  const asideRef = useRef<HTMLElement>(null);
+
+  // Focus on open / restore on close
+  useEffect(() => {
+    if (open) {
+      const first = asideRef.current?.querySelector<HTMLElement>('a, button');
+      first?.focus();
+    } else {
+      triggerRef?.current?.focus();
+    }
+  }, [open, triggerRef]);
+
+  // Focus trap
+  function onKeyDownCapture(e: React.KeyboardEvent<HTMLElement>) {
+    if (e.key !== 'Tab') return;
+    const focusables = asideRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled])',
+    );
+    if (!focusables || focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   return (
     <>
       {open && (
@@ -44,11 +76,13 @@ export function MenuDrawer({ open, onClose }: MenuDrawerProps) {
         />
       )}
       <aside
+        ref={asideRef}
         id="main-menu"
         role="dialog"
         aria-modal="true"
         aria-label="Main menu"
         aria-hidden={!open}
+        onKeyDown={onKeyDownCapture}
         style={{
           position: 'fixed',
           top: 0,
