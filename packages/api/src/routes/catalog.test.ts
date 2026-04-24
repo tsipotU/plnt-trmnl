@@ -106,3 +106,79 @@ describe('GET /api/catalog/search', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('GET /api/catalog/suggest', () => {
+  const entries: CatalogEntry[] = [
+    entry(),
+    entry({
+      slug: 'monstera-deliciosa',
+      latin_name: 'Monstera deliciosa',
+      aliases: ['Split-leaf philodendron'],
+      common_names: { en: ['Swiss cheese plant', 'Monstera'], nl: ['Gatenplant'] },
+      category: 'foliage',
+    }),
+    entry({
+      slug: 'phalaenopsis',
+      latin_name: 'Phalaenopsis',
+      aliases: ['moth orchid'],
+      common_names: { en: ['Orchid'], nl: ['Vlinderorchidee'] },
+      category: 'flowering',
+    }),
+  ];
+
+  let app: express.Express;
+
+  beforeEach(() => {
+    const catalog = createCatalog(entries);
+    app = express();
+    app.use('/api/catalog', createCatalogRouter(catalog));
+  });
+
+  it('returns 400 when q is missing', async () => {
+    const res = await request(app).get('/api/catalog/suggest');
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('suggests "Monstera deliciosa" for typo "monstera diliciosa"', async () => {
+    const res = await request(app).get(
+      '/api/catalog/suggest?q=' + encodeURIComponent('monstera diliciosa'),
+    );
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+    expect(res.body[0].latin_name).toBe('Monstera deliciosa');
+  });
+
+  it('returns an empty array for a name that is nothing like anything', async () => {
+    const res = await request(app).get('/api/catalog/suggest?q=xyzzy%20plant');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('suggests Sansevieria trifasciata via the English alias "snake"', async () => {
+    const res = await request(app).get('/api/catalog/suggest?q=snake');
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBeGreaterThan(0);
+    expect(res.body[0].latin_name).toBe('Sansevieria trifasciata');
+  });
+
+  it('caps results at 3 even for broad matches', async () => {
+    const res = await request(app).get('/api/catalog/suggest?q=plant');
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBeLessThanOrEqual(3);
+  });
+
+  it('returns the documented result shape', async () => {
+    const res = await request(app).get(
+      '/api/catalog/suggest?q=' + encodeURIComponent('monstera diliciosa'),
+    );
+    const hit = res.body[0];
+    expect(hit).toEqual({
+      slug: 'monstera-deliciosa',
+      latin_name: 'Monstera deliciosa',
+      category: 'foliage',
+      primary_common_name: 'Swiss cheese plant',
+    });
+  });
+});
