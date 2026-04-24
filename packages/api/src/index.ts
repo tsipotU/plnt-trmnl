@@ -56,6 +56,11 @@ app.get('/health', (_req, res) => {
 app.use('/api/plants', createPlantsRouter(db, {
   heatingSeasonStart: config.heatingSeasonStart,
   heatingSeasonEnd: config.heatingSeasonEnd,
+  growingSeasonStart: config.growingSeasonStart,
+  growingSeasonEnd: config.growingSeasonEnd,
+  growingSeasonMultiplier: config.growingSeasonMultiplier,
+  dormancyMultiplier: config.dormancyMultiplier,
+  dryDaysBase: config.dryDaysBase,
 }, catalog));
 app.use('/api/plants', createPlantNotesRouter(db));
 app.use('/api', createCalibrationRouter(db));

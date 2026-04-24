@@ -8,6 +8,12 @@ export interface Config {
   n8nMaxRetries: number;
   heatingSeasonStart: { month: number; day: number };
   heatingSeasonEnd: { month: number; day: number };
+  // #36 — dry-soil-aware calibration + seasonal multiplier
+  growingSeasonStart: { month: number; day: number };
+  growingSeasonEnd: { month: number; day: number };
+  dryDaysBase: number;
+  growingSeasonMultiplier: number;
+  dormancyMultiplier: number;
 }
 
 function required(name: string): string {
@@ -21,6 +27,20 @@ function parseMonthDay(val: string): { month: number; day: number } {
   return { month, day };
 }
 
+function parsePositiveFloat(val: string | undefined, fallback: number): number {
+  if (val == null || val === '') return fallback;
+  const n = Number.parseFloat(val);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return n;
+}
+
+function parsePositiveInt(val: string | undefined, fallback: number, min: number): number {
+  if (val == null || val === '') return fallback;
+  const n = Number.parseInt(val, 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(n, min);
+}
+
 export function loadConfig(): Config {
   return {
     port: parseInt(process.env.PORT_API || '3900', 10),
@@ -32,5 +52,10 @@ export function loadConfig(): Config {
     n8nMaxRetries: parseInt(process.env.N8N_ENRICHMENT_MAX_RETRIES || '10', 10),
     heatingSeasonStart: parseMonthDay(process.env.HEATING_SEASON_START || '10-01'),
     heatingSeasonEnd: parseMonthDay(process.env.HEATING_SEASON_END || '04-01'),
+    growingSeasonStart: parseMonthDay(process.env.GROWING_SEASON_START || '04-01'),
+    growingSeasonEnd: parseMonthDay(process.env.GROWING_SEASON_END || '09-30'),
+    dryDaysBase: parsePositiveInt(process.env.DRY_DAYS_BASE, 7, 2),
+    growingSeasonMultiplier: parsePositiveFloat(process.env.GROWING_SEASON_MULTIPLIER, 0.8),
+    dormancyMultiplier: parsePositiveFloat(process.env.DORMANCY_MULTIPLIER, 1.3),
   };
 }
