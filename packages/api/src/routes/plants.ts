@@ -189,6 +189,33 @@ const SOIL_FEEL_INTERVAL_MAP: Record<string, number> = {
 const VALID_SOIL_FEEL = Object.keys(SOIL_FEEL_INTERVAL_MAP);
 
 /**
+ * Catalog baseline hook (#2) — when AddPlant passes a `catalog_slug`, seed
+ * the new plant's baselines from the catalog entry so the plant is useful
+ * immediately instead of waiting for Claude enrichment. Claude enrichment
+ * still runs in the background to refine calibration, conditions, and facts.
+ *
+ * Returns `null` when the slug is unknown or catalog isn't wired — caller
+ * falls back to existing default-seeding logic (soil_feel / dryDaysBase).
+ *
+ * NOTE: kept in its own named helper so #4's fact-seeding hook can compose
+ * cleanly without merge conflicts.
+ */
+function applyCatalogBaseline(
+  catalog: Catalog | undefined,
+  catalogSlug: unknown,
+): { baseInterval: number; lightPreference: string; species: string } | null {
+  if (!catalog) return null;
+  if (typeof catalogSlug !== 'string' || catalogSlug.length === 0) return null;
+  const entry = catalog.get(catalogSlug);
+  if (!entry) return null;
+  return {
+    baseInterval: entry.care.base_interval_days,
+    lightPreference: entry.care.light_preference,
+    species: entry.latin_name,
+  };
+}
+
+/**
  * Build an "About this plant" payload from a catalog entry (#37).
  * Prefers the species string stored on the plant; falls back to common_name.
  * Returns null when no catalog match is found so the client can hide the card.
@@ -305,6 +332,8 @@ export function createPlantsRouter(
     const originSource = req.body.origin_source ?? req.body.originSource;
     const motherPlantId = req.body.mother_plant_id ?? req.body.motherPlantId;
     const soilFeel = req.body.soil_feel ?? req.body.soilFeel;
+    // #2 streamlined AddPlant — optional catalog slug applies baselines immediately.
+    const catalogSlug = req.body.catalog_slug ?? req.body.catalogSlug;
 
     if (!name || !lastWateredAt) {
       res.status(400).json({ error: 'name and lastWateredAt are required' });
@@ -337,28 +366,37 @@ export function createPlantsRouter(
       return;
     }
 
-    // Soil-feel fallback (issue #70) takes precedence. Otherwise #36:
-    // seed from configurable DRY_DAYS_BASE. Enrichment overwrites within
-    // seconds once Claude responds.
+    // Catalog baseline hook (#2) — resolved before soil-feel / dryDaysBase so
+    // catalog entries provide a species-accurate base_interval when the user
+    // hasn't overridden via soil_feel. User-supplied lightLevel wins when set.
+    const catalogBaseline = applyCatalogBaseline(catalog, catalogSlug);
+
+    // Interval precedence: soil_feel > catalog base_interval > dryDaysBase default.
+    // Enrichment overwrites within seconds once Claude responds.
     const seededInterval =
       typeof soilFeel === 'string' ? SOIL_FEEL_INTERVAL_MAP[soilFeel] : null;
-    const currentInterval = seededInterval ?? dryDaysBase;
+    const currentInterval =
+      seededInterval ?? catalogBaseline?.baseInterval ?? dryDaysBase;
     const skipNextCalibration = seededInterval !== null ? 1 : 0;
     const nextWaterDate = calculateNextWaterDate(lastWateredAt, currentInterval);
 
+    const effectiveLightLevel = lightLevel ?? catalogBaseline?.lightPreference ?? null;
+    const effectiveSpecies = catalogBaseline?.species ?? null;
+
     const result = db.prepare(
       `INSERT INTO plants
-         (name, pot_size_cm, pot_size_category, plant_size, identifier, location, light_level, base_interval, current_interval,
+         (name, species, pot_size_cm, pot_size_category, plant_size, identifier, location, light_level, base_interval, current_interval,
           last_watered_at, next_water_date, enrichment_status, origin_type, origin_source, mother_plant_id, skip_next_calibration)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`
     ).run(
       name,
+      effectiveSpecies,
       potSizeCm ?? null,
       potSizeCategory ?? null,
       plantSize ?? null,
       identifier ?? null,
       location ?? null,
-      lightLevel ?? null,
+      effectiveLightLevel,
       currentInterval,
       currentInterval,
       lastWateredAt,
