@@ -81,6 +81,38 @@ interface Condition {
   is_active: number;
 }
 
+// #3 — catalog entry (rich care profile)
+interface CatalogLightProfile {
+  ideal: 'low' | 'medium' | 'bright_indirect' | 'direct';
+  tolerance_min: 'low' | 'medium' | 'bright_indirect' | 'direct';
+  tolerance_max: 'low' | 'medium' | 'bright_indirect' | 'direct';
+  direct_sun_hours: string;
+  too_little_symptoms: string;
+  too_much_symptoms: string;
+}
+interface CatalogCondition {
+  name: string;
+  symptoms: string;
+  remedy: string;
+  severity: 'info' | 'warning' | 'critical';
+  prevention: string;
+  is_common: boolean;
+}
+interface CatalogEntry {
+  slug: string;
+  latin_name: string;
+  light_profile: CatalogLightProfile;
+  placement_tips: string[];
+  conditions: CatalogCondition[];
+}
+
+const LIGHT_LABELS: Record<CatalogLightProfile['ideal'], string> = {
+  low: 'Low light',
+  medium: 'Medium light',
+  bright_indirect: 'Bright indirect',
+  direct: 'Direct sun',
+};
+
 interface PlantEvent {
   id: number;
   event_type: string;
@@ -559,6 +591,8 @@ export function PlantDetail() {
   const [plant, setPlant] = useState<Plant | null>(null);
   const [conditions, setConditions] = useState<Condition[]>([]);
   const [events, setEvents] = useState<PlantEvent[]>([]);
+  const [catalogEntry, setCatalogEntry] = useState<CatalogEntry | null>(null);
+  const [showAllCatalogConditions, setShowAllCatalogConditions] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -602,6 +636,27 @@ export function PlantDetail() {
         setLoading(false);
       });
   }, [id]);
+
+  // #3 — fetch catalog entry for this plant's species (for Light/Placement/Conditions sections)
+  useEffect(() => {
+    const species = plant?.species;
+    if (!species) {
+      setCatalogEntry(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/catalog/entry?species=${encodeURIComponent(species)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((entry) => {
+        if (!cancelled) setCatalogEntry(entry as CatalogEntry | null);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogEntry(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [plant?.species]);
 
   const showToast = useCallback((msg: string) => setToast(msg), []);
 
@@ -726,6 +781,39 @@ export function PlantDetail() {
       showToast('Watering undone');
     } catch {
       showToast('Undo failed');
+    }
+  }
+
+  // #3 — flag a catalog condition as active on this plant.
+  // Writes a row to the existing plant_conditions table via POST /api/plants/:id/conditions
+  // so it appears in the "Active conditions" card above.
+  async function handleFlagCatalogCondition(c: CatalogCondition) {
+    if (!id) return;
+    // Guard: avoid duplicates if already active
+    const alreadyActive = conditions.some(
+      (existing) => existing.is_active && existing.condition_name === c.name,
+    );
+    if (alreadyActive) {
+      showToast('Already flagged as active');
+      return;
+    }
+    try {
+      const res = await fetch(`/api/plants/${id}/conditions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conditionName: c.name,
+          symptoms: c.symptoms,
+          remedy: c.remedy,
+          severity: c.severity,
+        }),
+      });
+      if (!res.ok) throw new Error('flag failed');
+      const created = (await res.json()) as Condition;
+      setConditions((prev) => [created, ...prev]);
+      showToast(`Flagged: ${c.name}`);
+    } catch {
+      showToast('Failed to flag condition');
     }
   }
 
@@ -1310,6 +1398,190 @@ export function PlantDetail() {
           Keep this section self-contained; #3 (conditions) and #74 (species
           header) touch neighbouring blocks, so merges stay mechanical. */}
       <AboutCard plantName={plant.name} about={plant.about} />
+
+      {/* #3 — Light mismatch warning.
+          Renders when the catalog says this species prefers a different light level
+          than what the user has configured for this plant. Unblocks #76. */}
+      {catalogEntry && plant.light_level && plant.light_level !== catalogEntry.light_profile.ideal && (
+        <div
+          role="alert"
+          aria-label="Light mismatch warning"
+          style={{
+            background: 'rgba(243, 156, 18, 0.12)',
+            border: '1px solid var(--warning)',
+            borderRadius: 'var(--radius)',
+            padding: 12,
+            marginBottom: 12,
+            fontSize: 14,
+            color: 'var(--text-primary)',
+            lineHeight: 1.5,
+            display: 'flex',
+            gap: 10,
+            alignItems: 'flex-start',
+          }}
+        >
+          <span style={{ fontSize: 18, flexShrink: 0 }}>☀️</span>
+          <div>
+            <strong>Light mismatch.</strong>{' '}
+            {catalogEntry.latin_name} prefers{' '}
+            <strong>{LIGHT_LABELS[catalogEntry.light_profile.ideal].toLowerCase()}</strong>, but this
+            plant is set to{' '}
+            <strong>{LIGHT_LABELS[plant.light_level as CatalogLightProfile['ideal']]?.toLowerCase() ?? plant.light_level}</strong>
+            {plant.location ? ` (${plant.location})` : ''} — consider moving it.
+          </div>
+        </div>
+      )}
+
+      {/* #3 — Light profile section (catalog-driven) */}
+      {catalogEntry && (
+        <div className="card" style={{ marginBottom: 12 }} data-testid="catalog-light-section">
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Light</h2>
+          <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '8px 12px', margin: 0, fontSize: 14 }}>
+            <dt style={{ color: 'var(--text-secondary)' }}>Ideal</dt>
+            <dd style={{ margin: 0 }}>{LIGHT_LABELS[catalogEntry.light_profile.ideal]}</dd>
+
+            <dt style={{ color: 'var(--text-secondary)' }}>Tolerance</dt>
+            <dd style={{ margin: 0 }}>
+              {LIGHT_LABELS[catalogEntry.light_profile.tolerance_min]}
+              {' to '}
+              {LIGHT_LABELS[catalogEntry.light_profile.tolerance_max]}
+            </dd>
+
+            <dt style={{ color: 'var(--text-secondary)' }}>Direct sun</dt>
+            <dd style={{ margin: 0 }}>{catalogEntry.light_profile.direct_sun_hours}</dd>
+
+            <dt style={{ color: 'var(--text-secondary)' }}>Too little</dt>
+            <dd style={{ margin: 0 }}>{catalogEntry.light_profile.too_little_symptoms}</dd>
+
+            <dt style={{ color: 'var(--text-secondary)' }}>Too much</dt>
+            <dd style={{ margin: 0 }}>{catalogEntry.light_profile.too_much_symptoms}</dd>
+          </dl>
+        </div>
+      )}
+
+      {/* #3 — Placement tips section (catalog-driven) */}
+      {catalogEntry && catalogEntry.placement_tips.length > 0 && (
+        <div className="card" style={{ marginBottom: 12 }} data-testid="catalog-placement-section">
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Placement</h2>
+          <ul style={{ paddingLeft: 20, margin: 0, fontSize: 14, lineHeight: 1.55 }}>
+            {catalogEntry.placement_tips.map((tip, i) => (
+              <li key={i} style={{ marginBottom: 4 }}>{tip}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* #3 — Catalog conditions section (top 5 highlighted; tap to flag as active) */}
+      {catalogEntry && catalogEntry.conditions.length > 0 && (
+        <div className="card" style={{ marginBottom: 12 }} data-testid="catalog-conditions-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Common conditions</h2>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+              Tap a condition to flag as active
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {(showAllCatalogConditions
+              ? catalogEntry.conditions
+              : catalogEntry.conditions.filter((c) => c.is_common)
+            ).map((c, i) => {
+              const activeAlready = conditions.some(
+                (existing) => existing.is_active && existing.condition_name === c.name,
+              );
+              return (
+                <button
+                  key={`${c.name}-${i}`}
+                  onClick={() => handleFlagCatalogCondition(c)}
+                  disabled={activeAlready}
+                  style={{
+                    background: c.is_common ? 'var(--bg-secondary)' : 'transparent',
+                    color: 'var(--text-primary)',
+                    border: 'none',
+                    borderBottom: '1px solid var(--border)',
+                    borderRadius: 0,
+                    padding: '10px 0',
+                    textAlign: 'left',
+                    cursor: activeAlready ? 'default' : 'pointer',
+                    opacity: activeAlready ? 0.55 : 1,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 10,
+                  }}
+                  aria-label={`Flag ${c.name} as active`}
+                >
+                  <span
+                    style={{
+                      background: severityColor(c.severity),
+                      color: 'white',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: 10,
+                      textTransform: 'uppercase',
+                      flexShrink: 0,
+                      marginTop: 3,
+                    }}
+                  >
+                    {c.severity}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>{c.name}</span>
+                      {c.is_common && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            color: 'var(--accent)',
+                            border: '1px solid var(--accent)',
+                            padding: '1px 6px',
+                            borderRadius: 10,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          Common
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                      {c.symptoms}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>Remedy:</strong> {c.remedy}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>Prevention:</strong> {c.prevention}
+                    </div>
+                  </div>
+                  {activeAlready && (
+                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', flexShrink: 0, marginTop: 3 }}>
+                      active
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setShowAllCatalogConditions((v) => !v)}
+            style={{
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border)',
+              fontSize: 13,
+              padding: '8px 12px',
+              marginTop: 12,
+              width: '100%',
+            }}
+          >
+            {showAllCatalogConditions
+              ? 'Show top 5 only'
+              : `Show all ${catalogEntry.conditions.length} conditions`}
+          </button>
+        </div>
+      )}
 
       {/* Summary stats + calibration trend */}
       {(() => {

@@ -3,7 +3,22 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { loadCatalog, createCatalog } from './loader.js';
-import type { CatalogEntry } from './types.js';
+import type { CatalogEntry, CatalogCondition } from './types.js';
+
+function makeConditions(count = 15): CatalogCondition[] {
+  const out: CatalogCondition[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push({
+      name: `Condition ${i + 1}`,
+      symptoms: `Symptoms ${i + 1}`,
+      remedy: `Remedy ${i + 1}`,
+      severity: i < 2 ? 'critical' : i < 5 ? 'warning' : 'info',
+      prevention: `Prevention ${i + 1}`,
+      is_common: i < 5,
+    });
+  }
+  return out;
+}
 
 function makeEntry(overrides: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
@@ -25,6 +40,20 @@ function makeEntry(overrides: Partial<CatalogEntry> = {}): CatalogEntry {
     },
     origin: 'West Africa',
     common_conditions: ['root rot from overwatering', 'mealybugs'],
+    light_profile: {
+      ideal: 'medium',
+      tolerance_min: 'low',
+      tolerance_max: 'bright_indirect',
+      direct_sun_hours: 'None — leaves scorch in direct sun',
+      too_little_symptoms: 'Slow growth; pale new leaves',
+      too_much_symptoms: 'Yellow patches; crispy edges',
+    },
+    placement_tips: [
+      '1–2m from an east-facing window',
+      'Avoid cold drafts below 13°C',
+      'Tolerates dry indoor air',
+    ],
+    conditions: makeConditions(),
     ...overrides,
   };
 }
@@ -101,6 +130,78 @@ describe('catalog loader', () => {
       bad.category = 'not-a-real-category';
       const p = tmp(JSON.stringify([bad]));
       expect(() => loadCatalog(p)).toThrow(/category/i);
+    });
+
+    // #3 — rich care profile fields
+    it('throws when light_profile is missing', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally malformed
+      delete bad.light_profile;
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/light_profile/);
+    });
+
+    it('throws when light_profile.ideal is invalid', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally malformed
+      bad.light_profile.ideal = 'not-a-light';
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/light_profile\.ideal/);
+    });
+
+    it('throws when placement_tips is missing', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally malformed
+      delete bad.placement_tips;
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/placement_tips/);
+    });
+
+    it('throws when placement_tips is empty', () => {
+      const bad = makeEntry({ placement_tips: [] });
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/placement_tips/);
+    });
+
+    it('throws when conditions is missing', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally malformed
+      delete bad.conditions;
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/conditions/);
+    });
+
+    it('throws when conditions does not have exactly 15 entries', () => {
+      const bad = makeEntry({ conditions: makeConditions(10) });
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/15/);
+    });
+
+    it('throws when a condition has invalid severity', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally bad
+      bad.conditions[0].severity = 'banana';
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/severity/i);
+    });
+
+    it('throws when a condition has non-boolean is_common', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally bad
+      bad.conditions[0].is_common = 'yes';
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/is_common/);
+    });
+
+    it('accepts a fully-formed entry with all #3 fields', () => {
+      const good = makeEntry();
+      const p = tmp(JSON.stringify([good]));
+      const catalog = loadCatalog(p);
+      const entry = catalog.get('sansevieria-trifasciata');
+      expect(entry).toBeDefined();
+      expect(entry?.light_profile.ideal).toBe('medium');
+      expect(entry?.placement_tips.length).toBeGreaterThan(0);
+      expect(entry?.conditions).toHaveLength(15);
     });
   });
 

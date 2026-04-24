@@ -4,8 +4,8 @@
  * Canonical shape used by the catalog JSON file, loader, and search API.
  * Pairs with `packages/api/catalog/plants.json`.
  *
- * NOTE: #1a scaffold. Richer fields (light_profile, placement_tips,
- * species-level facts, lore) arrive in #3 / #4 / #37.
+ * NOTE: #3 adds `light_profile`, `placement_tips`, and `conditions` (15 per species).
+ * `light_profile.ideal` unblocks #76 (location-light mismatch badge).
  */
 export type PlantCategory =
   | 'foliage'
@@ -20,6 +20,7 @@ export type PlantCategory =
 export type LightPreference = 'low' | 'medium' | 'bright_indirect' | 'direct';
 export type SizeCategory = 'small' | 'medium' | 'large' | 'tree';
 export type Difficulty = 'beginner' | 'intermediate' | 'expert';
+export type ConditionSeverity = 'info' | 'warning' | 'critical';
 
 export interface CatalogEntryCare {
   base_interval_days: number;
@@ -28,6 +29,34 @@ export interface CatalogEntryCare {
   toxicity: string;
   size_category: SizeCategory;
   difficulty: Difficulty;
+}
+
+/**
+ * Light profile — #3.
+ * `ideal` is the canonical preference; `tolerance_min`/`max` define the acceptable range.
+ * `direct_sun_hours` is a short human string (e.g. "Max 2 hours morning sun", "None").
+ * `ideal` unblocks #76 (location-light mismatch badge).
+ */
+export interface LightProfile {
+  ideal: LightPreference;
+  tolerance_min: LightPreference;
+  tolerance_max: LightPreference;
+  direct_sun_hours: string;
+  too_little_symptoms: string;
+  too_much_symptoms: string;
+}
+
+/**
+ * Catalog condition — one of 15 per species.
+ * `is_common` flags the 5 most frequently encountered (highlighted in the UI).
+ */
+export interface CatalogCondition {
+  name: string;
+  symptoms: string;
+  remedy: string;
+  severity: ConditionSeverity;
+  prevention: string;
+  is_common: boolean;
 }
 
 export interface CatalogEntry {
@@ -42,6 +71,9 @@ export interface CatalogEntry {
   care: CatalogEntryCare;
   origin: string;
   common_conditions: string[];
+  light_profile: LightProfile;
+  placement_tips: string[];
+  conditions: CatalogCondition[];
   /** Folk history, cultural notes (issue #37). Optional — not all entries populated. */
   lore?: string;
   /** Naming origin / word roots (issue #37). Optional. */

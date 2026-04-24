@@ -8,6 +8,7 @@ import type {
   LightPreference,
   SizeCategory,
   Difficulty,
+  ConditionSeverity,
 } from './types.js';
 
 const VALID_CATEGORIES: readonly PlantCategory[] = [
@@ -23,6 +24,8 @@ const VALID_CATEGORIES: readonly PlantCategory[] = [
 const VALID_LIGHT: readonly LightPreference[] = ['low', 'medium', 'bright_indirect', 'direct'];
 const VALID_SIZE: readonly SizeCategory[] = ['small', 'medium', 'large', 'tree'];
 const VALID_DIFFICULTY: readonly Difficulty[] = ['beginner', 'intermediate', 'expert'];
+const VALID_SEVERITY: readonly ConditionSeverity[] = ['info', 'warning', 'critical'];
+const REQUIRED_CONDITIONS_COUNT = 15;
 
 export interface Catalog {
   all(): readonly CatalogEntry[];
@@ -153,6 +156,58 @@ function validateEntry(raw: unknown, index: number): CatalogEntry {
   if (e.etymology !== undefined && (typeof e.etymology !== 'string' || e.etymology.length === 0)) {
     throw new Error(`${loc}.etymology must be a non-empty string when provided`);
   }
+
+  // #3: light_profile
+  if (!e.light_profile || typeof e.light_profile !== 'object') {
+    throw new Error(`${loc}.light_profile must be an object`);
+  }
+  const lp = e.light_profile as Record<string, unknown>;
+  if (typeof lp.ideal !== 'string' || !VALID_LIGHT.includes(lp.ideal as LightPreference)) {
+    throw new Error(`${loc}.light_profile.ideal invalid: ${String(lp.ideal)}`);
+  }
+  if (typeof lp.tolerance_min !== 'string' ||
+      !VALID_LIGHT.includes(lp.tolerance_min as LightPreference)) {
+    throw new Error(`${loc}.light_profile.tolerance_min invalid: ${String(lp.tolerance_min)}`);
+  }
+  if (typeof lp.tolerance_max !== 'string' ||
+      !VALID_LIGHT.includes(lp.tolerance_max as LightPreference)) {
+    throw new Error(`${loc}.light_profile.tolerance_max invalid: ${String(lp.tolerance_max)}`);
+  }
+  requireString(lp.direct_sun_hours, `${loc}.light_profile.direct_sun_hours`);
+  requireString(lp.too_little_symptoms, `${loc}.light_profile.too_little_symptoms`);
+  requireString(lp.too_much_symptoms, `${loc}.light_profile.too_much_symptoms`);
+
+  // #3: placement_tips
+  requireStringArray(e.placement_tips, `${loc}.placement_tips`);
+  if ((e.placement_tips as string[]).length === 0) {
+    throw new Error(`${loc}.placement_tips must have at least one entry`);
+  }
+
+  // #3: conditions — exactly 15 structured entries, with ≥1 is_common flagged
+  if (!Array.isArray(e.conditions)) {
+    throw new Error(`${loc}.conditions must be an array`);
+  }
+  if (e.conditions.length !== REQUIRED_CONDITIONS_COUNT) {
+    throw new Error(
+      `${loc}.conditions must have exactly ${REQUIRED_CONDITIONS_COUNT} entries (got ${e.conditions.length})`
+    );
+  }
+  e.conditions.forEach((c, j) => {
+    const cloc = `${loc}.conditions[${j}]`;
+    if (!c || typeof c !== 'object') throw new Error(`${cloc} is not an object`);
+    const cond = c as Record<string, unknown>;
+    requireString(cond.name, `${cloc}.name`);
+    requireString(cond.symptoms, `${cloc}.symptoms`);
+    requireString(cond.remedy, `${cloc}.remedy`);
+    requireString(cond.prevention, `${cloc}.prevention`);
+    if (typeof cond.severity !== 'string' ||
+        !VALID_SEVERITY.includes(cond.severity as ConditionSeverity)) {
+      throw new Error(`${cloc}.severity invalid: ${String(cond.severity)}`);
+    }
+    if (typeof cond.is_common !== 'boolean') {
+      throw new Error(`${cloc}.is_common must be a boolean`);
+    }
+  });
 
   return raw as unknown as CatalogEntry;
 }

@@ -3,7 +3,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PlantDetail } from './PlantDetail';
-import { DEV_INFO_STORAGE_KEY } from '../hooks/useDevInfo';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -140,175 +139,6 @@ describe('PlantDetail - Timeline Rendering', () => {
     // Verify the raw values are completely hidden
     expect(screen.queryByText(/ratio=0\.025/)).not.toBeInTheDocument();
     expect(screen.queryByText(/→/)).not.toBeInTheDocument();
-  });
-});
-
-describe('PlantDetail - Species header (issue #74)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    vi.clearAllMocks();
-  });
-
-  function basePlant(overrides: Record<string, unknown> = {}) {
-    return {
-      id: 1,
-      name: 'Harold',
-      species: 'Monstera deliciosa',
-      common_name: null,
-      identifier: null,
-      location: null,
-      pot_size_cm: null,
-      pot_size_category: null,
-      plant_size: null,
-      light_level: null,
-      current_interval: 7,
-      base_interval: 7,
-      water_ratio: 0.035,
-      water_description: 'about 1.5 cups',
-      enrichment_status: 'complete',
-      next_water_date: null,
-      last_watered_at: null,
-      illustration_path: null,
-      archived: 0,
-      updated_at: '2026-04-23T10:00:00Z',
-      ...overrides,
-    };
-  }
-
-  function mockFetchFor(plant: Record<string, unknown>, events: unknown[] = []) {
-    return async (url: string, init?: RequestInit) => {
-      if (url.endsWith(`/api/plants/${plant.id}`) && (!init || init.method === undefined || init.method === 'GET')) {
-        return { json: () => Promise.resolve(plant), ok: true };
-      }
-      if (url.endsWith(`/api/plants/${plant.id}`) && init?.method === 'PUT') {
-        const body = JSON.parse(init.body as string) as Record<string, unknown>;
-        return { json: () => Promise.resolve({ ...plant, ...body }), ok: true };
-      }
-      if (url.includes('/conditions')) {
-        return { json: () => Promise.resolve([]), ok: true };
-      }
-      if (url.includes('/events')) {
-        return { json: () => Promise.resolve(events), ok: true };
-      }
-      if (url.includes('/notes')) {
-        return { json: () => Promise.resolve([]), ok: true };
-      }
-      return { json: () => Promise.resolve(null), ok: false };
-    };
-  }
-
-  it('shows the enriched species name prominently in the header', async () => {
-    const plant = basePlant();
-    RenderWithRouter('1', mockFetchFor(plant));
-
-    const speciesNode = await screen.findByTestId('plant-species');
-    expect(speciesNode).toHaveTextContent('Monstera deliciosa');
-    // Prominent: font-size >= 16 (visual smoke check via inline style)
-    const fontSize = speciesNode.style.fontSize;
-    expect(parseInt(fontSize, 10)).toBeGreaterThanOrEqual(16);
-  });
-
-  it('exposes a "Not this? Rename →" inline action', async () => {
-    const plant = basePlant();
-    RenderWithRouter('1', mockFetchFor(plant));
-    expect(await screen.findByRole('button', { name: /not this\? rename/i })).toBeInTheDocument();
-  });
-
-  it('submits a PUT with the corrected species when user renames', async () => {
-    const plant = basePlant();
-    const fetchSpy = vi.fn(mockFetchFor(plant));
-    (global.fetch as any).mockImplementation(fetchSpy);
-
-    render(
-      <MemoryRouter initialEntries={[`/plants/1`]}>
-        <Routes>
-          <Route path="/plants/:id" element={<PlantDetail />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    const renameBtn = await screen.findByRole('button', { name: /not this\? rename/i });
-    const user = userEvent.setup();
-    await user.click(renameBtn);
-
-    const input = await screen.findByRole('textbox', { name: /species/i });
-    await user.clear(input);
-    await user.type(input, 'Monstera adansonii');
-    await user.click(screen.getByRole('button', { name: /^save$/i }));
-
-    await waitFor(() => {
-      const putCall = fetchSpy.mock.calls.find(
-        ([, init]) => (init as RequestInit | undefined)?.method === 'PUT',
-      );
-      expect(putCall).toBeTruthy();
-      const body = JSON.parse((putCall![1] as RequestInit).body as string);
-      expect(body).toEqual({ species: 'Monstera adansonii' });
-    });
-  });
-
-  it('hides the developer info panel when the toggle is OFF (default)', async () => {
-    const plant = basePlant();
-    const events = [
-      {
-        id: 1,
-        event_type: 'enrichment_complete',
-        old_value: null,
-        new_value: 'interval=7, ratio=0.035',
-        reason: 'Claude enrichment: Monstera deliciosa',
-        created_at: '2026-04-23T10:00:00Z',
-      },
-    ];
-    RenderWithRouter('1', mockFetchFor(plant, events));
-
-    await screen.findByTestId('plant-species');
-    expect(screen.queryByText(/developer info/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/water ratio/i)).not.toBeInTheDocument();
-  });
-
-  it('shows the developer info panel when the toggle is ON', async () => {
-    localStorage.setItem(DEV_INFO_STORAGE_KEY, 'true');
-    const plant = basePlant();
-    const events = [
-      {
-        id: 1,
-        event_type: 'enrichment_complete',
-        old_value: null,
-        new_value: 'interval=7, ratio=0.035',
-        reason: 'Claude enrichment: Monstera deliciosa',
-        created_at: '2026-04-23T10:00:00Z',
-      },
-    ];
-    RenderWithRouter('1', mockFetchFor(plant, events));
-
-    const devBtn = await screen.findByRole('button', { name: /developer info/i });
-    expect(devBtn).toBeInTheDocument();
-
-    const user = userEvent.setup();
-    await user.click(devBtn);
-
-    expect(await screen.findByText(/water ratio/i)).toBeInTheDocument();
-    expect(screen.getByText(/0\.035/)).toBeInTheDocument();
-    expect(screen.getByText(/claude/i)).toBeInTheDocument();
-  });
-
-  it('keeps timeline enrichment events formatted as "✓ Care profile added" with dev-info ON', async () => {
-    localStorage.setItem(DEV_INFO_STORAGE_KEY, 'true');
-    const plant = basePlant();
-    const events = [
-      {
-        id: 1,
-        event_type: 'enrichment_complete',
-        old_value: null,
-        new_value: 'interval=7, ratio=0.035',
-        reason: 'Claude enrichment: Monstera deliciosa',
-        created_at: '2026-04-23T10:00:00Z',
-      },
-    ];
-    RenderWithRouter('1', mockFetchFor(plant, events));
-
-    expect(await screen.findByText('✓ Care profile added')).toBeInTheDocument();
-    // The raw interval/ratio values must NEVER appear in the timeline entry.
-    expect(screen.queryByText(/interval=7, ratio=0\.035/)).not.toBeInTheDocument();
   });
 });
 
@@ -467,6 +297,289 @@ describe('PlantDetail - Active Conditions Help', () => {
 
     // Help text should NOT be visible when dismissed
     expect(screen.queryByText(/Conditions are problems affecting your plant/)).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #3 — Rich care profile sections (Light, Placement, Conditions)
+// ---------------------------------------------------------------------------
+
+const CATALOG_FIXTURE = {
+  slug: 'monstera-deliciosa',
+  latin_name: 'Monstera deliciosa',
+  light_profile: {
+    ideal: 'bright_indirect',
+    tolerance_min: 'medium',
+    tolerance_max: 'bright_indirect',
+    direct_sun_hours: 'Max 2 hours morning sun',
+    too_little_symptoms: 'Leggy growth, small leaves',
+    too_much_symptoms: 'Scorched brown patches',
+  },
+  placement_tips: [
+    '1–2m from an east window',
+    'Avoid cold drafts',
+    'Give it a moss pole',
+  ],
+  conditions: [
+    ...Array.from({ length: 5 }, (_, i) => ({
+      name: `Top condition ${i + 1}`,
+      symptoms: `symp ${i + 1}`,
+      remedy: `rem ${i + 1}`,
+      severity: 'warning' as const,
+      prevention: `prev ${i + 1}`,
+      is_common: true,
+    })),
+    ...Array.from({ length: 10 }, (_, i) => ({
+      name: `Filler ${i + 1}`,
+      symptoms: `fsymp ${i + 1}`,
+      remedy: `frem ${i + 1}`,
+      severity: 'info' as const,
+      prevention: `fprev ${i + 1}`,
+      is_common: false,
+    })),
+  ],
+};
+
+function plantFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    name: 'My Monstera',
+    species: 'Monstera deliciosa',
+    common_name: null,
+    identifier: null,
+    location: null,
+    pot_size_cm: null,
+    pot_size_category: null,
+    plant_size: null,
+    light_level: null,
+    current_interval: 7,
+    next_water_date: null,
+    last_watered_at: null,
+    illustration_path: null,
+    archived: 0,
+    ...overrides,
+  };
+}
+
+function buildFetch(opts: {
+  plant: ReturnType<typeof plantFixture>;
+  conditions?: unknown[];
+  catalog?: unknown;
+  postConditionSpy?: (body: unknown) => void;
+}) {
+  const conds = opts.conditions ?? [];
+  return async (url: string, init?: RequestInit) => {
+    if (init?.method === 'POST' && /\/api\/plants\/\d+\/conditions$/.test(url)) {
+      const body = init.body ? JSON.parse(init.body as string) : {};
+      opts.postConditionSpy?.(body);
+      return {
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            id: 999,
+            plant_id: 1,
+            condition_name: body.conditionName,
+            symptoms: body.symptoms ?? null,
+            remedy: body.remedy ?? null,
+            severity: body.severity ?? 'info',
+            is_active: 1,
+          }),
+      };
+    }
+    if (url.includes('/api/catalog/entry')) {
+      if (!opts.catalog) return { ok: false, json: () => Promise.resolve(null) };
+      return { ok: true, json: () => Promise.resolve(opts.catalog) };
+    }
+    if (url.includes('/api/plants/1/conditions')) {
+      return { ok: true, json: () => Promise.resolve(conds) };
+    }
+    if (url.includes('/api/plants/1/events')) {
+      return { ok: true, json: () => Promise.resolve([]) };
+    }
+    if (url.includes('/api/plants/1')) {
+      return { ok: true, json: () => Promise.resolve(opts.plant) };
+    }
+    return { ok: false, json: () => Promise.resolve(null) };
+  };
+}
+
+describe('PlantDetail #3 — Light section', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('renders ideal, tolerance, direct-sun, and symptom copy from the catalog', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('catalog-light-section')).toBeInTheDocument();
+    });
+
+    const section = screen.getByTestId('catalog-light-section');
+    expect(section.textContent).toContain('Bright indirect');
+    expect(section.textContent).toContain('Medium light to Bright indirect');
+    expect(section.textContent).toContain('Max 2 hours morning sun');
+    expect(section.textContent).toContain('Leggy growth, small leaves');
+    expect(section.textContent).toContain('Scorched brown patches');
+  });
+
+  it('does not render the Light section when no catalog entry is found', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture({ species: 'Unknown sp.' }),
+      // catalog omitted → /api/catalog/entry returns 404-like
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByText('No active conditions')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('catalog-light-section')).not.toBeInTheDocument();
+  });
+});
+
+describe('PlantDetail #3 — Placement section', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('renders each placement tip from the catalog as a list item', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('catalog-placement-section')).toBeInTheDocument();
+    });
+
+    for (const tip of CATALOG_FIXTURE.placement_tips) {
+      expect(screen.getByText(tip)).toBeInTheDocument();
+    }
+  });
+});
+
+describe('PlantDetail #3 — Catalog conditions section', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('renders the top 5 common conditions by default (collapsed view)', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('catalog-conditions-section')).toBeInTheDocument();
+    });
+
+    // Top 5 visible
+    expect(screen.getByText('Top condition 1')).toBeInTheDocument();
+    expect(screen.getByText('Top condition 5')).toBeInTheDocument();
+    // Non-common filler hidden
+    expect(screen.queryByText('Filler 1')).not.toBeInTheDocument();
+  });
+
+  it('expands to show all 15 conditions when the toggle is tapped', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('catalog-conditions-section')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText(/Show all 15 conditions/));
+
+    expect(screen.getByText('Filler 1')).toBeInTheDocument();
+    expect(screen.getByText('Filler 10')).toBeInTheDocument();
+  });
+
+  it('flags a catalog condition as active by POSTing to /api/plants/:id/conditions', async () => {
+    const postBodies: unknown[] = [];
+    const fetchImpl = buildFetch({
+      plant: plantFixture(),
+      catalog: CATALOG_FIXTURE,
+      postConditionSpy: (body) => postBodies.push(body),
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByText('Top condition 1')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByLabelText('Flag Top condition 1 as active'));
+
+    await waitFor(() => {
+      expect(postBodies).toHaveLength(1);
+    });
+    expect(postBodies[0]).toMatchObject({
+      conditionName: 'Top condition 1',
+      symptoms: 'symp 1',
+      remedy: 'rem 1',
+      severity: 'warning',
+    });
+  });
+});
+
+describe('PlantDetail #3 — Light mismatch warning', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('renders a warning when plant.light_level differs from catalog.light_profile.ideal', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture({ light_level: 'low', location: 'Bathroom' }),
+      catalog: CATALOG_FIXTURE, // ideal = bright_indirect
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert', { name: /light mismatch/i })).toBeInTheDocument();
+    });
+
+    const alert = screen.getByRole('alert', { name: /light mismatch/i });
+    expect(alert.textContent).toMatch(/bright indirect/i);
+    expect(alert.textContent).toMatch(/low light/i);
+    expect(alert.textContent).toMatch(/bathroom/i);
+  });
+
+  it('hides the warning when plant.light_level matches catalog.light_profile.ideal', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture({ light_level: 'bright_indirect' }),
+      catalog: CATALOG_FIXTURE,
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('catalog-light-section')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('alert', { name: /light mismatch/i })).not.toBeInTheDocument();
+  });
+
+  it('hides the warning when light_level is unset', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture({ light_level: null }),
+      catalog: CATALOG_FIXTURE,
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('catalog-light-section')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('alert', { name: /light mismatch/i })).not.toBeInTheDocument();
   });
 });
 

@@ -13,6 +13,11 @@ const SUGGEST_MAX_LIMIT = 5;
  * GET /api/catalog/search?q=...&limit=20
  *   Case-insensitive substring + token-prefix match across
  *   latin_name, aliases, common_names.en, common_names.nl.
+ *
+ * GET /api/catalog/entry?slug=... OR ?species=<latin_name>
+ *   Returns the full CatalogEntry including #3 fields (light_profile,
+ *   placement_tips, conditions). species match is case-insensitive on latin_name.
+ *   404 if no match.
  */
 export function createCatalogRouter(catalog: Catalog): Router {
   const router = Router();
@@ -61,6 +66,34 @@ export function createCatalogRouter(catalog: Catalog): Router {
 
     const results = catalog.suggest(q, limit);
     res.json(results);
+  });
+
+  router.get('/entry', (req: Request, res: Response) => {
+    const slug = typeof req.query.slug === 'string' ? req.query.slug.trim() : '';
+    const species = typeof req.query.species === 'string' ? req.query.species.trim() : '';
+
+    if (!slug && !species) {
+      res.status(400).json({ error: 'Query parameter "slug" or "species" is required' });
+      return;
+    }
+
+    if (slug) {
+      const entry = catalog.get(slug);
+      if (!entry) {
+        res.status(404).json({ error: 'Catalog entry not found' });
+        return;
+      }
+      res.json(entry);
+      return;
+    }
+
+    const needle = species.toLowerCase();
+    const match = catalog.all().find(e => e.latin_name.toLowerCase() === needle);
+    if (!match) {
+      res.status(404).json({ error: 'Catalog entry not found' });
+      return;
+    }
+    res.json(match);
   });
 
   return router;
