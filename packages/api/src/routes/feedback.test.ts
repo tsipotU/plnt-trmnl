@@ -2,16 +2,20 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import Database from 'better-sqlite3';
+import { mkdtempSync, rmSync, existsSync, writeFileSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { initializeSchema } from '../database/schema.js';
 import { createFeedbackRouter } from './feedback.js';
 
-function createTestApp() {
+function createTestApp(uploadDir?: string) {
   const db = new Database(':memory:');
   initializeSchema(db);
   const app = express();
   app.use(express.json());
-  app.use('/api/feedback', createFeedbackRouter(db));
-  return { app, db };
+  const dir = uploadDir ?? mkdtempSync(join(tmpdir(), 'plant-trmnl-uploads-'));
+  app.use('/api/feedback', createFeedbackRouter(db, { uploadDir: dir }));
+  return { app, db, uploadDir: dir };
 }
 
 function insertFeedback(db: Database.Database, overrides: Record<string, unknown> = {}) {
@@ -461,5 +465,248 @@ describe('DELETE /api/feedback/comments/:id', () => {
   it('returns 404 for unknown comment', async () => {
     const res = await request(app).delete('/api/feedback/comments/9999');
     expect(res.status).toBe(404);
+  });
+});
+
+// ─── Image uploads ────────────────────────────────────────────────────────────
+
+// Smallest-possible PNG bytes (8x8 transparent), used as an in-memory fixture.
+const TINY_PNG = Buffer.from(
+  '89504e470d0a1a0a0000000d49484452000000080000000808060000' +
+  '00c40fbe8b0000000a49444154789c63000000000200015d8f0e750000' +
+  '000049454e44ae426082',
+  'hex'
+);
+
+describe('POST /api/feedback with images', () => {
+  let app: express.Express;
+  let db: Database.Database;
+  let uploadDir: string;
+
+  beforeEach(() => {
+    ({ app, db, uploadDir } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+    rmSync(uploadDir, { recursive: true, force: true });
+  });
+
+  it('accepts multipart with 1 image and persists filename', async () => {
+    const res = await request(app)
+      .post('/api/feedback')
+      .field('title', 'With screenshot')
+      .field('category', 'bug')
+      .attach('images', TINY_PNG, { filename: 'bug.png', contentType: 'image/png' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.title).toBe('With screenshot');
+    expect(Array.isArray(res.body.images)).toBe(true);
+    expect(res.body.images).toHaveLength(1);
+    expect(res.body.images[0]).toHaveProperty('filename');
+    expect(res.body.images[0]).toHaveProperty('url');
+
+    const stored = readdirSync(uploadDir);
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatch(/\.png$/);
+  });
+
+  it('accepts up to 3 images', async () => {
+    const res = await request(app)
+      .post('/api/feedback')
+      .field('title', 'Three shots')
+      .field('category', 'bug')
+      .attach('images', TINY_PNG, { filename: 'a.png', contentType: 'image/png' })
+      .attach('images', TINY_PNG, { filename: 'b.png', contentType: 'image/png' })
+      .attach('images', TINY_PNG, { filename: 'c.png', contentType: 'image/png' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.images).toHaveLength(3);
+  });
+
+  it('rejects more than 3 images with 400', async () => {
+    const res = await request(app)
+      .post('/api/feedback')
+      .field('title', 'Too many')
+      .field('category', 'bug')
+      .attach('images', TINY_PNG, { filename: 'a.png', contentType: 'image/png' })
+      .attach('images', TINY_PNG, { filename: 'b.png', contentType: 'image/png' })
+      .attach('images', TINY_PNG, { filename: 'c.png', contentType: 'image/png' })
+      .attach('images', TINY_PNG, { filename: 'd.png', contentType: 'image/png' });
+
+    expect(res.status).toBe(400);
+    expect(String(res.body.error)).toMatch(/3/);
+    // No orphan files
+    expect(readdirSync(uploadDir)).toHaveLength(0);
+  });
+
+  it('rejects image larger than 5MB with 400', async () => {
+    const big = Buffer.alloc(5 * 1024 * 1024 + 1, 0);
+    // Needs a valid image mime, payload itself is not inspected by multer.
+    const res = await request(app)
+      .post('/api/feedback')
+      .field('title', 'Huge pic')
+      .field('category', 'bug')
+      .attach('images', big, { filename: 'big.png', contentType: 'image/png' });
+
+    expect(res.status).toBe(400);
+    expect(String(res.body.error)).toMatch(/5MB/i);
+  });
+
+  it('rejects non-image MIME with 400', async () => {
+    const res = await request(app)
+      .post('/api/feedback')
+      .field('title', 'Not an image')
+      .field('category', 'bug')
+      .attach('images', Buffer.from('plain text'), {
+        filename: 'notes.txt',
+        contentType: 'text/plain',
+      });
+
+    expect(res.status).toBe(400);
+    expect(String(res.body.error)).toMatch(/image/i);
+  });
+
+  it('still works without any image (text-only preserved)', async () => {
+    const res = await request(app)
+      .post('/api/feedback')
+      .field('title', 'No image here')
+      .field('category', 'feature');
+
+    expect(res.status).toBe(201);
+    expect(res.body.title).toBe('No image here');
+    expect(res.body.images).toEqual([]);
+  });
+
+  it('still rejects missing title even with image attached', async () => {
+    const res = await request(app)
+      .post('/api/feedback')
+      .field('category', 'bug')
+      .attach('images', TINY_PNG, { filename: 'a.png', contentType: 'image/png' });
+
+    expect(res.status).toBe(400);
+    // File should not be persisted
+    expect(readdirSync(uploadDir)).toHaveLength(0);
+  });
+});
+
+describe('GET /api/feedback/:id with images', () => {
+  let app: express.Express;
+  let db: Database.Database;
+  let uploadDir: string;
+
+  beforeEach(() => {
+    ({ app, db, uploadDir } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+    rmSync(uploadDir, { recursive: true, force: true });
+  });
+
+  it('returns image list with filename + url', async () => {
+    const id = insertFeedback(db);
+    db.prepare(
+      `INSERT INTO feedback_images (feedback_id, filename) VALUES (?, ?)`
+    ).run(id, 'one.png');
+    db.prepare(
+      `INSERT INTO feedback_images (feedback_id, filename) VALUES (?, ?)`
+    ).run(id, 'two.jpg');
+
+    const res = await request(app).get(`/api/feedback/${id}`);
+    expect(res.status).toBe(200);
+    expect(res.body.images).toHaveLength(2);
+    expect(res.body.images[0].filename).toBe('one.png');
+    expect(res.body.images[0].url).toBe('/api/feedback/images/one.png');
+    expect(res.body.images[1].filename).toBe('two.jpg');
+  });
+
+  it('returns empty images array when none attached', async () => {
+    const id = insertFeedback(db);
+    const res = await request(app).get(`/api/feedback/${id}`);
+    expect(res.status).toBe(200);
+    expect(res.body.images).toEqual([]);
+  });
+});
+
+describe('GET /api/feedback/images/:filename', () => {
+  let app: express.Express;
+  let db: Database.Database;
+  let uploadDir: string;
+
+  beforeEach(() => {
+    ({ app, db, uploadDir } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+    rmSync(uploadDir, { recursive: true, force: true });
+  });
+
+  it('serves a stored image', async () => {
+    writeFileSync(join(uploadDir, 'abc.png'), TINY_PNG);
+    const res = await request(app).get('/api/feedback/images/abc.png');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/image\/png/);
+  });
+
+  it('returns 404 for unknown image', async () => {
+    const res = await request(app).get('/api/feedback/images/missing.png');
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects path traversal attempts', async () => {
+    const res = await request(app).get('/api/feedback/images/..%2F..%2Fetc%2Fpasswd');
+    // Express should normalize + our validator should reject — just confirm not 200
+    expect(res.status).not.toBe(200);
+  });
+});
+
+describe('DELETE /api/feedback/:id with images', () => {
+  let app: express.Express;
+  let db: Database.Database;
+  let uploadDir: string;
+
+  beforeEach(() => {
+    ({ app, db, uploadDir } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+    rmSync(uploadDir, { recursive: true, force: true });
+  });
+
+  it('removes image files and rows when feedback deleted', async () => {
+    const id = insertFeedback(db);
+    writeFileSync(join(uploadDir, 'one.png'), TINY_PNG);
+    writeFileSync(join(uploadDir, 'two.png'), TINY_PNG);
+    db.prepare(
+      `INSERT INTO feedback_images (feedback_id, filename) VALUES (?, ?)`
+    ).run(id, 'one.png');
+    db.prepare(
+      `INSERT INTO feedback_images (feedback_id, filename) VALUES (?, ?)`
+    ).run(id, 'two.png');
+
+    const res = await request(app).delete(`/api/feedback/${id}`);
+    expect(res.status).toBe(204);
+
+    const rows = db.prepare(
+      `SELECT * FROM feedback_images WHERE feedback_id = ?`
+    ).all(id);
+    expect(rows).toHaveLength(0);
+
+    expect(existsSync(join(uploadDir, 'one.png'))).toBe(false);
+    expect(existsSync(join(uploadDir, 'two.png'))).toBe(false);
+  });
+
+  it('deletion still succeeds if an image file is already missing', async () => {
+    const id = insertFeedback(db);
+    // Row only — file never created
+    db.prepare(
+      `INSERT INTO feedback_images (feedback_id, filename) VALUES (?, ?)`
+    ).run(id, 'ghost.png');
+
+    const res = await request(app).delete(`/api/feedback/${id}`);
+    expect(res.status).toBe(204);
   });
 });

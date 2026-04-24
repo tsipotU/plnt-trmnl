@@ -1,12 +1,119 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import type Database from 'better-sqlite3';
+import multer from 'multer';
+import fs from 'node:fs';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { logEvent } from '../database/event-log.js';
 
 const VALID_CATEGORIES = ['bug', 'feature', 'improvement', 'other'];
 const VALID_STATUSES = ['open', 'in_progress', 'done', 'wont_fix'];
 
-export function createFeedbackRouter(db: Database.Database): Router {
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGES_PER_FEEDBACK = 3;
+
+export interface FeedbackRouterOptions {
+  /** Absolute path where uploaded images are stored. Created if missing. */
+  uploadDir: string;
+}
+
+interface FeedbackImageRow {
+  id: number;
+  feedback_id: number;
+  filename: string;
+  created_at: string;
+}
+
+function imageUrl(filename: string): string {
+  return `/api/feedback/images/${encodeURIComponent(filename)}`;
+}
+
+function listImages(db: Database.Database, feedbackId: number) {
+  const rows = db
+    .prepare(
+      `SELECT * FROM feedback_images WHERE feedback_id = ? ORDER BY id ASC`,
+    )
+    .all(feedbackId) as FeedbackImageRow[];
+  return rows.map((r) => ({
+    id: r.id,
+    filename: r.filename,
+    url: imageUrl(r.filename),
+    created_at: r.created_at,
+  }));
+}
+
+function safeUnlink(filePath: string): void {
+  try {
+    fs.unlinkSync(filePath);
+  } catch {
+    // Ignore — file may already be gone; deletion remains idempotent.
+  }
+}
+
+export function createFeedbackRouter(
+  db: Database.Database,
+  options: FeedbackRouterOptions,
+): Router {
   const router = Router();
+  const { uploadDir } = options;
+  fs.mkdirSync(uploadDir, { recursive: true });
+
+  const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase().slice(0, 10) || '';
+      cb(null, `${randomUUID()}${ext}`);
+    },
+  });
+
+  const upload = multer({
+    storage,
+    limits: {
+      fileSize: MAX_IMAGE_SIZE_BYTES,
+      files: MAX_IMAGES_PER_FEEDBACK,
+    },
+    fileFilter: (_req, file, cb) => {
+      if (!file.mimetype.startsWith('image/')) {
+        cb(new MulterUserError('Only image/* files are accepted'));
+        return;
+      }
+      cb(null, true);
+    },
+  });
+
+  // Multer errors must be translated to 400 with a useful message. We also clean
+  // up any partial uploads in the request so filesystem stays tidy.
+  function handleUpload(req: Request, res: Response, next: NextFunction) {
+    upload.array('images', MAX_IMAGES_PER_FEEDBACK + 1)(req, res, (err: unknown) => {
+      if (!err) {
+        next();
+        return;
+      }
+      // Clean up any files that already landed on disk before the error.
+      const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+      for (const f of files) safeUnlink(f.path);
+
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          res.status(400).json({ error: 'Image too large — max 5MB' });
+          return;
+        }
+        if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+          res.status(400).json({
+            error: `At most ${MAX_IMAGES_PER_FEEDBACK} images are allowed`,
+          });
+          return;
+        }
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      if (err instanceof MulterUserError) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      next(err as Error);
+    });
+  }
 
   // GET /api/feedback — list all with comment_count, filterable, newest first
   router.get('/', (req: Request, res: Response) => {
@@ -28,7 +135,8 @@ export function createFeedbackRouter(db: Database.Database): Router {
 
     const rows = db.prepare(
       `SELECT f.*,
-              (SELECT COUNT(*) FROM feedback_comments WHERE feedback_id = f.id) AS comment_count
+              (SELECT COUNT(*) FROM feedback_comments WHERE feedback_id = f.id) AS comment_count,
+              (SELECT COUNT(*) FROM feedback_images   WHERE feedback_id = f.id) AS image_count
        FROM feedback f
        ${where}
        ORDER BY f.created_at DESC, f.id DESC`
@@ -37,7 +145,29 @@ export function createFeedbackRouter(db: Database.Database): Router {
     res.json(rows);
   });
 
-  // GET /api/feedback/:id — single item with comments array
+  // GET /api/feedback/images/:filename — serve a stored image
+  // Registered before /:id so the literal segment wins.
+  router.get('/images/:filename', (req: Request, res: Response) => {
+    const filenameParam = req.params.filename;
+    const filename = typeof filenameParam === 'string' ? filenameParam : '';
+    // Defence in depth: filename is a bare basename (no slashes, no ..).
+    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      res.status(400).json({ error: 'Invalid filename' });
+      return;
+    }
+    const resolved = path.resolve(uploadDir, filename);
+    if (!resolved.startsWith(path.resolve(uploadDir) + path.sep)) {
+      res.status(400).json({ error: 'Invalid filename' });
+      return;
+    }
+    if (!fs.existsSync(resolved)) {
+      res.status(404).json({ error: 'Image not found' });
+      return;
+    }
+    res.sendFile(resolved);
+  });
+
+  // GET /api/feedback/:id — single item with comments + images arrays
   router.get('/:id', (req: Request, res: Response) => {
     const feedbackId = Number(req.params.id);
 
@@ -54,29 +184,41 @@ export function createFeedbackRouter(db: Database.Database): Router {
       `SELECT * FROM feedback_comments WHERE feedback_id = ? ORDER BY id ASC`
     ).all(feedbackId);
 
-    res.json({ ...row, comments });
+    const images = listImages(db, feedbackId);
+
+    res.json({ ...row, comments, images });
   });
 
-  // POST /api/feedback — create feedback
-  router.post('/', (req: Request, res: Response) => {
+  // POST /api/feedback — create feedback (optional multipart images)
+  router.post('/', handleUpload, (req: Request, res: Response) => {
+    const uploadedFiles = (req.files as Express.Multer.File[] | undefined) ?? [];
+
+    const cleanupUploads = () => {
+      for (const f of uploadedFiles) safeUnlink(f.path);
+    };
+
     const { title, description, category, pagePath } = req.body;
 
     if (!title) {
+      cleanupUploads();
       res.status(400).json({ error: 'title is required' });
       return;
     }
 
     if (typeof title === 'string' && title.length > 200) {
+      cleanupUploads();
       res.status(400).json({ error: 'title must not exceed 200 characters' });
       return;
     }
 
     if (!category) {
+      cleanupUploads();
       res.status(400).json({ error: 'category is required' });
       return;
     }
 
     if (!VALID_CATEGORIES.includes(category)) {
+      cleanupUploads();
       res.status(400).json({ error: `category must be one of: ${VALID_CATEGORIES.join(', ')}` });
       return;
     }
@@ -86,16 +228,26 @@ export function createFeedbackRouter(db: Database.Database): Router {
        VALUES (?, ?, ?, ?)`
     ).run(title, description ?? null, category, pagePath ?? null);
 
-    const feedback = db.prepare(`SELECT * FROM feedback WHERE id = ?`).get(result.lastInsertRowid) as Record<string, unknown>;
+    const feedbackId = Number(result.lastInsertRowid);
+
+    const insertImage = db.prepare(
+      `INSERT INTO feedback_images (feedback_id, filename) VALUES (?, ?)`
+    );
+    for (const f of uploadedFiles) {
+      insertImage.run(feedbackId, f.filename);
+    }
+
+    const feedback = db.prepare(`SELECT * FROM feedback WHERE id = ?`).get(feedbackId) as Record<string, unknown>;
+    const images = listImages(db, feedbackId);
 
     logEvent(db, {
       plantId: null,
       eventType: 'feedback_created',
-      newValue: String(result.lastInsertRowid),
-      reason: `Feedback created: ${title}`,
+      newValue: String(feedbackId),
+      reason: `Feedback created: ${title}${uploadedFiles.length ? ` (+${uploadedFiles.length} image${uploadedFiles.length === 1 ? '' : 's'})` : ''}`,
     });
 
-    res.status(201).json(feedback);
+    res.status(201).json({ ...feedback, images });
   });
 
   // PUT /api/feedback/:id — update feedback
@@ -152,11 +304,12 @@ export function createFeedbackRouter(db: Database.Database): Router {
       });
     }
 
-    const updated = db.prepare(`SELECT * FROM feedback WHERE id = ?`).get(feedbackId);
-    res.json(updated);
+    const updated = db.prepare(`SELECT * FROM feedback WHERE id = ?`).get(feedbackId) as Record<string, unknown>;
+    const images = listImages(db, feedbackId);
+    res.json({ ...updated, images });
   });
 
-  // DELETE /api/feedback/:id — delete feedback (cascades to comments)
+  // DELETE /api/feedback/:id — delete feedback (cascades to comments + images)
   router.delete('/:id', (req: Request, res: Response) => {
     const feedbackId = Number(req.params.id);
 
@@ -167,7 +320,18 @@ export function createFeedbackRouter(db: Database.Database): Router {
       return;
     }
 
+    // Collect filenames BEFORE the DB cascade wipes them.
+    const images = db.prepare(
+      `SELECT filename FROM feedback_images WHERE feedback_id = ?`
+    ).all(feedbackId) as Array<{ filename: string }>;
+
     db.prepare(`DELETE FROM feedback WHERE id = ?`).run(feedbackId);
+
+    // Remove files last — DB is source of truth. Missing files are tolerated.
+    for (const img of images) {
+      safeUnlink(path.join(uploadDir, img.filename));
+    }
+
     res.status(204).send();
   });
 
@@ -249,3 +413,9 @@ export function createFeedbackRouter(db: Database.Database): Router {
 
   return router;
 }
+
+/**
+ * Sentinel error used by the multer fileFilter so the upload middleware can
+ * distinguish "user-facing 400" from internal failures.
+ */
+class MulterUserError extends Error {}

@@ -159,6 +159,15 @@ export function initializeSchema(db: Database.Database): void {
   `).run();
 
   db.prepare(`
+    CREATE TABLE IF NOT EXISTS feedback_images (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      feedback_id INTEGER NOT NULL REFERENCES feedback(id) ON DELETE CASCADE,
+      filename TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  db.prepare(`
     CREATE TABLE IF NOT EXISTS plant_notes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       plant_id INTEGER NOT NULL REFERENCES plants(id) ON DELETE CASCADE,
