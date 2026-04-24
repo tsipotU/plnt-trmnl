@@ -56,7 +56,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/plants', createPlantsRouter(db, {
   heatingSeasonStart: config.heatingSeasonStart,
   heatingSeasonEnd: config.heatingSeasonEnd,
-}));
+}, catalog));
 app.use('/api/plants', createPlantNotesRouter(db));
 app.use('/api', createCalibrationRouter(db));
 app.use('/api', createConditionsRouter(db));

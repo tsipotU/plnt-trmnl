@@ -22,7 +22,9 @@
       "leaf curl from underwatering",
       "mealybugs",
       "brown leaf tips from low humidity"
-    ]
+    ],
+    "lore": "Prized in Feng Shui as a protective plant and valued by NASA's Clean Air Study for removing indoor toxins. The stiff, sharp leaves earned it the 'mother-in-law's tongue' nickname.",
+    "etymology": "Named for Raimondo di Sangro, Prince of San Severo; 'trifasciata' refers to the three-banded cross-striping on its leaves."
   },
   {
     "slug": "monstera-deliciosa",
@@ -47,7 +49,9 @@
       "no fenestrations from low light",
       "spider mites",
       "root rot"
-    ]
+    ],
+    "lore": "The fruit tastes like a mix of pineapple and banana — hence 'deliciosa' — but only when fully ripe; unripe it is harshly irritating. Leaf fenestrations are theorised to let rain and light pass through to lower leaves.",
+    "etymology": "'Monstera' comes from the Latin 'monstrum' (monstrous or abnormal), a nod to its oversized, hole-punched leaves; 'deliciosa' praises the edible fruit."
   },
   {
     "slug": "epipremnum-aureum",
@@ -72,7 +76,9 @@
       "root rot from soggy soil",
       "pale leaves from too much sun",
       "leggy growth in low light"
-    ]
+    ],
+    "lore": "Called 'Devil's ivy' because it is almost impossible to kill and stays green even in the dark. Rarely flowers in cultivation — the only known specimen that did was at the Kew Gardens.",
+    "etymology": "'Epipremnum' from Greek 'epi' (upon) and 'premnon' (trunk) — it climbs tree trunks in the wild; 'aureum' means golden, for the yellow variegation."
   },
   {
     "slug": "zamioculcas-zamiifolia",
@@ -97,7 +103,9 @@
       "root/rhizome rot",
       "brown leaf tips from fluoridated water",
       "stretched growth in very low light"
-    ]
+    ],
+    "lore": "Stores water in potato-like rhizomes, letting it survive months of drought. Only entered the houseplant trade in the 1990s via Dutch nurseries, despite being known botanically for a century.",
+    "etymology": "The genus name nods to Zamia, a cycad its leaves resemble; 'zamiifolia' simply means 'with Zamia-like leaves'."
   },
   {
     "slug": "phalaenopsis",
@@ -122,7 +130,9 @@
       "limp leaves from dehydration",
       "bud blast from drafts",
       "no reblooming without cool night temps"
-    ]
+    ],
+    "lore": "Discovered by Carl Blume in 1825, who named it after mistaking the blooms for a cluster of moths at dusk. Modern tissue culture turned what was once a rare orchid into the world's best-selling houseplant.",
+    "etymology": "From Greek 'phalaina' (moth) and 'opsis' (resembling) — literally 'moth-like'."
   },
   {
     "slug": "spathiphyllum-wallisii",
@@ -147,7 +157,9 @@
       "brown leaf tips from tap water minerals",
       "yellow leaves from overwatering",
       "no blooms in low light"
-    ]
+    ],
+    "lore": "The white 'flower' is actually a modified leaf (a spathe) wrapped around the true flower spike. Symbolically given to mark peace, rebirth, and memorials.",
+    "etymology": "From Greek 'spathe' (sheath) and 'phyllon' (leaf); 'wallisii' honours Gustav Wallis, the 19th-century plant collector who first brought it to Europe."
   },
   {
     "slug": "saintpaulia-ionantha",
@@ -172,7 +184,9 @@
       "leaf spots from cold water",
       "no blooms from insufficient light",
       "powdery mildew in humid air"
-    ]
+    ],
+    "lore": "Discovered in 1892 by Baron Walter von Saint Paul-Illaire in colonial East Africa. Thousands of cultivars now exist; wild populations are critically endangered.",
+    "etymology": "Named for Saint Paul-Illaire; 'ionantha' means 'violet-flowered' from Greek 'ion' (violet) and 'anthos' (flower)."
   },
   {
     "slug": "anthurium-andraeanum",
@@ -197,7 +211,9 @@
       "brown leaf tips from dry air",
       "no new flowers in low light",
       "spider mites"
-    ]
+    ],
+    "lore": "The waxy red 'flower' is a spathe; the yellow spike is the spadix holding hundreds of tiny true flowers. In Hawai'i it's called the 'painter's palette' and symbolises hospitality.",
+    "etymology": "From Greek 'anthos' (flower) and 'oura' (tail), after the tail-like spadix; 'andraeanum' honours French botanist Édouard André."
   },
   {
     "slug": "aloe-vera",
@@ -222,7 +238,9 @@
       "brown tips from sunburn when moved suddenly",
       "etiolation in low light",
       "scale insects"
-    ]
+    ],
+    "lore": "Used medicinally for at least 6,000 years — mentioned on Egyptian papyrus, by Dioscorides, and in Ayurveda. Cleopatra reportedly applied the gel daily as a beauty treatment.",
+    "etymology": "'Aloe' from Arabic 'alloeh' (shining bitter substance) referring to the sap; 'vera' is Latin for 'true' — the authentic medicinal species."
   },
   {
     "slug": "haworthiopsis-attenuata",
@@ -247,7 +265,9 @@
       "red/purple leaves from sun stress",
       "root rot",
       "pale closed rosette in low light"
-    ]
+    ],
+    "lore": "In its native habitat it hides between rocks and grasses, which is why it scorches in the full sun other succulents enjoy. Reclassified from Haworthia to Haworthiopsis in 2013 based on DNA sequencing.",
+    "etymology": "Honours British botanist Adrian Hardy Haworth; 'attenuata' means 'tapering' for the slender leaf tips."
   },
   {
     "slug": "echeveria-elegans",
@@ -272,7 +292,9 @@
       "rot from water in rosette",
       "mealybugs",
       "sunburn when suddenly moved to direct sun"
-    ]
+    ],
+    "lore": "Each rosette is a single plant; once it flowers and dies, it leaves behind 'pups' that take its place. The pale farina coating (epicuticular wax) acts as natural sunscreen and must not be rubbed off.",
+    "etymology": "Named after 18th-century Mexican botanical illustrator Atanasio Echeverría y Godoy; 'elegans' simply means elegant."
   },
   {
     "slug": "crassula-ovata",
@@ -297,7 +319,9 @@
       "soft trunk from overwatering",
       "powdery mildew",
       "mealybugs in leaf joints"
-    ]
+    ],
+    "lore": "A Feng Shui classic — the jade-green coin-shaped leaves symbolise wealth, and a jade plant at a shop entrance is said to welcome prosperity. Long-lived specimens form gnarled bonsai-like trunks.",
+    "etymology": "'Crassula' from Latin 'crassus' (thick), referring to the fleshy leaves; 'ovata' means egg-shaped."
   },
   {
     "slug": "schlumbergera-truncata",
@@ -322,7 +346,9 @@
       "limp wrinkled segments from dehydration",
       "root rot from heavy soil",
       "no blooms without cool fall nights"
-    ]
+    ],
+    "lore": "Heirloom specimens are often passed down for a century or more; cuttings root so easily that a single plant can seed an entire family. Unlike desert cacti, it grows on trees in Brazilian cloud forests.",
+    "etymology": "Named for Belgian plantsman Frédéric Schlumberger; 'truncata' means cut off, describing the squared-off edges of each leaf segment."
   },
   {
     "slug": "ferocactus-wislizeni",
@@ -347,7 +373,9 @@
       "etiolated tip from low light",
       "corky scarring from physical damage",
       "scale"
-    ]
+    ],
+    "lore": "Called the 'compass barrel' because mature plants lean toward the southwest, following the afternoon sun. Apache and Tohono O'odham peoples historically used the pulp as an emergency water source and the flesh to make candy.",
+    "etymology": "'Ferocactus' from Latin 'ferox' (fierce), for the formidable spines; 'wislizeni' honours 19th-century German-American naturalist Friedrich Wislizenus."
   },
   {
     "slug": "mammillaria-elongata",
@@ -372,7 +400,9 @@
       "pale elongated growth from low light",
       "red spider mites",
       "no blooms without cold dry winter rest"
-    ]
+    ],
+    "lore": "Mammillaria is the largest genus in the cactus family, with over 200 species. Mature clumps reliably ring themselves with a crown of small pink or white flowers every spring.",
+    "etymology": "'Mammillaria' from Latin 'mammilla' (nipple), referring to the rounded tubercles that cover the stem instead of ribs; 'elongata' notes the lengthening finger-like stems."
   },
   {
     "slug": "ficus-lyrata",
@@ -397,7 +427,9 @@
       "brown dark spots from root rot",
       "leaf drop from moving or drafts",
       "spider mites and mealybugs"
-    ]
+    ],
+    "lore": "Became a design-magazine cliché in the 2010s — from near obscurity to ubiquity in under a decade. In its West African home it can reach 15 metres and begins life as a 'strangler' on a host tree.",
+    "etymology": "'Ficus' is the classical Latin name for the fig; 'lyrata' means lyre-shaped, after the violin-body outline of each leaf."
   },
   {
     "slug": "ficus-elastica",
@@ -422,7 +454,9 @@
       "drooping from underwatering",
       "fading variegation in low light",
       "scale insects"
-    ]
+    ],
+    "lore": "The milky latex was a major commercial rubber source before Hevea plantations displaced it in the 19th century. In Meghalaya, India, living aerial roots are still trained across rivers into 'living root bridges' that last centuries.",
+    "etymology": "'Ficus' is the Latin for fig; 'elastica' refers to the elastic latex sap."
   },
   {
     "slug": "pachira-aquatica",
@@ -447,7 +481,9 @@
       "crispy tips from dry air",
       "leggy growth in low light",
       "spider mites"
-    ]
+    ],
+    "lore": "The braided trunk fad began with a Taiwanese truck driver in the 1980s, who wove young trunks together as a Feng Shui talisman for prosperity. Now a global shop-opening gift.",
+    "etymology": "'Pachira' is a Guyanese indigenous name; 'aquatica' means 'of the water', for the swampy riverbanks where it grows wild."
   },
   {
     "slug": "dracaena-marginata",
@@ -472,7 +508,9 @@
       "yellow leaves from overwatering",
       "thrips",
       "bare stems from very low light"
-    ]
+    ],
+    "lore": "Related dragon trees bleed a red resin called 'dragon's blood' — traditionally used as varnish, medicine and dye across the ancient Mediterranean. Modern Dracaena marginata is entirely popular as a forgiving office plant.",
+    "etymology": "'Dracaena' from Greek 'drakaina' (female dragon), for the red resin; 'marginata' refers to the red margins on each leaf."
   },
   {
     "slug": "nephrolepis-exaltata",
@@ -497,7 +535,9 @@
       "yellowing from cold drafts",
       "shedding in low humidity",
       "scale and mealybugs"
-    ]
+    ],
+    "lore": "The 'Boston' cultivar is a spontaneous 1894 sport discovered among a shipment of ferns routed through Boston — it had fuller fronds and quickly became the Victorian parlour plant of the era.",
+    "etymology": "'Nephrolepis' from Greek 'nephros' (kidney) and 'lepis' (scale), after the kidney-shaped spore covers; 'exaltata' means 'raised up', for its tall arching fronds."
   },
   {
     "slug": "adiantum-raddianum",
@@ -522,7 +562,9 @@
       "brown edges from dry air",
       "bleached fronds from direct sun",
       "spider mites in warm dry rooms"
-    ]
+    ],
+    "lore": "Water beads off the fronds without wetting them — an effect so reliable the ancient Greeks associated the plant with Aphrodite, whose hair stayed dry even when she emerged from the sea.",
+    "etymology": "'Adiantum' from Greek 'adiantos' meaning 'unwetted'; 'raddianum' honours the 19th-century Italian botanist Giuseppe Raddi."
   },
   {
     "slug": "asplenium-nidus",
@@ -547,7 +589,9 @@
       "wavy brown frond edges from low humidity",
       "scale on frond undersides",
       "pale fronds in very low light"
-    ]
+    ],
+    "lore": "An epiphyte that grows high in rainforest tree canopies; its central rosette collects leaf litter which decomposes into a perched garden of soil. Some Taiwanese and Polynesian cultures eat the young unfurling fronds as a vegetable.",
+    "etymology": "'Asplenium' from Greek 'a-' (not) and 'splen' (spleen) — ancient herbalists believed it cured spleen disorders; 'nidus' is Latin for 'nest', describing the rosette's shape."
   },
   {
     "slug": "chamaedorea-elegans",
@@ -572,7 +616,9 @@
       "yellow fronds from overwatering",
       "spider mites in dry air",
       "scale insects"
-    ]
+    ],
+    "lore": "The definitive Victorian parlour palm — tough, low-light, and small enough for a terrarium. Exported from Central America in such numbers in the 19th century that wild populations still haven't fully recovered.",
+    "etymology": "'Chamaedorea' from Greek 'chamai' (on the ground) and 'dorea' (gift) — a gift within reach, since the fruit hangs at an accessible height; 'elegans' simply means elegant."
   },
   {
     "slug": "howea-forsteriana",
@@ -597,7 +643,9 @@
       "yellow fronds from overwatering",
       "spider mites",
       "slow recovery from any damage"
-    ]
+    ],
+    "lore": "Native only to Lord Howe Island — a speck of land in the Tasman Sea. The island's economy has relied on exporting Kentia palm seeds for over a century, each painstakingly hand-collected and certified.",
+    "etymology": "'Howea' names the island; 'forsteriana' honours German naturalist Johann Reinhold Forster who sailed with Captain Cook's second voyage."
   },
   {
     "slug": "dypsis-lutescens",
@@ -622,7 +670,9 @@
       "yellow fronds from overwatering",
       "spider mites in dry air",
       "mealybugs"
-    ]
+    ],
+    "lore": "Endangered in its Madagascar homeland but one of the most widely cultivated palms on Earth — the houseplant you're watering is far more common than the wild one. Clumping habit makes it look fuller than most indoor palms.",
+    "etymology": "'Dypsis' is of uncertain origin, possibly from Greek 'dypto' (to dive); 'lutescens' means 'becoming yellow' after the golden yellow leaf sheaths and stems."
   },
   {
     "slug": "ravenea-rivularis",
@@ -647,7 +697,9 @@
       "yellowing from under-light",
       "spider mites",
       "rapid decline in dry heated rooms"
-    ]
+    ],
+    "lore": "Grows wild only along a handful of Madagascan rivers and is classified as Vulnerable in the wild — yet is one of the most commonly bulk-sold palms at big-box stores, where it rarely thrives indoors.",
+    "etymology": "'Ravenea' honours French botanist Louis Ravené; 'rivularis' means 'of the streams', after its riverbank habitat."
   },
   {
     "slug": "tillandsia-ionantha",
@@ -672,7 +724,9 @@
       "browning tips from dry air",
       "fading from insufficient light",
       "mushy base from sitting wet"
-    ]
+    ],
+    "lore": "Blushes bright red or purple when it's about to flower — a single event at the end of a rosette's life, after which it produces pups before dying. Needs no soil at all; absorbs water through microscopic leaf scales called trichomes.",
+    "etymology": "'Tillandsia' was dedicated to 17th-century Swedish botanist Elias Tillandz; 'ionantha' means 'violet-flowered'."
   },
   {
     "slug": "tillandsia-xerographica",
@@ -697,7 +751,9 @@
       "curled tips from underwatering",
       "brown center from water sitting in base",
       "sunburn from direct midday sun through glass"
-    ]
+    ],
+    "lore": "Hailed as the 'queen of air plants' for its size and sculpted silver rosette. Listed under CITES Appendix II due to overcollection in the wild — only nursery-grown specimens may be traded internationally.",
+    "etymology": "From Greek 'xeros' (dry) and 'graphis' (writing, drawing) — the dry, curling silvery leaves look like calligraphic strokes."
   },
   {
     "slug": "tillandsia-usneoides",
@@ -722,7 +778,9 @@
       "thinning from too little water",
       "rot from staying wet against a surface",
       "fading in low light"
-    ]
+    ],
+    "lore": "Neither Spanish nor moss — it is a bromeliad, and French colonists nicknamed it 'Spanish beard' to mock the Spanish; the Spanish replied with 'French hair'. Used as mattress stuffing across the American South for centuries.",
+    "etymology": "'Usneoides' means 'resembling Usnea', the unrelated lichen it mimics in form."
   },
   {
     "slug": "tillandsia-caput-medusae",
@@ -747,6 +805,8 @@
       "curling leaves from underwatering",
       "pale color in low light",
       "loss of leaves from extreme dryness"
-    ]
+    ],
+    "lore": "Named for the Greek Gorgon: writhing silver-green tendrils emerge from a bulbous base like snakes from a severed head. The hollow base is often colonised by ants in the wild in a mutually beneficial arrangement.",
+    "etymology": "'Caput-medusae' is Latin for 'head of Medusa'."
   }
 ]

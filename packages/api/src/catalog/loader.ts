@@ -34,6 +34,12 @@ export interface Catalog {
    * Used by the enrichment fallback flow when Claude can't recognise a typo.
    */
   suggest(query: string, limit?: number): CatalogSearchResult[];
+  /**
+   * Lookup a catalog entry by the user's stored species / common name string.
+   * Case-insensitive exact match against latin_name, aliases, and
+   * common_names.en / .nl. Returns undefined if no match or name is null/empty.
+   */
+  findBySpecies(name: string | null | undefined): CatalogEntry | undefined;
 }
 
 interface IndexedEntry {
@@ -140,6 +146,14 @@ function validateEntry(raw: unknown, index: number): CatalogEntry {
   requireString(e.origin, `${loc}.origin`);
   requireStringArray(e.common_conditions, `${loc}.common_conditions`);
 
+  // Optional fields (#37): lore + etymology. If present, must be non-empty strings.
+  if (e.lore !== undefined && (typeof e.lore !== 'string' || e.lore.length === 0)) {
+    throw new Error(`${loc}.lore must be a non-empty string when provided`);
+  }
+  if (e.etymology !== undefined && (typeof e.etymology !== 'string' || e.etymology.length === 0)) {
+    throw new Error(`${loc}.etymology must be a non-empty string when provided`);
+  }
+
   return raw as unknown as CatalogEntry;
 }
 
@@ -161,6 +175,7 @@ function requireStringArray(v: unknown, loc: string): asserts v is string[] {
  */
 export function createCatalog(entries: readonly CatalogEntry[]): Catalog {
   const bySlug = new Map<string, CatalogEntry>();
+  const byName = new Map<string, CatalogEntry>();
   const indexed: IndexedEntry[] = [];
 
   for (const entry of entries) {
@@ -171,6 +186,12 @@ export function createCatalog(entries: readonly CatalogEntry[]): Catalog {
       ...entry.common_names.en,
       ...entry.common_names.nl,
     ].map(s => s.toLowerCase());
+
+    // Exact-name index for findBySpecies — first write wins so the preferred
+    // canonical slug is returned for shared common names.
+    for (const h of haystacks) {
+      if (!byName.has(h)) byName.set(h, entry);
+    }
 
     const tokens: string[] = [];
     for (const h of haystacks) {
@@ -188,6 +209,12 @@ export function createCatalog(entries: readonly CatalogEntry[]): Catalog {
     },
     get(slug: string) {
       return bySlug.get(slug);
+    },
+    findBySpecies(name: string | null | undefined) {
+      if (!name) return undefined;
+      const key = name.trim().toLowerCase();
+      if (!key) return undefined;
+      return byName.get(key);
     },
     search(query: string, limit = 20) {
       const q = query.trim().toLowerCase();

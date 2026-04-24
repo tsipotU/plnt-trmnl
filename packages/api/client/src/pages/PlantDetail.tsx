@@ -13,6 +13,14 @@ import {
 
 // --- Types ---
 
+interface PlantAbout {
+  common_names: { en: string[]; nl: string[] };
+  origin: string;
+  toxicity: string;
+  lore?: string;
+  etymology?: string;
+}
+
 interface Plant {
   id: number;
   name: string;
@@ -40,6 +48,8 @@ interface Plant {
   is_converged: number | null;
   created_at: string | null;
   updated_at?: string | null;
+  /** #37 — catalog-derived "About this plant" payload, null when no match. */
+  about?: PlantAbout | null;
 }
 
 const ORIGIN_TYPE_OPTIONS: { value: string; label: string }[] = [
@@ -434,6 +444,107 @@ function ConfirmDialog({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// --- About This Plant card (#37) ---
+
+/**
+ * Collapsible "About <plant_name>" card. Sources rich species info from the
+ * catalog (joined in the API response). Hidden entirely when `about` is null
+ * or lacks any content — falls back gracefully for uncatalogued species.
+ */
+function AboutCard({ plantName, about }: { plantName: string; about: PlantAbout | null | undefined }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!about) return null;
+
+  // Hide entirely if everything is empty (shouldn't happen for catalog matches,
+  // but guards the day a future enrichment fallback yields all-empty fields).
+  const hasAnyContent =
+    (about.common_names?.en?.length ?? 0) > 0 ||
+    (about.common_names?.nl?.length ?? 0) > 0 ||
+    (about.origin && about.origin.length > 0) ||
+    (about.toxicity && about.toxicity.length > 0) ||
+    (about.lore && about.lore.length > 0) ||
+    (about.etymology && about.etymology.length > 0);
+  if (!hasAnyContent) return null;
+
+  return (
+    <div className="card" style={{ marginBottom: 12 }}>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        style={{
+          width: '100%',
+          background: 'transparent',
+          color: 'var(--text-primary)',
+          padding: 0,
+          margin: 0,
+          textAlign: 'left',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          minHeight: 28,
+          fontSize: 16,
+          fontWeight: 600,
+          border: 'none',
+        }}
+      >
+        <span>About {plantName}</span>
+        <span
+          aria-hidden="true"
+          style={{
+            fontSize: 14,
+            color: 'var(--text-secondary)',
+            transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform 0.15s ease',
+            display: 'inline-block',
+          }}
+        >
+          ▶
+        </span>
+      </button>
+
+      {expanded && (
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {about.common_names.en.length > 0 && (
+            <AboutRow label="Also known as">
+              {about.common_names.en.join(', ')}
+            </AboutRow>
+          )}
+          {about.common_names.nl.length > 0 && (
+            <AboutRow label="In Dutch">
+              {about.common_names.nl.join(', ')}
+            </AboutRow>
+          )}
+          {about.origin && <AboutRow label="Origin">{about.origin}</AboutRow>}
+          {about.toxicity && <AboutRow label="Toxicity">{about.toxicity}</AboutRow>}
+          {about.lore && <AboutRow label="Lore">{about.lore}</AboutRow>}
+          {about.etymology && <AboutRow label="Etymology">{about.etymology}</AboutRow>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AboutRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 11,
+          color: 'var(--text-secondary)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: 3,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ fontSize: 14, lineHeight: 1.5 }}>{children}</div>
     </div>
   );
 }
@@ -1194,6 +1305,11 @@ export function PlantDetail() {
           </div>
         )}
       </div>
+
+      {/* About this plant (#37) — collapsible catalog-sourced card.
+          Keep this section self-contained; #3 (conditions) and #74 (species
+          header) touch neighbouring blocks, so merges stay mechanical. */}
+      <AboutCard plantName={plant.name} about={plant.about} />
 
       {/* Summary stats + calibration trend */}
       {(() => {
