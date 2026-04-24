@@ -42,6 +42,16 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
     }
   }, [open, triggerRef]);
 
+  // Body scroll lock while open
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   // Focus trap
   function onKeyDownCapture(e: React.KeyboardEvent<HTMLElement>) {
     if (e.key !== 'Tab') return;

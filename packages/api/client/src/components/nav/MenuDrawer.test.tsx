@@ -178,3 +178,30 @@ describe('MenuDrawer — focus management', () => {
     expect(aboutLink).toHaveFocus();
   });
 });
+
+describe('MenuDrawer — body scroll lock', () => {
+  it('locks body scroll while open and restores on close', () => {
+    const { rerender, unmount } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={false} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(document.body.style.overflow).toBe('');
+
+    rerender(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={true} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(document.body.style.overflow).toBe('hidden');
+
+    rerender(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={false} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(document.body.style.overflow).toBe('');
+
+    unmount();
+  });
+});
