@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import type Database from 'better-sqlite3';
 import { logEvent } from '../database/event-log.js';
+import { pickDailyFact, getTodayFact } from '../facts/pick-daily.js';
 
 export function createFactsRouter(db: Database.Database): Router {
   const router = Router();
@@ -24,6 +25,28 @@ export function createFactsRouter(db: Database.Database): Router {
     }
 
     res.json(facts);
+  });
+
+  // GET /api/facts/today — today's rotating fact (issue #38).
+  // Returns the fact the daily cron picked, or 404 if none is set.
+  router.get('/facts/today', (_req: Request, res: Response) => {
+    const fact = getTodayFact(db);
+    if (!fact) {
+      res.status(404).json({ error: 'No fact for today yet' });
+      return;
+    }
+    res.json(fact);
+  });
+
+  // POST /api/facts/pick-daily — pick today's fact (idempotent-ish: each call
+  // advances the rotation). Used by the daily 6 AM cron.
+  router.post('/facts/pick-daily', (_req: Request, res: Response) => {
+    const picked = pickDailyFact(db);
+    if (!picked) {
+      res.status(404).json({ error: 'No eligible facts' });
+      return;
+    }
+    res.json(picked);
   });
 
   // GET /api/facts/next — get next fact for display (lowest shown_count, not disabled)
