@@ -17,8 +17,6 @@ describe('loadConfig', () => {
     process.env.DATABASE_PATH = '/data/test.db';
     process.env.BACKUP_DIR = '/backups';
     process.env.CALIBRATION_DEADLINE_HOUR = '12';
-    process.env.N8N_ENRICHMENT_WEBHOOK_URL = 'http://n8n/webhook';
-    process.env.N8N_ENRICHMENT_MAX_RETRIES = '10';
     process.env.HEATING_SEASON_START = '10-01';
     process.env.HEATING_SEASON_END = '04-01';
 
@@ -36,7 +34,6 @@ describe('loadConfig', () => {
 
   it('uses defaults for optional vars', () => {
     process.env.DATABASE_PATH = '/data/test.db';
-    process.env.N8N_ENRICHMENT_WEBHOOK_URL = 'http://n8n/webhook';
     const config = loadConfig();
     expect(config.port).toBe(3900);
     expect(config.calibrationDeadlineHour).toBe(12);
@@ -45,7 +42,6 @@ describe('loadConfig', () => {
   describe('dry-soil / growing-season knobs (#36)', () => {
     beforeEach(() => {
       process.env.DATABASE_PATH = '/data/test.db';
-      process.env.N8N_ENRICHMENT_WEBHOOK_URL = 'http://n8n/webhook';
     });
 
     it('defaults growing season to Apr 1 – Sep 30', () => {
