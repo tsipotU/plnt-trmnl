@@ -28,6 +28,7 @@ export function initializeSchema(db: Database.Database): void {
       illustration_path TEXT,
       calibration_cycle INTEGER DEFAULT 0,
       is_converged INTEGER DEFAULT 0,
+      skip_next_calibration INTEGER DEFAULT 0,
       enrichment_status TEXT DEFAULT 'pending' CHECK(enrichment_status IN ('pending', 'complete', 'failed')),
       archived INTEGER DEFAULT 0,
       archived_at TEXT,
@@ -178,6 +179,7 @@ export function initializeSchema(db: Database.Database): void {
   addColumnIfMissing(db, 'plants', 'origin_source', 'TEXT');
   addColumnIfMissing(db, 'plants', 'mother_plant_id', 'INTEGER');
   addColumnIfMissing(db, 'event_log', 'batch_id', 'TEXT');
+  addColumnIfMissing(db, 'plants', 'skip_next_calibration', 'INTEGER DEFAULT 0');
 
   // One-way migration: legacy `plants.notes` column superseded by the
   // `plant_notes` table (#32). Safe to drop on live DBs created before v0.14.

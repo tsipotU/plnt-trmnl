@@ -145,6 +145,40 @@ describe('Calibration routes', () => {
       );
       expect(res.status).toBe(404);
     });
+
+    it('returns skip=seeded when skip_next_calibration is set (issue #70)', async () => {
+      const plantId = insertPlant(db, { skip_next_calibration: 1 });
+      insertQuestion(db, plantId, 0);
+
+      const app = buildApp(db);
+      const res = await request(app).get(
+        `/api/plants/${plantId}/calibration/next`,
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.skip).toBe(true);
+      expect(res.body.reason).toBe('seeded');
+    });
+
+    it('clears skip_next_calibration after returning the skip once', async () => {
+      const plantId = insertPlant(db, { skip_next_calibration: 1 });
+      insertQuestion(db, plantId, 0);
+
+      const app = buildApp(db);
+      await request(app).get(`/api/plants/${plantId}/calibration/next`);
+
+      const row = db
+        .prepare('SELECT skip_next_calibration FROM plants WHERE id = ?')
+        .get(plantId) as { skip_next_calibration: number };
+      expect(row.skip_next_calibration).toBe(0);
+
+      // Second call returns the real question
+      const res2 = await request(app).get(
+        `/api/plants/${plantId}/calibration/next`,
+      );
+      expect(res2.status).toBe(200);
+      expect(res2.body.skip).toBeUndefined();
+      expect(res2.body.question_text).toBe('Question 0');
+    });
   });
 
   // ─── POST /api/plants/:id/calibration ───────────────────────────────────
@@ -372,6 +406,20 @@ describe('Calibration routes', () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);
       expect(res.body[0].name).toBe('Converged Due');
+    });
+
+    it('excludes plants with skip_next_calibration set (issue #70)', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      insertPlant(db, {
+        name: 'Seeded Plant',
+        next_water_date: today,
+        skip_next_calibration: 1,
+      });
+
+      const app = buildApp(db);
+      const res = await request(app).get('/api/calibration/due');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(0);
     });
 
     it('includes non-converged plants regardless of cycle', async () => {

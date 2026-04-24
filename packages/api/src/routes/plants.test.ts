@@ -245,6 +245,134 @@ describe('POST /api/plants', () => {
   });
 });
 
+describe('POST /api/plants — soil_feel seeding (issue #70)', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  beforeEach(() => {
+    ({ app, db } = createTestApp());
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('seeds current_interval from soil_feel=bone_dry (shortest interval)', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Monstera',
+        lastWateredAt: '2026-04-01',
+        soil_feel: 'bone_dry',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(5);
+    expect(res.body.base_interval).toBe(5);
+    expect(res.body.skip_next_calibration).toBe(1);
+  });
+
+  it('seeds current_interval from soil_feel=dry', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Ficus', lastWateredAt: '2026-04-01', soil_feel: 'dry' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(6);
+    expect(res.body.skip_next_calibration).toBe(1);
+  });
+
+  it('seeds current_interval from soil_feel=slightly_moist (baseline)', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Pothos',
+        lastWateredAt: '2026-04-01',
+        soil_feel: 'slightly_moist',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(7);
+    expect(res.body.skip_next_calibration).toBe(1);
+  });
+
+  it('seeds current_interval from soil_feel=moist', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Fern', lastWateredAt: '2026-04-01', soil_feel: 'moist' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(8);
+    expect(res.body.skip_next_calibration).toBe(1);
+  });
+
+  it('seeds current_interval from soil_feel=wet (longest interval)', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Orchid', lastWateredAt: '2026-04-01', soil_feel: 'wet' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(9);
+    expect(res.body.skip_next_calibration).toBe(1);
+  });
+
+  it('accepts camelCase soilFeel in addition to snake_case', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Ficus', lastWateredAt: '2026-04-01', soilFeel: 'dry' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(6);
+  });
+
+  it('rejects invalid soil_feel values', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Monstera',
+        lastWateredAt: '2026-04-01',
+        soil_feel: 'damp',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Invalid soil_feel');
+  });
+
+  it('logs a calibration_seeded event with soil_feel in new_value', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Ficus', lastWateredAt: '2026-04-01', soil_feel: 'dry' });
+
+    expect(res.status).toBe(201);
+
+    const events = db
+      .prepare(
+        `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'calibration_seeded'`,
+      )
+      .all(res.body.id) as Array<{ new_value: string; reason: string }>;
+    expect(events).toHaveLength(1);
+    expect(events[0].new_value).toBe('dry');
+    expect(events[0].reason).toMatch(/seeded/i);
+  });
+
+  it('does not seed or log event when soil_feel is absent', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera', lastWateredAt: '2026-04-01' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(7);
+    expect(res.body.skip_next_calibration).toBe(0);
+
+    const events = db
+      .prepare(
+        `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'calibration_seeded'`,
+      )
+      .all(res.body.id);
+    expect(events).toHaveLength(0);
+  });
+});
+
 describe('GET /api/plants/:id', () => {
   let app: express.Express;
   let db: Database.Database;

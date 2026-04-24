@@ -14,6 +14,7 @@ interface PlantRow {
   last_watered_at: string | null;
   location: string | null;
   next_water_date: string | null;
+  skip_next_calibration: number;
   [key: string]: unknown;
 }
 
@@ -44,6 +45,17 @@ export function createCalibrationRouter(db: Database.Database): Router {
 
     if (!plant) {
       res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+
+    // Seeded plants (issue #70): skip once, then clear the flag. We already
+    // captured the current soil state at creation, so the first calibration
+    // question would be redundant.
+    if (plant.skip_next_calibration === 1) {
+      db.prepare(
+        `UPDATE plants SET skip_next_calibration = 0, updated_at = datetime('now') WHERE id = ?`,
+      ).run(plant.id);
+      res.json({ skip: true, reason: 'seeded' });
       return;
     }
 
@@ -177,6 +189,8 @@ export function createCalibrationRouter(db: Database.Database): Router {
       .all(today) as PlantRow[];
 
     const due = plants.filter((p) => {
+      // Seeded plants (issue #70): skip the first calibration entirely.
+      if (p.skip_next_calibration === 1) return false;
       if (p.is_converged === 1) {
         return p.calibration_cycle % 3 === 0;
       }
