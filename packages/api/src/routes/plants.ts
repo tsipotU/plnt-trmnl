@@ -196,9 +196,6 @@ const VALID_SOIL_FEEL = Object.keys(SOIL_FEEL_INTERVAL_MAP);
  *
  * Returns `null` when the slug is unknown or catalog isn't wired — caller
  * falls back to existing default-seeding logic (soil_feel / dryDaysBase).
- *
- * NOTE: kept in its own named helper so #4's fact-seeding hook can compose
- * cleanly without merge conflicts.
  */
 function applyCatalogBaseline(
   catalog: Catalog | undefined,
@@ -213,6 +210,54 @@ function applyCatalogBaseline(
     lightPreference: entry.care.light_preference,
     species: entry.latin_name,
   };
+}
+
+/**
+ * Seed species-specific catalog facts into the facts table (#4).
+ *
+ * Invariants:
+ *  - Exactly 15 facts per catalog species; this function inserts them all
+ *    with `source='catalog'`, `plant_id=plantId`, and `species` pinned to
+ *    the catalog entry's canonical latin name.
+ *  - Dedup across plants of the same species: if any `source='catalog'`
+ *    facts already exist with this species, we do NOT re-insert. If those
+ *    facts were previously soft-disabled (last plant of species archived
+ *    before a new one was added), we re-enable them so the new plant sees
+ *    them in rotation.
+ *  - Enrichment path is untouched: enrichment facts use
+ *    `source='enrichment'` and aren't affected by this helper.
+ *
+ * Returns the number of facts newly inserted (0 if dedup skipped or re-enabled).
+ */
+export function seedCatalogFacts(
+  db: Database.Database,
+  plantId: number,
+  entry: { latin_name: string; facts: string[] },
+): number {
+  const existing = db.prepare(
+    `SELECT COUNT(*) AS n FROM facts WHERE source = 'catalog' AND species = ?`,
+  ).get(entry.latin_name) as { n: number };
+
+  if (existing.n > 0) {
+    // Dedup: re-enable any soft-disabled catalog facts for this species so
+    // the new plant sees them in rotation, but don't insert duplicates.
+    db.prepare(
+      `UPDATE facts SET is_disabled = 0
+       WHERE source = 'catalog' AND species = ? AND is_disabled = 1`,
+    ).run(entry.latin_name);
+    return 0;
+  }
+
+  const insert = db.prepare(
+    `INSERT INTO facts (plant_id, species, text, source) VALUES (?, ?, ?, 'catalog')`,
+  );
+  const tx = db.transaction((facts: string[]) => {
+    for (const text of facts) {
+      insert.run(plantId, entry.latin_name, text);
+    }
+  });
+  tx(entry.facts);
+  return entry.facts.length;
 }
 
 /**
@@ -416,6 +461,23 @@ export function createPlantsRouter(
         newValue: soilFeel as string,
         reason: `Initial calibration seeded from soil feel: ${soilFeel} (interval=${seededInterval}d)`,
       });
+    }
+
+    // #4 — seed 15 species-specific catalog facts on plant creation.
+    // Must run AFTER any catalog-baseline apply (#2) so the plant row is
+    // in its final created state. No-op when no catalog is wired or the
+    // name/species doesn't match an entry.
+    if (catalog) {
+      const entry = catalog.findBySpecies(name);
+      if (entry && Array.isArray(entry.facts) && entry.facts.length > 0) {
+        try {
+          seedCatalogFacts(db, plantId, entry);
+        } catch (err) {
+          // Non-fatal: fact seeding should never block plant creation.
+          // Enrichment will still add its own facts later.
+          void err;
+        }
+      }
     }
 
     const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<string, unknown>;
@@ -858,7 +920,10 @@ export function createPlantsRouter(
        WHERE id = ?`
     ).run(reason, archiveNote, plantId);
 
-    // Soft-disable species-specific facts when this was the last plant of the species.
+    // Soft-disable species-specific facts when this was the last plant of
+    // the species. Enrichment facts are tied to the archived plant's id;
+    // catalog facts (#4) are shared across plants of the species and keyed
+    // by the `facts.species` column — so we disable via both columns.
     const species = plant.species as string | null;
     if (species) {
       const remainingOfSpecies = db.prepare(
@@ -866,8 +931,8 @@ export function createPlantsRouter(
       ).get(species, plantId) as { n: number };
       if (remainingOfSpecies.n === 0) {
         db.prepare(
-          `UPDATE facts SET is_disabled = 1 WHERE plant_id = ?`
-        ).run(plantId);
+          `UPDATE facts SET is_disabled = 1 WHERE plant_id = ? OR species = ?`
+        ).run(plantId, species);
       }
     }
 
