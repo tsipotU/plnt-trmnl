@@ -536,8 +536,11 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     await user.clear(screen.getByLabelText(/Plant species or type/i)).catch(() => {});
     await fillFormAndSubmit(user, 'sanseveria');
 
-    // Splash shows the enriched species prominently
-    await screen.findByRole('dialog', { name: /Sansevieria trifasciata/i });
+    // Splash shows the enriched species prominently.
+    // Timeout is 5000ms because the component's first poll fires after a real
+    // 1000ms setTimeout; the default 1000ms findByRole budget expires before
+    // the dialog renders under any scheduling jitter.
+    await screen.findByRole('dialog', { name: /Sansevieria trifasciata/i }, { timeout: 5000 });
     expect(screen.getByText(/We found/i)).toBeInTheDocument();
     expect(screen.getByText(/Sansevieria trifasciata/i)).toBeInTheDocument();
 
@@ -589,7 +592,7 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     renderAddPlantWithRoutes();
     await fillFormAndSubmit(user, 'Monstera');
 
-    const ok = await screen.findByRole('button', { name: /Looks right/i });
+    const ok = await screen.findByRole('button', { name: /Looks right/i }, { timeout: 5000 });
     await user.click(ok);
 
     await waitFor(() => {
@@ -642,7 +645,7 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     renderAddPlantWithRoutes();
     await fillFormAndSubmit(user, 'sanseveria');
 
-    const notQuite = await screen.findByRole('button', { name: /Not quite/i });
+    const notQuite = await screen.findByRole('button', { name: /Not quite/i }, { timeout: 5000 });
     await user.click(notQuite);
 
     // Correction UI appears
@@ -654,7 +657,7 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     expect(retryBodies[0]).toEqual({ name: 'Aglaonema' });
 
     // Re-polling resumes — splash shows success again once callback completes
-    await screen.findByRole('button', { name: /Looks right/i });
+    await screen.findByRole('button', { name: /Looks right/i }, { timeout: 5000 });
     expect(statusCalls).toBeGreaterThanOrEqual(2);
   });
 
