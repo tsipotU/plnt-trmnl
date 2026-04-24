@@ -57,6 +57,46 @@ describe('initializeSchema', () => {
     expect(() => initializeSchema(db)).not.toThrow();
   });
 
+  it('plants table has identifier column (#2)', () => {
+    initializeSchema(db);
+    const cols = db
+      .prepare(`PRAGMA table_info(plants)`)
+      .all() as Array<{ name: string; type: string }>;
+    const identifier = cols.find((c) => c.name === 'identifier');
+    expect(identifier).toBeDefined();
+    expect(identifier!.type.toUpperCase()).toBe('TEXT');
+  });
+
+  it('identifier column migration is idempotent on existing databases (#2)', () => {
+    // Simulate a legacy DB created before the identifier column existed.
+    db.prepare(
+      `CREATE TABLE plants (
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         name TEXT NOT NULL,
+         archived INTEGER DEFAULT 0
+       )`,
+    ).run();
+    db.prepare(`INSERT INTO plants (name) VALUES (?)`).run('Legacy plant');
+
+    // First migration run — adds the column.
+    initializeSchema(db);
+    let cols = db.prepare(`PRAGMA table_info(plants)`).all() as Array<{ name: string }>;
+    expect(cols.some((c) => c.name === 'identifier')).toBe(true);
+
+    // Existing row preserved and identifier defaults to NULL.
+    const existing = db.prepare(`SELECT name, identifier FROM plants WHERE id = 1`).get() as {
+      name: string;
+      identifier: string | null;
+    };
+    expect(existing.name).toBe('Legacy plant');
+    expect(existing.identifier).toBeNull();
+
+    // Second run — no-op, no throw, column still there.
+    expect(() => initializeSchema(db)).not.toThrow();
+    cols = db.prepare(`PRAGMA table_info(plants)`).all() as Array<{ name: string }>;
+    expect(cols.filter((c) => c.name === 'identifier')).toHaveLength(1);
+  });
+
   // WAL mode is not supported on :memory: databases (SQLite silently falls back
   // to 'memory' journal mode). Use a real file-backed DB for this assertion.
   it('enables WAL mode on file-backed database', () => {

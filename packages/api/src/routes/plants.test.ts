@@ -417,6 +417,105 @@ describe('POST /api/plants — soil_feel seeding (issue #70)', () => {
   });
 });
 
+describe('POST /api/plants — catalog_slug baseline (issue #2)', () => {
+  let app: express.Express;
+  let db: Database.Database;
+
+  beforeEach(() => {
+    ({ app, db } = createTestAppWithCatalog(catalogFixture()));
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('applies catalog baselines (base_interval, light_level, species) when catalog_slug is provided', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'My Monstera',
+        catalog_slug: 'monstera-deliciosa',
+        lastWateredAt: '2026-04-01',
+      });
+
+    expect(res.status).toBe(201);
+    // Catalog fixture: base_interval_days=7, light_preference=bright_indirect.
+    expect(res.body.base_interval).toBe(7);
+    expect(res.body.current_interval).toBe(7);
+    expect(res.body.light_level).toBe('bright_indirect');
+    expect(res.body.species).toBe('Monstera deliciosa');
+    expect(res.body.enrichment_status).toBe('pending');
+  });
+
+  it('does not overwrite user-supplied lightLevel when catalog_slug is provided', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'My Monstera',
+        catalog_slug: 'monstera-deliciosa',
+        lightLevel: 'low',
+        lastWateredAt: '2026-04-01',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.light_level).toBe('low'); // user input wins
+    expect(res.body.base_interval).toBe(7); // baseline still applied
+  });
+
+  it('still enriches in background (enrichment_status=pending)', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'My Monstera',
+        catalog_slug: 'monstera-deliciosa',
+        lastWateredAt: '2026-04-01',
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.enrichment_status).toBe('pending');
+  });
+
+  it('soil_feel takes precedence over catalog baseline for interval', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'My Monstera',
+        catalog_slug: 'monstera-deliciosa',
+        lastWateredAt: '2026-04-01',
+        soil_feel: 'bone_dry',
+      });
+    expect(res.status).toBe(201);
+    // Soil-feel seeding (5) wins over catalog base (7).
+    expect(res.body.current_interval).toBe(5);
+    expect(res.body.base_interval).toBe(5);
+  });
+
+  it('ignores unknown catalog_slug and falls back to default seeding', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Rare Orchid Hybrid',
+        catalog_slug: 'not-a-real-slug',
+        lastWateredAt: '2026-04-01',
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(7); // default dryDaysBase
+    expect(res.body.species).toBeNull();
+  });
+
+  it('free-text plant name without catalog_slug uses generic defaults', async () => {
+    const res = await request(app)
+      .post('/api/plants')
+      .send({
+        name: 'Custom mystery plant',
+        lastWateredAt: '2026-04-01',
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.current_interval).toBe(7);
+    expect(res.body.species).toBeNull();
+    expect(res.body.enrichment_status).toBe('pending');
+  });
+});
+
 describe('GET /api/plants/:id', () => {
   let app: express.Express;
   let db: Database.Database;
