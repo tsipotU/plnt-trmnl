@@ -297,13 +297,22 @@ export function createPlantsRouter(
       return;
     }
 
-    const { name, plantSize, identifier, location, lightLevel } = req.body;
+    const { name, plantSize, identifier, location, lightLevel, species } = req.body;
     // Accept both camelCase and snake_case for pot_size_cm (client sends snake_case)
     const potSizeCm = req.body.potSizeCm ?? req.body.pot_size_cm;
     const potSizeCategory = req.body.pot_size_category;
     const originType = req.body.origin_type ?? req.body.originType;
     const originSource = req.body.origin_source ?? req.body.originSource;
     const motherPlantId = req.body.mother_plant_id ?? req.body.motherPlantId;
+    // Species correction (issue #74). If the client provides `species`, we
+    // update the stored value and trigger re-enrichment when it actually
+    // changes. A string value is stored verbatim; null/empty is ignored here
+    // (clear-to-null isn't supported by this endpoint since enrichment owns
+    // that column).
+    const speciesProvided = typeof species === 'string' && species.trim().length > 0;
+    const trimmedSpecies = speciesProvided ? (species as string).trim() : null;
+    const oldSpecies = existing.species as string | null;
+    const speciesChanged = speciesProvided && trimmedSpecies !== oldSpecies;
 
     if (
       potSizeCategory != null &&
@@ -370,6 +379,7 @@ export function createPlantsRouter(
     db.prepare(
       `UPDATE plants SET
          name              = COALESCE(?, name),
+         species           = COALESCE(?, species),
          pot_size_cm       = COALESCE(?, pot_size_cm),
          pot_size_category = COALESCE(?, pot_size_category),
          plant_size        = COALESCE(?, plant_size),
@@ -382,10 +392,12 @@ export function createPlantsRouter(
          current_interval  = ?,
          is_converged      = ?,
          next_water_date   = ?,
+         enrichment_status = CASE WHEN ? = 1 THEN 'pending' ELSE enrichment_status END,
          updated_at        = datetime('now')
        WHERE id = ?`
     ).run(
       name ?? null,
+      trimmedSpecies,
       potSizeCm ?? null,
       potSizeCategory ?? null,
       plantSize ?? null,
@@ -401,11 +413,38 @@ export function createPlantsRouter(
       newInterval,
       isConverged,
       nextWaterDate,
+      speciesChanged ? 1 : 0,
       plantId
     );
 
     if (scheduledOnPut) {
       logScheduleEvents(db, plantId, scheduledOnPut);
+    }
+
+    // Species correction — log event and kick off re-enrichment.
+    if (speciesChanged) {
+      logEvent(db, {
+        plantId,
+        eventType: 'species_corrected',
+        oldValue: oldSpecies,
+        newValue: trimmedSpecies,
+        reason: `Species corrected: ${oldSpecies ?? '—'} → ${trimmedSpecies}`,
+      });
+
+      const refreshed = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<
+        string,
+        unknown
+      >;
+      // Fire-and-forget; failure handled inside enrichPlantWithClaude.
+      enrichPlantWithClaude(db, plantId, {
+        name: (refreshed.name as string) ?? '',
+        potSizeCm: (refreshed.pot_size_cm as number | null) ?? null,
+        plantSize: (refreshed.plant_size as string | null) ?? null,
+        location: (refreshed.location as string | null) ?? null,
+        lightLevel: (refreshed.light_level as string | null) ?? null,
+      }).catch(() => {
+        /* logged inside enrichPlantWithClaude */
+      });
     }
 
     const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);

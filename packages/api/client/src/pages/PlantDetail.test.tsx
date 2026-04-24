@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PlantDetail } from './PlantDetail';
+import { DEV_INFO_STORAGE_KEY } from '../hooks/useDevInfo';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -139,6 +140,175 @@ describe('PlantDetail - Timeline Rendering', () => {
     // Verify the raw values are completely hidden
     expect(screen.queryByText(/ratio=0\.025/)).not.toBeInTheDocument();
     expect(screen.queryByText(/→/)).not.toBeInTheDocument();
+  });
+});
+
+describe('PlantDetail - Species header (issue #74)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  function basePlant(overrides: Record<string, unknown> = {}) {
+    return {
+      id: 1,
+      name: 'Harold',
+      species: 'Monstera deliciosa',
+      common_name: null,
+      identifier: null,
+      location: null,
+      pot_size_cm: null,
+      pot_size_category: null,
+      plant_size: null,
+      light_level: null,
+      current_interval: 7,
+      base_interval: 7,
+      water_ratio: 0.035,
+      water_description: 'about 1.5 cups',
+      enrichment_status: 'complete',
+      next_water_date: null,
+      last_watered_at: null,
+      illustration_path: null,
+      archived: 0,
+      updated_at: '2026-04-23T10:00:00Z',
+      ...overrides,
+    };
+  }
+
+  function mockFetchFor(plant: Record<string, unknown>, events: unknown[] = []) {
+    return async (url: string, init?: RequestInit) => {
+      if (url.endsWith(`/api/plants/${plant.id}`) && (!init || init.method === undefined || init.method === 'GET')) {
+        return { json: () => Promise.resolve(plant), ok: true };
+      }
+      if (url.endsWith(`/api/plants/${plant.id}`) && init?.method === 'PUT') {
+        const body = JSON.parse(init.body as string) as Record<string, unknown>;
+        return { json: () => Promise.resolve({ ...plant, ...body }), ok: true };
+      }
+      if (url.includes('/conditions')) {
+        return { json: () => Promise.resolve([]), ok: true };
+      }
+      if (url.includes('/events')) {
+        return { json: () => Promise.resolve(events), ok: true };
+      }
+      if (url.includes('/notes')) {
+        return { json: () => Promise.resolve([]), ok: true };
+      }
+      return { json: () => Promise.resolve(null), ok: false };
+    };
+  }
+
+  it('shows the enriched species name prominently in the header', async () => {
+    const plant = basePlant();
+    RenderWithRouter('1', mockFetchFor(plant));
+
+    const speciesNode = await screen.findByTestId('plant-species');
+    expect(speciesNode).toHaveTextContent('Monstera deliciosa');
+    // Prominent: font-size >= 16 (visual smoke check via inline style)
+    const fontSize = speciesNode.style.fontSize;
+    expect(parseInt(fontSize, 10)).toBeGreaterThanOrEqual(16);
+  });
+
+  it('exposes a "Not this? Rename →" inline action', async () => {
+    const plant = basePlant();
+    RenderWithRouter('1', mockFetchFor(plant));
+    expect(await screen.findByRole('button', { name: /not this\? rename/i })).toBeInTheDocument();
+  });
+
+  it('submits a PUT with the corrected species when user renames', async () => {
+    const plant = basePlant();
+    const fetchSpy = vi.fn(mockFetchFor(plant));
+    (global.fetch as any).mockImplementation(fetchSpy);
+
+    render(
+      <MemoryRouter initialEntries={[`/plants/1`]}>
+        <Routes>
+          <Route path="/plants/:id" element={<PlantDetail />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const renameBtn = await screen.findByRole('button', { name: /not this\? rename/i });
+    const user = userEvent.setup();
+    await user.click(renameBtn);
+
+    const input = await screen.findByRole('textbox', { name: /species/i });
+    await user.clear(input);
+    await user.type(input, 'Monstera adansonii');
+    await user.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => {
+      const putCall = fetchSpy.mock.calls.find(
+        ([, init]) => (init as RequestInit | undefined)?.method === 'PUT',
+      );
+      expect(putCall).toBeTruthy();
+      const body = JSON.parse((putCall![1] as RequestInit).body as string);
+      expect(body).toEqual({ species: 'Monstera adansonii' });
+    });
+  });
+
+  it('hides the developer info panel when the toggle is OFF (default)', async () => {
+    const plant = basePlant();
+    const events = [
+      {
+        id: 1,
+        event_type: 'enrichment_complete',
+        old_value: null,
+        new_value: 'interval=7, ratio=0.035',
+        reason: 'Claude enrichment: Monstera deliciosa',
+        created_at: '2026-04-23T10:00:00Z',
+      },
+    ];
+    RenderWithRouter('1', mockFetchFor(plant, events));
+
+    await screen.findByTestId('plant-species');
+    expect(screen.queryByText(/developer info/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/water ratio/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the developer info panel when the toggle is ON', async () => {
+    localStorage.setItem(DEV_INFO_STORAGE_KEY, 'true');
+    const plant = basePlant();
+    const events = [
+      {
+        id: 1,
+        event_type: 'enrichment_complete',
+        old_value: null,
+        new_value: 'interval=7, ratio=0.035',
+        reason: 'Claude enrichment: Monstera deliciosa',
+        created_at: '2026-04-23T10:00:00Z',
+      },
+    ];
+    RenderWithRouter('1', mockFetchFor(plant, events));
+
+    const devBtn = await screen.findByRole('button', { name: /developer info/i });
+    expect(devBtn).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(devBtn);
+
+    expect(await screen.findByText(/water ratio/i)).toBeInTheDocument();
+    expect(screen.getByText(/0\.035/)).toBeInTheDocument();
+    expect(screen.getByText(/claude/i)).toBeInTheDocument();
+  });
+
+  it('keeps timeline enrichment events formatted as "✓ Care profile added" with dev-info ON', async () => {
+    localStorage.setItem(DEV_INFO_STORAGE_KEY, 'true');
+    const plant = basePlant();
+    const events = [
+      {
+        id: 1,
+        event_type: 'enrichment_complete',
+        old_value: null,
+        new_value: 'interval=7, ratio=0.035',
+        reason: 'Claude enrichment: Monstera deliciosa',
+        created_at: '2026-04-23T10:00:00Z',
+      },
+    ];
+    RenderWithRouter('1', mockFetchFor(plant, events));
+
+    expect(await screen.findByText('✓ Care profile added')).toBeInTheDocument();
+    // The raw interval/ratio values must NEVER appear in the timeline entry.
+    expect(screen.queryByText(/interval=7, ratio=0\.035/)).not.toBeInTheDocument();
   });
 });
 
