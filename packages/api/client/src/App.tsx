@@ -1,4 +1,4 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Dashboard } from './pages/Dashboard.js';
 import { AddPlant } from './pages/AddPlant.js';
 import { PlantDetail } from './pages/PlantDetail.js';
@@ -8,97 +8,10 @@ import { FeedbackList } from './pages/FeedbackList.js';
 import { FeedbackDetail } from './pages/FeedbackDetail.js';
 import { ArchivedPlants } from './pages/ArchivedPlants.js';
 import { Settings } from './pages/Settings.js';
+import { About } from './pages/About.js';
+import { Header } from './components/nav/Header.js';
 import { FeedbackButton } from './components/FeedbackButton.js';
 import { DialogProvider } from './context/DialogContext.js';
-
-function Header() {
-  const location = useLocation();
-
-  return (
-    <header
-      style={{
-        background: 'var(--bg-secondary)',
-        borderBottom: '1px solid var(--border)',
-        padding: '12px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-      }}
-    >
-      <Link
-        to="/"
-        style={{
-          color: location.pathname === '/' ? 'var(--accent)' : 'var(--text-primary)',
-          fontWeight: 600,
-          fontSize: 18,
-        }}
-      >
-        Plant TRMNL
-      </Link>
-      <nav style={{ display: 'flex', gap: 16 }}>
-        <Link
-          to="/add"
-          style={{
-            color: location.pathname === '/add' ? 'var(--accent)' : 'var(--text-secondary)',
-            fontSize: 14,
-          }}
-        >
-          + Add
-        </Link>
-        <Link
-          to="/preview"
-          style={{
-            color: location.pathname === '/preview' ? 'var(--accent)' : 'var(--text-secondary)',
-            fontSize: 14,
-          }}
-        >
-          Preview
-        </Link>
-        <Link
-          to="/setup"
-          style={{
-            color: location.pathname === '/setup' ? 'var(--accent)' : 'var(--text-secondary)',
-            fontSize: 14,
-          }}
-        >
-          Setup
-        </Link>
-        <Link
-          to="/archived"
-          style={{
-            color: location.pathname === '/archived' ? 'var(--accent)' : 'var(--text-secondary)',
-            fontSize: 14,
-          }}
-        >
-          Archived
-        </Link>
-        <Link
-          to="/feedback"
-          style={{
-            color: location.pathname.startsWith('/feedback')
-              ? 'var(--accent)'
-              : 'var(--text-secondary)',
-            fontSize: 14,
-          }}
-        >
-          Feedback
-        </Link>
-        <Link
-          to="/settings"
-          style={{
-            color: location.pathname === '/settings' ? 'var(--accent)' : 'var(--text-secondary)',
-            fontSize: 14,
-          }}
-        >
-          Settings
-        </Link>
-      </nav>
-    </header>
-  );
-}
 
 export function App() {
   return (
@@ -116,6 +29,7 @@ export function App() {
             <Route path="/feedback" element={<FeedbackList />} />
             <Route path="/feedback/:id" element={<FeedbackDetail />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/about" element={<About />} />
           </Routes>
         </main>
         <FeedbackButton />
