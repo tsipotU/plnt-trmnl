@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LightLevelTooltip } from '../components/LightLevelTooltip';
+import { DidYouMeanSplash, type SuggestionOption } from '../components/DidYouMeanSplash';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
@@ -58,6 +59,14 @@ export function AddPlant() {
   const [loading, setLoading] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Did-you-mean fallback state (issue #39). When enrichment fails, we pull
+  // the top fuzzy suggestion from /api/catalog/suggest and offer it here.
+  const [fallbackPlantId, setFallbackPlantId] = useState<number | null>(null);
+  const [fallbackTypedName, setFallbackTypedName] = useState<string>('');
+  const [fallbackSuggestion, setFallbackSuggestion] =
+    useState<SuggestionOption | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   // Track whether this is the first plant (for contextual hints + celebration)
   const [isFirstPlant, setIsFirstPlant] = useState(false);
@@ -135,13 +144,121 @@ export function AddPlant() {
       setLoading(false);
       setEnriching(true);
 
-      // Brief "enriching" moment before navigation
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      navigate(`/plants/${plant.id}`, { state: { firstPlant: isFirstPlant } });
+      await waitForEnrichment(plant.id, name.trim());
     } catch {
       setError('Network error. Please try again.');
       setLoading(false);
     }
+  }
+
+  /**
+   * Poll enrichment status. On success → navigate to the plant detail.
+   * On failure → fetch a fuzzy suggestion and show the did-you-mean splash.
+   */
+  async function waitForEnrichment(plantId: number, typedName: string): Promise<void> {
+    const deadline = Date.now() + 30_000;
+    const interval = 600;
+
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, interval));
+      try {
+        const r = await fetch(`/api/plants/${plantId}/enrichment-status`);
+        if (r.ok) {
+          const data = (await r.json()) as { enrichment_status?: string };
+          if (data && data.enrichment_status === 'complete') {
+            navigate(`/plants/${plantId}`, { state: { firstPlant: isFirstPlant } });
+            return;
+          }
+          if (data && data.enrichment_status === 'failed') {
+            await showDidYouMean(plantId, typedName);
+            return;
+          }
+        }
+      } catch {
+        // Swallow and retry until deadline — transient network blips shouldn't
+        // burn the whole enrichment flow.
+      }
+    }
+
+    // Timed out: proceed anyway — the plant detail page has its own enrichment
+    // status banner.
+    navigate(`/plants/${plantId}`, { state: { firstPlant: isFirstPlant } });
+  }
+
+  async function showDidYouMean(plantId: number, typedName: string): Promise<void> {
+    let top: SuggestionOption | null = null;
+    try {
+      const r = await fetch(
+        `/api/catalog/suggest?q=${encodeURIComponent(typedName)}&limit=1`,
+      );
+      if (r.ok) {
+        const data = (await r.json()) as SuggestionOption[] | unknown;
+        if (Array.isArray(data) && data.length > 0) {
+          top = data[0] as SuggestionOption;
+        }
+      }
+    } catch {
+      // Ignore — we'll just offer the edit-name path with no suggestion.
+    }
+
+    setEnriching(false);
+    setFallbackPlantId(plantId);
+    setFallbackTypedName(typedName);
+    setFallbackSuggestion(top);
+  }
+
+  async function handleAcceptSuggestion(suggestion: SuggestionOption): Promise<void> {
+    if (fallbackPlantId == null) return;
+    setRetrying(true);
+    try {
+      const r = await fetch(`/api/plants/${fallbackPlantId}/retry-enrichment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: suggestion.latin_name }),
+      });
+      if (!r.ok) {
+        setRetrying(false);
+        setError('Could not retry enrichment. Please edit the name and try again.');
+        setFallbackPlantId(null);
+        setFallbackSuggestion(null);
+        setFallbackTypedName('');
+        return;
+      }
+      const plantId = fallbackPlantId;
+      setFallbackPlantId(null);
+      setFallbackSuggestion(null);
+      setFallbackTypedName('');
+      setRetrying(false);
+      setEnriching(true);
+      setName(suggestion.latin_name);
+      await waitForEnrichment(plantId, suggestion.latin_name);
+    } catch {
+      setRetrying(false);
+      setError('Network error while retrying enrichment.');
+      setFallbackPlantId(null);
+      setFallbackSuggestion(null);
+      setFallbackTypedName('');
+    }
+  }
+
+  function handleEditName(): void {
+    setFallbackPlantId(null);
+    setFallbackSuggestion(null);
+    setFallbackTypedName('');
+    setRetrying(false);
+    setEnriching(false);
+  }
+
+  if (fallbackPlantId !== null) {
+    return (
+      <DidYouMeanSplash
+        typedName={fallbackTypedName}
+        suggestion={fallbackSuggestion}
+        onAccept={handleAcceptSuggestion}
+        onEdit={handleEditName}
+        retrying={retrying}
+      />
+    );
   }
 
   if (enriching) {

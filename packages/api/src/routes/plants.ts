@@ -284,6 +284,42 @@ export function createPlantsRouter(
     res.json(plant);
   });
 
+  // POST /api/plants/:id/retry-enrichment — re-run Claude enrichment, optionally
+  // with a corrected plant name (used by the #39 did-you-mean fallback).
+  router.post('/:id/retry-enrichment', (req: Request, res: Response) => {
+    const plantId = Number(req.params.id);
+    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as
+      | Record<string, unknown>
+      | undefined;
+
+    if (!plant) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+
+    const newName = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
+    if (newName.length > 0 && newName !== plant.name) {
+      db.prepare(
+        `UPDATE plants SET name = ?, updated_at = datetime('now') WHERE id = ?`
+      ).run(newName, plantId);
+      plant.name = newName;
+    }
+
+    db.prepare(
+      `UPDATE plants SET enrichment_status = 'pending', updated_at = datetime('now') WHERE id = ?`
+    ).run(plantId);
+
+    res.json({ ok: true, id: plantId, name: plant.name });
+
+    enrichPlantWithClaude(db, plantId, {
+      name: plant.name as string,
+      potSizeCm: (plant.pot_size_cm as number | null) ?? null,
+      plantSize: (plant.plant_size as string | null) ?? null,
+      location: (plant.location as string | null) ?? null,
+      lightLevel: (plant.light_level as string | null) ?? null,
+    }).catch(() => { /* logged inside enrichPlantWithClaude */ });
+  });
+
   // PUT /api/plants/:id — update plant fields
   router.put('/:id', (req: Request, res: Response) => {
     const plantId = Number(req.params.id);
