@@ -4,11 +4,20 @@ import { LightLevelTooltip } from '../components/LightLevelTooltip';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
+type SoilFeel = '' | 'bone_dry' | 'dry' | 'slightly_moist' | 'moist' | 'wet';
 
 interface ExistingPlant {
   id: number;
   name: string;
 }
+
+const SOIL_FEEL_OPTIONS: { value: Exclude<SoilFeel, ''>; label: string }[] = [
+  { value: 'bone_dry', label: 'Bone dry' },
+  { value: 'dry', label: 'Dry' },
+  { value: 'slightly_moist', label: 'Slightly moist' },
+  { value: 'moist', label: 'Moist' },
+  { value: 'wet', label: 'Wet' },
+];
 
 const POT_SIZE_OPTIONS: { value: string; label: string; cm: number }[] = [
   { value: 'Extra Small', label: 'Extra Small (5–10 cm)', cm: 8 },
@@ -36,6 +45,7 @@ export function AddPlant() {
   const [identifier, setIdentifier] = useState('');
   const [wateredWhen, setWateredWhen] = useState<WateredWhen>('today');
   const [pickedDate, setPickedDate] = useState(today());
+  const [soilFeel, setSoilFeel] = useState<SoilFeel>('');
   const [potCategory, setPotCategory] = useState<string>('');
   const [location, setLocation] = useState('');
   const [lightLevel, setLightLevel] = useState<string>('');
@@ -72,9 +82,13 @@ export function AddPlant() {
     return yesterday();
   }
 
+  const needsSoilFeel = wateredWhen === 'unknown';
+  const soilFeelMissing = needsSoilFeel && !soilFeel;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !potCategory || !location.trim() || !lightLevel) return;
+    if (soilFeelMissing) return;
 
     setLoading(true);
     setError(null);
@@ -100,6 +114,7 @@ export function AddPlant() {
           : null,
       mother_plant_id:
         originType === 'seedling' && motherPlantId ? Number(motherPlantId) : null,
+      soil_feel: needsSoilFeel && soilFeel ? soilFeel : null,
     };
 
     try {
@@ -306,7 +321,8 @@ export function AddPlant() {
           <div
             style={{
               marginTop: 10,
-              minHeight: wateredWhen === 'pick' ? 'auto' : 44,
+              minHeight:
+                wateredWhen === 'pick' || wateredWhen === 'unknown' ? 'auto' : 44,
             }}
           >
             {wateredWhen === 'pick' && (
@@ -316,6 +332,59 @@ export function AddPlant() {
                 max={today()}
                 onChange={(e) => setPickedDate(e.target.value)}
               />
+            )}
+
+            {wateredWhen === 'unknown' && (
+              <div>
+                <label
+                  htmlFor="soilFeel"
+                  style={{
+                    display: 'block',
+                    fontSize: 13,
+                    color: 'var(--text-secondary)',
+                    marginBottom: 6,
+                  }}
+                >
+                  How does the soil feel?{' '}
+                  <span
+                    style={{
+                      textTransform: 'none',
+                      letterSpacing: 0,
+                      fontSize: 12,
+                      opacity: 0.7,
+                    }}
+                  >
+                    *
+                  </span>
+                </label>
+                <select
+                  id="soilFeel"
+                  value={soilFeel}
+                  onChange={(e) => setSoilFeel(e.target.value as SoilFeel)}
+                  required
+                  aria-invalid={soilFeelMissing ? true : undefined}
+                  style={{
+                    width: '100%',
+                    borderColor: soilFeelMissing ? 'var(--danger)' : undefined,
+                  }}
+                >
+                  <option value="">Select soil feel…</option>
+                  {SOIL_FEEL_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--text-secondary)',
+                    marginTop: 4,
+                  }}
+                >
+                  Helps us calibrate the first watering interval.
+                </p>
+              </div>
             )}
           </div>
 
@@ -528,14 +597,28 @@ export function AddPlant() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading || !name.trim() || !potCategory || !location.trim() || !lightLevel}
+          disabled={
+            loading ||
+            !name.trim() ||
+            !potCategory ||
+            !location.trim() ||
+            !lightLevel ||
+            soilFeelMissing
+          }
           style={{
             width: '100%',
             fontSize: 17,
             fontWeight: 600,
             padding: '14px 0',
             borderRadius: 12,
-            opacity: !name.trim() || !potCategory || !location.trim() || !lightLevel ? 0.5 : 1,
+            opacity:
+              !name.trim() ||
+              !potCategory ||
+              !location.trim() ||
+              !lightLevel ||
+              soilFeelMissing
+                ? 0.5
+                : 1,
             marginTop: 4,
           }}
         >
