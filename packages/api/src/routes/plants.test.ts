@@ -54,6 +54,24 @@ function catalogFixture(): CatalogEntry[] {
       common_conditions: ['yellowing leaves'],
       lore: 'Named for its holey leaves, reminiscent of Swiss cheese.',
       etymology: 'Monstera from Latin "monstrum"; deliciosa refers to the edible fruit.',
+      light_profile: {
+        ideal: 'bright_indirect',
+        tolerance_min: 'medium',
+        tolerance_max: 'bright_indirect',
+        direct_sun_hours: 'Max 2 hours morning sun',
+        too_little_symptoms: 'No fenestrations; leggy growth',
+        too_much_symptoms: 'Bleached, crispy leaves',
+      },
+      placement_tips: ['2m from an east window'],
+      conditions: Array.from({ length: 15 }, (_, i) => ({
+        name: `Condition ${i + 1}`,
+        symptoms: `Symptoms ${i + 1}`,
+        remedy: `Remedy ${i + 1}`,
+        severity: 'info' as const,
+        prevention: `Prevention ${i + 1}`,
+        is_common: i < 5,
+      })),
+      facts: Array.from({ length: 15 }, (_, i) => `Monstera fact ${i + 1}`),
     },
   ];
 }
@@ -635,6 +653,201 @@ describe('GET /api/plants/:id', () => {
   });
 });
 
+describe('POST /api/plants — catalog fact seeding (#4)', () => {
+  it('seeds 15 catalog facts when plant name matches an entry', async () => {
+    const { app, db } = createTestAppWithCatalog(catalogFixture());
+
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-10' });
+    expect(res.status).toBe(201);
+
+    const plantId = res.body.id as number;
+    const facts = db
+      .prepare(
+        `SELECT text, source, plant_id, species FROM facts
+         WHERE source = 'catalog' AND plant_id = ?`,
+      )
+      .all(plantId) as Array<{
+        text: string;
+        source: string;
+        plant_id: number;
+        species: string;
+      }>;
+
+    expect(facts).toHaveLength(15);
+    expect(facts.every((f) => f.source === 'catalog')).toBe(true);
+    expect(facts.every((f) => f.plant_id === plantId)).toBe(true);
+    expect(facts.every((f) => f.species === 'Monstera deliciosa')).toBe(true);
+    expect(facts.every((f) => f.text.length > 0)).toBe(true);
+
+    db.close();
+  });
+
+  it('seeds catalog facts when plant name matches a common name', async () => {
+    const { app, db } = createTestAppWithCatalog(catalogFixture());
+
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Swiss cheese plant', lastWateredAt: '2026-04-10' });
+    expect(res.status).toBe(201);
+
+    const catalogCount = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE source = 'catalog'`)
+      .get() as { n: number };
+    expect(catalogCount.n).toBe(15);
+
+    db.close();
+  });
+
+  it('inserts no catalog facts when plant name has no catalog match', async () => {
+    const { app, db } = createTestAppWithCatalog(catalogFixture());
+
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Totally made up plant', lastWateredAt: '2026-04-10' });
+    expect(res.status).toBe(201);
+
+    const catalogFacts = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE source = 'catalog'`)
+      .get() as { n: number };
+    expect(catalogFacts.n).toBe(0);
+
+    db.close();
+  });
+
+  it('inserts no catalog facts when no catalog is wired', async () => {
+    const { app, db } = createTestApp();
+
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-10' });
+    expect(res.status).toBe(201);
+
+    const facts = db.prepare(`SELECT COUNT(*) AS n FROM facts`).get() as { n: number };
+    expect(facts.n).toBe(0);
+
+    db.close();
+  });
+
+  it('dedups: second plant of same species does not duplicate catalog facts', async () => {
+    const { app, db } = createTestAppWithCatalog(catalogFixture());
+
+    const first = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-10' });
+    expect(first.status).toBe(201);
+
+    const second = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-11' });
+    expect(second.status).toBe(201);
+
+    const catalogCount = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE source = 'catalog'`)
+      .get() as { n: number };
+    expect(catalogCount.n).toBe(15);
+
+    // All facts still linked to the first plant, not re-keyed to the second.
+    const firstPlantFacts = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE plant_id = ?`)
+      .get(first.body.id) as { n: number };
+    expect(firstPlantFacts.n).toBe(15);
+
+    db.close();
+  });
+
+  it('does not dedup across different species', async () => {
+    const entries = catalogFixture();
+    // Add a second species entry so we can check dedup is species-scoped.
+    entries.push({
+      ...entries[0],
+      slug: 'pothos',
+      latin_name: 'Epipremnum aureum',
+      aliases: [],
+      common_names: { en: ['Pothos'], nl: ['Scindapsus'] },
+      facts: Array.from({ length: 15 }, (_, i) => `Pothos fact ${i + 1}`),
+    });
+    const { app, db } = createTestAppWithCatalog(entries);
+
+    await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-10' });
+    await request(app)
+      .post('/api/plants')
+      .send({ name: 'Pothos', lastWateredAt: '2026-04-11' });
+
+    const totals = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE source = 'catalog'`)
+      .get() as { n: number };
+    expect(totals.n).toBe(30);
+
+    db.close();
+  });
+
+  it('does not touch enrichment-sourced facts', async () => {
+    const { app, db } = createTestAppWithCatalog(catalogFixture());
+
+    const res = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-10' });
+    const plantId = res.body.id as number;
+
+    // Simulate enrichment adding its own fact afterwards.
+    db.prepare(
+      `INSERT INTO facts (plant_id, text, source) VALUES (?, 'enrichment fact', 'enrichment')`,
+    ).run(plantId);
+
+    const bySource = db
+      .prepare(`SELECT source, COUNT(*) AS n FROM facts GROUP BY source`)
+      .all() as Array<{ source: string; n: number }>;
+    const map = Object.fromEntries(bySource.map((r) => [r.source, r.n]));
+    expect(map['catalog']).toBe(15);
+    expect(map['enrichment']).toBe(1);
+
+    db.close();
+  });
+
+  it('re-enables previously disabled catalog facts when a new plant of the species is added', async () => {
+    const { app, db } = createTestAppWithCatalog(catalogFixture());
+
+    const first = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-10' });
+    expect(first.status).toBe(201);
+    // Enrichment normally sets species; for this archive-cascade scenario
+    // we simulate that by writing the species column manually.
+    db.prepare(`UPDATE plants SET species = 'Monstera deliciosa' WHERE id = ?`).run(first.body.id);
+
+    await request(app)
+      .post(`/api/plants/${first.body.id}/archive`)
+      .send({ reason: 'died' });
+
+    const disabledCount = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE is_disabled = 1 AND source = 'catalog'`)
+      .get() as { n: number };
+    expect(disabledCount.n).toBe(15);
+
+    // New Monstera: should re-enable rather than re-insert.
+    const second = await request(app)
+      .post('/api/plants')
+      .send({ name: 'Monstera deliciosa', lastWateredAt: '2026-04-20' });
+    expect(second.status).toBe(201);
+
+    const stillDisabled = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE is_disabled = 1 AND source = 'catalog'`)
+      .get() as { n: number };
+    expect(stillDisabled.n).toBe(0);
+
+    const totalCatalog = db
+      .prepare(`SELECT COUNT(*) AS n FROM facts WHERE source = 'catalog'`)
+      .get() as { n: number };
+    expect(totalCatalog.n).toBe(15);
+
+    db.close();
+  });
+});
+
 describe('PUT /api/plants/:id', () => {
   let app: express.Express;
   let db: Database.Database;
@@ -1119,6 +1332,32 @@ describe('POST /api/plants/:id/archive', () => {
       is_disabled: number;
     }>;
     expect(facts[0].is_disabled).toBe(0);
+  });
+
+  it('soft-disables catalog-sourced facts when last plant of species is archived (#4)', async () => {
+    // Catalog facts are shared across plants of the same species — the
+    // cascade must match by `facts.species`, not just `facts.plant_id`.
+    const { lastInsertRowid: ownerId } = db.prepare(
+      `INSERT INTO plants (name, species, base_interval, current_interval, next_water_date)
+       VALUES ('First Monstera', 'Monstera deliciosa', 7, 7, '2026-04-10')`
+    ).run();
+    // Attach catalog-sourced facts with species column set.
+    db.prepare(
+      `INSERT INTO facts (plant_id, species, text, source)
+       VALUES (?, 'Monstera deliciosa', 'Monstera climb trees', 'catalog')`
+    ).run(ownerId);
+    db.prepare(
+      `INSERT INTO facts (plant_id, species, text, source)
+       VALUES (?, 'Monstera deliciosa', 'Fruit tastes tropical', 'catalog')`
+    ).run(ownerId);
+
+    await request(app).post(`/api/plants/${ownerId}/archive`).send({ reason: 'died' });
+
+    const facts = db.prepare(
+      `SELECT is_disabled FROM facts WHERE species = 'Monstera deliciosa'`
+    ).all() as Array<{ is_disabled: number }>;
+    expect(facts).toHaveLength(2);
+    expect(facts.every((f) => f.is_disabled === 1)).toBe(true);
   });
 
   it('returns 404 for unknown plant', async () => {

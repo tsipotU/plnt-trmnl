@@ -78,6 +78,13 @@ export interface CatalogEntry {
   lore?: string;
   /** Naming origin / word roots (issue #37). Optional. */
   etymology?: string;
+  /**
+   * Species-specific facts (issue #4). Exactly 15 per species, seeded into
+   * the facts table on plant creation with `source='catalog'`. Mix of care
+   * tips (≥3), botanical trivia (≥3), cultural/historical (≥2), and
+   * fun/surprising (≥2). Rest is free-form.
+   */
+  facts: string[];
 }
 
 /**

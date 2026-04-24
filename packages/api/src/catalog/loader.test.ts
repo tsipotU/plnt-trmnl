@@ -20,6 +20,10 @@ function makeConditions(count = 15): CatalogCondition[] {
   return out;
 }
 
+function makeFacts(count = 15): string[] {
+  return Array.from({ length: count }, (_, i) => `Fact ${i + 1}`);
+}
+
 function makeEntry(overrides: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
     slug: 'sansevieria-trifasciata',
@@ -54,6 +58,7 @@ function makeEntry(overrides: Partial<CatalogEntry> = {}): CatalogEntry {
       'Tolerates dry indoor air',
     ],
     conditions: makeConditions(),
+    facts: makeFacts(),
     ...overrides,
   };
 }
@@ -202,6 +207,65 @@ describe('catalog loader', () => {
       expect(entry?.light_profile.ideal).toBe('medium');
       expect(entry?.placement_tips.length).toBeGreaterThan(0);
       expect(entry?.conditions).toHaveLength(15);
+    });
+
+    // Issue #4: facts array validation.
+    it('throws when facts is missing', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally malformed
+      delete bad.facts;
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/facts/);
+    });
+
+    it('throws when facts is not an array', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally malformed
+      bad.facts = 'not an array';
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/facts.*array/i);
+    });
+
+    it('throws when facts has fewer than 15 entries', () => {
+      const bad = makeEntry({ facts: makeFacts(10) });
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/15/);
+    });
+
+    it('throws when facts has more than 15 entries', () => {
+      const bad = makeEntry({ facts: makeFacts(20) });
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/15/);
+    });
+
+    it('throws when a fact is an empty string', () => {
+      const bad = makeEntry();
+      bad.facts[3] = '';
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/facts\[3\]/);
+    });
+
+    it('throws when a fact is whitespace-only', () => {
+      const bad = makeEntry();
+      bad.facts[7] = '   ';
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/facts\[7\]/);
+    });
+
+    it('throws when a fact is not a string', () => {
+      const bad = makeEntry();
+      // @ts-expect-error intentionally malformed
+      bad.facts[0] = 42;
+      const p = tmp(JSON.stringify([bad]));
+      expect(() => loadCatalog(p)).toThrow(/facts\[0\]/);
+    });
+
+    it('accepts an entry with exactly 15 non-empty facts', () => {
+      const good = makeEntry();
+      const p = tmp(JSON.stringify([good]));
+      const catalog = loadCatalog(p);
+      const entry = catalog.get('sansevieria-trifasciata');
+      expect(entry?.facts).toHaveLength(15);
     });
   });
 
