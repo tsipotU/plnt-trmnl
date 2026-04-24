@@ -1,0 +1,752 @@
+[
+  {
+    "slug": "sansevieria-trifasciata",
+    "latin_name": "Sansevieria trifasciata",
+    "aliases": ["Dracaena trifasciata"],
+    "common_names": {
+      "en": ["Snake plant", "Mother-in-law's tongue"],
+      "nl": ["Vrouwentong", "Sanseveria"]
+    },
+    "category": "foliage",
+    "care": {
+      "base_interval_days": 14,
+      "light_preference": "medium",
+      "placement_hints": "Tolerates low light; drought-tolerant; avoid overwatering.",
+      "toxicity": "Mildly toxic to pets (saponins).",
+      "size_category": "medium",
+      "difficulty": "beginner"
+    },
+    "origin": "West Africa",
+    "common_conditions": [
+      "root rot from overwatering",
+      "leaf curl from underwatering",
+      "mealybugs",
+      "brown leaf tips from low humidity"
+    ]
+  },
+  {
+    "slug": "monstera-deliciosa",
+    "latin_name": "Monstera deliciosa",
+    "aliases": ["Split-leaf philodendron"],
+    "common_names": {
+      "en": ["Swiss cheese plant", "Monstera"],
+      "nl": ["Gatenplant", "Monstera"]
+    },
+    "category": "foliage",
+    "care": {
+      "base_interval_days": 7,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Likes a moss pole or stake; keep away from direct sun.",
+      "toxicity": "Toxic to pets (calcium oxalate crystals).",
+      "size_category": "large",
+      "difficulty": "beginner"
+    },
+    "origin": "Southern Mexico and Central America",
+    "common_conditions": [
+      "yellowing leaves from overwatering",
+      "no fenestrations from low light",
+      "spider mites",
+      "root rot"
+    ]
+  },
+  {
+    "slug": "epipremnum-aureum",
+    "latin_name": "Epipremnum aureum",
+    "aliases": ["Scindapsus aureus", "Golden pothos"],
+    "common_names": {
+      "en": ["Pothos", "Devil's ivy", "Golden pothos"],
+      "nl": ["Scindapsus", "Epipremnum"]
+    },
+    "category": "foliage",
+    "care": {
+      "base_interval_days": 7,
+      "light_preference": "medium",
+      "placement_hints": "Trailing vine; tolerates neglect; great for shelves and hangers.",
+      "toxicity": "Toxic to pets and humans if ingested.",
+      "size_category": "small",
+      "difficulty": "beginner"
+    },
+    "origin": "Mo'orea, French Polynesia",
+    "common_conditions": [
+      "limp leaves from underwatering",
+      "root rot from soggy soil",
+      "pale leaves from too much sun",
+      "leggy growth in low light"
+    ]
+  },
+  {
+    "slug": "zamioculcas-zamiifolia",
+    "latin_name": "Zamioculcas zamiifolia",
+    "aliases": ["ZZ plant"],
+    "common_names": {
+      "en": ["ZZ plant", "Zanzibar gem"],
+      "nl": ["ZZ-plant", "Zamioculcas"]
+    },
+    "category": "foliage",
+    "care": {
+      "base_interval_days": 21,
+      "light_preference": "low",
+      "placement_hints": "Extremely drought-tolerant; let soil dry fully between waterings.",
+      "toxicity": "Mildly toxic to pets and humans.",
+      "size_category": "medium",
+      "difficulty": "beginner"
+    },
+    "origin": "Eastern Africa",
+    "common_conditions": [
+      "yellow stems from overwatering",
+      "root/rhizome rot",
+      "brown leaf tips from fluoridated water",
+      "stretched growth in very low light"
+    ]
+  },
+  {
+    "slug": "phalaenopsis",
+    "latin_name": "Phalaenopsis",
+    "aliases": ["Moth orchid"],
+    "common_names": {
+      "en": ["Orchid", "Moth orchid", "Phalaenopsis orchid"],
+      "nl": ["Vlinderorchidee", "Orchidee", "Phalaenopsis"]
+    },
+    "category": "flowering",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "bright_indirect",
+      "placement_hints": "East-facing window ideal; soak-and-drain watering; orchid bark mix.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "intermediate"
+    },
+    "origin": "Southeast Asia and northern Australia",
+    "common_conditions": [
+      "root rot from sitting water",
+      "limp leaves from dehydration",
+      "bud blast from drafts",
+      "no reblooming without cool night temps"
+    ]
+  },
+  {
+    "slug": "spathiphyllum-wallisii",
+    "latin_name": "Spathiphyllum wallisii",
+    "aliases": ["Spathiphyllum"],
+    "common_names": {
+      "en": ["Peace lily"],
+      "nl": ["Lepelplant", "Eenblad"]
+    },
+    "category": "flowering",
+    "care": {
+      "base_interval_days": 5,
+      "light_preference": "medium",
+      "placement_hints": "Dramatic wilting signals thirst; recovers within hours after watering.",
+      "toxicity": "Toxic to pets (calcium oxalate).",
+      "size_category": "medium",
+      "difficulty": "beginner"
+    },
+    "origin": "Tropical Americas",
+    "common_conditions": [
+      "wilting from underwatering",
+      "brown leaf tips from tap water minerals",
+      "yellow leaves from overwatering",
+      "no blooms in low light"
+    ]
+  },
+  {
+    "slug": "saintpaulia-ionantha",
+    "latin_name": "Saintpaulia ionantha",
+    "aliases": ["Streptocarpus ionanthus"],
+    "common_names": {
+      "en": ["African violet"],
+      "nl": ["Kaaps viooltje", "Afrikaans viooltje"]
+    },
+    "category": "flowering",
+    "care": {
+      "base_interval_days": 7,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Bottom-water to keep crowns dry; consistent temps around 20 C.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "intermediate"
+    },
+    "origin": "Tanzania and Kenya",
+    "common_conditions": [
+      "crown rot from water on leaves",
+      "leaf spots from cold water",
+      "no blooms from insufficient light",
+      "powdery mildew in humid air"
+    ]
+  },
+  {
+    "slug": "anthurium-andraeanum",
+    "latin_name": "Anthurium andraeanum",
+    "aliases": [],
+    "common_names": {
+      "en": ["Anthurium", "Flamingo flower"],
+      "nl": ["Flamingoplant", "Anthurium"]
+    },
+    "category": "flowering",
+    "care": {
+      "base_interval_days": 7,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Loves humidity; chunky aroid mix; keep off cold windowsills.",
+      "toxicity": "Toxic to pets (calcium oxalate).",
+      "size_category": "medium",
+      "difficulty": "intermediate"
+    },
+    "origin": "Colombia and Ecuador",
+    "common_conditions": [
+      "yellow leaves from overwatering",
+      "brown leaf tips from dry air",
+      "no new flowers in low light",
+      "spider mites"
+    ]
+  },
+  {
+    "slug": "aloe-vera",
+    "latin_name": "Aloe vera",
+    "aliases": ["Aloe barbadensis miller"],
+    "common_names": {
+      "en": ["Aloe vera", "True aloe"],
+      "nl": ["Aloë vera"]
+    },
+    "category": "succulents",
+    "care": {
+      "base_interval_days": 21,
+      "light_preference": "direct",
+      "placement_hints": "South-facing windowsill; gritty succulent mix; minimal water in winter.",
+      "toxicity": "Mildly toxic to pets; topical gel is safe for humans.",
+      "size_category": "small",
+      "difficulty": "beginner"
+    },
+    "origin": "Arabian Peninsula",
+    "common_conditions": [
+      "mushy leaves from overwatering",
+      "brown tips from sunburn when moved suddenly",
+      "etiolation in low light",
+      "scale insects"
+    ]
+  },
+  {
+    "slug": "haworthiopsis-attenuata",
+    "latin_name": "Haworthiopsis attenuata",
+    "aliases": ["Haworthia attenuata"],
+    "common_names": {
+      "en": ["Zebra plant", "Zebra haworthia"],
+      "nl": ["Zebraplant", "Haworthia"]
+    },
+    "category": "succulents",
+    "care": {
+      "base_interval_days": 21,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Unlike most succulents, prefers bright indirect over direct sun.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "beginner"
+    },
+    "origin": "Eastern Cape, South Africa",
+    "common_conditions": [
+      "soft mushy leaves from overwatering",
+      "red/purple leaves from sun stress",
+      "root rot",
+      "pale closed rosette in low light"
+    ]
+  },
+  {
+    "slug": "echeveria-elegans",
+    "latin_name": "Echeveria elegans",
+    "aliases": [],
+    "common_names": {
+      "en": ["Mexican snowball", "Echeveria"],
+      "nl": ["Echeveria", "Mexicaanse sneeuwbal"]
+    },
+    "category": "succulents",
+    "care": {
+      "base_interval_days": 14,
+      "light_preference": "direct",
+      "placement_hints": "Full sun for tight rosette; water from below to keep leaves dry.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "beginner"
+    },
+    "origin": "Mexico",
+    "common_conditions": [
+      "stretched rosette from insufficient light",
+      "rot from water in rosette",
+      "mealybugs",
+      "sunburn when suddenly moved to direct sun"
+    ]
+  },
+  {
+    "slug": "crassula-ovata",
+    "latin_name": "Crassula ovata",
+    "aliases": [],
+    "common_names": {
+      "en": ["Jade plant", "Money plant", "Lucky plant"],
+      "nl": ["Jadeplant", "Jadeboompje"]
+    },
+    "category": "succulents",
+    "care": {
+      "base_interval_days": 18,
+      "light_preference": "direct",
+      "placement_hints": "Develops red leaf margins in full sun; prune for bonsai-like shape.",
+      "toxicity": "Toxic to pets.",
+      "size_category": "medium",
+      "difficulty": "beginner"
+    },
+    "origin": "South Africa and Mozambique",
+    "common_conditions": [
+      "leaf drop from cold drafts",
+      "soft trunk from overwatering",
+      "powdery mildew",
+      "mealybugs in leaf joints"
+    ]
+  },
+  {
+    "slug": "schlumbergera-truncata",
+    "latin_name": "Schlumbergera truncata",
+    "aliases": ["Zygocactus truncatus"],
+    "common_names": {
+      "en": ["Christmas cactus", "Thanksgiving cactus", "Holiday cactus"],
+      "nl": ["Kerstcactus", "Lidcactus"]
+    },
+    "category": "cacti",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Epiphytic — unlike desert cacti wants richer mix and regular water; needs cool dark nights to set buds.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "intermediate"
+    },
+    "origin": "Coastal mountains of southeastern Brazil",
+    "common_conditions": [
+      "bud drop from location changes",
+      "limp wrinkled segments from dehydration",
+      "root rot from heavy soil",
+      "no blooms without cool fall nights"
+    ]
+  },
+  {
+    "slug": "ferocactus-wislizeni",
+    "latin_name": "Ferocactus wislizeni",
+    "aliases": [],
+    "common_names": {
+      "en": ["Fishhook barrel cactus", "Barrel cactus"],
+      "nl": ["Vishaakcactus", "Tonnencactus"]
+    },
+    "category": "cacti",
+    "care": {
+      "base_interval_days": 30,
+      "light_preference": "direct",
+      "placement_hints": "Gritty mineral mix; no water at all Nov-Feb; sunniest spot you have.",
+      "toxicity": "Non-toxic (spines aside).",
+      "size_category": "medium",
+      "difficulty": "beginner"
+    },
+    "origin": "Sonoran Desert (US and Mexico)",
+    "common_conditions": [
+      "basal rot from winter watering",
+      "etiolated tip from low light",
+      "corky scarring from physical damage",
+      "scale"
+    ]
+  },
+  {
+    "slug": "mammillaria-elongata",
+    "latin_name": "Mammillaria elongata",
+    "aliases": [],
+    "common_names": {
+      "en": ["Ladyfinger cactus", "Gold lace cactus"],
+      "nl": ["Mammillaria", "Speldenkussencactus"]
+    },
+    "category": "cacti",
+    "care": {
+      "base_interval_days": 21,
+      "light_preference": "direct",
+      "placement_hints": "Clumping habit; terracotta pot helps dry out between waterings.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "beginner"
+    },
+    "origin": "Central Mexico",
+    "common_conditions": [
+      "rot from damp cool conditions",
+      "pale elongated growth from low light",
+      "red spider mites",
+      "no blooms without cold dry winter rest"
+    ]
+  },
+  {
+    "slug": "ficus-lyrata",
+    "latin_name": "Ficus lyrata",
+    "aliases": [],
+    "common_names": {
+      "en": ["Fiddle leaf fig", "Fiddle-leaf fig"],
+      "nl": ["Tabaksplant", "Vioolbladplant"]
+    },
+    "category": "indoor_trees",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Hates being moved; rotate quarterly; wipe leaves monthly.",
+      "toxicity": "Toxic to pets (sap).",
+      "size_category": "tree",
+      "difficulty": "intermediate"
+    },
+    "origin": "Western Africa",
+    "common_conditions": [
+      "brown crunchy edges from underwatering",
+      "brown dark spots from root rot",
+      "leaf drop from moving or drafts",
+      "spider mites and mealybugs"
+    ]
+  },
+  {
+    "slug": "ficus-elastica",
+    "latin_name": "Ficus elastica",
+    "aliases": [],
+    "common_names": {
+      "en": ["Rubber tree", "Rubber plant", "Indian rubber fig"],
+      "nl": ["Rubberboom", "Rubberplant"]
+    },
+    "category": "indoor_trees",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Burgundy and variegated forms need more light than the plain green.",
+      "toxicity": "Toxic to pets (latex sap).",
+      "size_category": "tree",
+      "difficulty": "beginner"
+    },
+    "origin": "Northeast India, Nepal, Southeast Asia",
+    "common_conditions": [
+      "leaf drop from overwatering",
+      "drooping from underwatering",
+      "fading variegation in low light",
+      "scale insects"
+    ]
+  },
+  {
+    "slug": "pachira-aquatica",
+    "latin_name": "Pachira aquatica",
+    "aliases": [],
+    "common_names": {
+      "en": ["Money tree", "Guiana chestnut"],
+      "nl": ["Geluksboom", "Pachira"]
+    },
+    "category": "indoor_trees",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Commonly sold with braided trunks; tolerates a bit more water than most houseplants.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "tree",
+      "difficulty": "beginner"
+    },
+    "origin": "Central and South America swamps",
+    "common_conditions": [
+      "yellow dropping leaves from overwatering",
+      "crispy tips from dry air",
+      "leggy growth in low light",
+      "spider mites"
+    ]
+  },
+  {
+    "slug": "dracaena-marginata",
+    "latin_name": "Dracaena marginata",
+    "aliases": [],
+    "common_names": {
+      "en": ["Dragon tree", "Madagascar dragon tree"],
+      "nl": ["Drakenbloedboom", "Dracaena"]
+    },
+    "category": "indoor_trees",
+    "care": {
+      "base_interval_days": 14,
+      "light_preference": "medium",
+      "placement_hints": "Tolerates lower light; sensitive to fluoride and chlorine in tap water.",
+      "toxicity": "Toxic to pets.",
+      "size_category": "tree",
+      "difficulty": "beginner"
+    },
+    "origin": "Madagascar and Mauritius",
+    "common_conditions": [
+      "brown leaf tips from tap water fluoride",
+      "yellow leaves from overwatering",
+      "thrips",
+      "bare stems from very low light"
+    ]
+  },
+  {
+    "slug": "nephrolepis-exaltata",
+    "latin_name": "Nephrolepis exaltata",
+    "aliases": [],
+    "common_names": {
+      "en": ["Boston fern", "Sword fern"],
+      "nl": ["Krulvaren", "Bostonvaren"]
+    },
+    "category": "ferns",
+    "care": {
+      "base_interval_days": 4,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Needs high humidity; bathroom or grouped with other plants; never let the rootball dry.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "medium",
+      "difficulty": "intermediate"
+    },
+    "origin": "Humid tropics worldwide",
+    "common_conditions": [
+      "crispy brown fronds from dry air",
+      "yellowing from cold drafts",
+      "shedding in low humidity",
+      "scale and mealybugs"
+    ]
+  },
+  {
+    "slug": "adiantum-raddianum",
+    "latin_name": "Adiantum raddianum",
+    "aliases": [],
+    "common_names": {
+      "en": ["Maidenhair fern"],
+      "nl": ["Venushaar", "Adiantum"]
+    },
+    "category": "ferns",
+    "care": {
+      "base_interval_days": 3,
+      "light_preference": "bright_indirect",
+      "placement_hints": "The diva fern — wants constant moisture, high humidity, no direct sun.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "expert"
+    },
+    "origin": "Tropical Americas",
+    "common_conditions": [
+      "fronds crisping within hours of drying out",
+      "brown edges from dry air",
+      "bleached fronds from direct sun",
+      "spider mites in warm dry rooms"
+    ]
+  },
+  {
+    "slug": "asplenium-nidus",
+    "latin_name": "Asplenium nidus",
+    "aliases": [],
+    "common_names": {
+      "en": ["Bird's nest fern"],
+      "nl": ["Nestvaren", "Asplenium"]
+    },
+    "category": "ferns",
+    "care": {
+      "base_interval_days": 7,
+      "light_preference": "medium",
+      "placement_hints": "Water into the soil, never the central crown rosette.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "medium",
+      "difficulty": "intermediate"
+    },
+    "origin": "East Africa, tropical Asia, Australia",
+    "common_conditions": [
+      "crown rot from water in center",
+      "wavy brown frond edges from low humidity",
+      "scale on frond undersides",
+      "pale fronds in very low light"
+    ]
+  },
+  {
+    "slug": "chamaedorea-elegans",
+    "latin_name": "Chamaedorea elegans",
+    "aliases": [],
+    "common_names": {
+      "en": ["Parlor palm", "Neanthe bella palm"],
+      "nl": ["Bergpalm", "Mexicaanse dwergpalm"]
+    },
+    "category": "palms",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "medium",
+      "placement_hints": "One of the few palms that genuinely tolerates lower light.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "medium",
+      "difficulty": "beginner"
+    },
+    "origin": "Southern Mexico and Guatemala",
+    "common_conditions": [
+      "brown tips from low humidity",
+      "yellow fronds from overwatering",
+      "spider mites in dry air",
+      "scale insects"
+    ]
+  },
+  {
+    "slug": "howea-forsteriana",
+    "latin_name": "Howea forsteriana",
+    "aliases": [],
+    "common_names": {
+      "en": ["Kentia palm"],
+      "nl": ["Kentiapalm"]
+    },
+    "category": "palms",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "medium",
+      "placement_hints": "Classic Victorian parlour palm; slow-growing but long-lived.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "tree",
+      "difficulty": "beginner"
+    },
+    "origin": "Lord Howe Island, Australia",
+    "common_conditions": [
+      "brown tips from dry air or fluoride",
+      "yellow fronds from overwatering",
+      "spider mites",
+      "slow recovery from any damage"
+    ]
+  },
+  {
+    "slug": "dypsis-lutescens",
+    "latin_name": "Dypsis lutescens",
+    "aliases": ["Chrysalidocarpus lutescens"],
+    "common_names": {
+      "en": ["Areca palm", "Golden cane palm", "Butterfly palm"],
+      "nl": ["Arecapalm", "Goudpalm", "Goudgele palm"]
+    },
+    "category": "palms",
+    "care": {
+      "base_interval_days": 7,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Thirstier than most palms; wants consistently moist but not soggy soil.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "large",
+      "difficulty": "intermediate"
+    },
+    "origin": "Madagascar",
+    "common_conditions": [
+      "brown tips from underwatering or tap water",
+      "yellow fronds from overwatering",
+      "spider mites in dry air",
+      "mealybugs"
+    ]
+  },
+  {
+    "slug": "ravenea-rivularis",
+    "latin_name": "Ravenea rivularis",
+    "aliases": [],
+    "common_names": {
+      "en": ["Majesty palm"],
+      "nl": ["Majesteitspalm"]
+    },
+    "category": "palms",
+    "care": {
+      "base_interval_days": 5,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Riverbank palm — wants lots of light and lots of water; struggles in average living rooms.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "tree",
+      "difficulty": "intermediate"
+    },
+    "origin": "Madagascar",
+    "common_conditions": [
+      "brown crispy fronds from low humidity",
+      "yellowing from under-light",
+      "spider mites",
+      "rapid decline in dry heated rooms"
+    ]
+  },
+  {
+    "slug": "tillandsia-ionantha",
+    "latin_name": "Tillandsia ionantha",
+    "aliases": [],
+    "common_names": {
+      "en": ["Sky plant", "Blushing bride"],
+      "nl": ["Luchtplant", "Tillandsia"]
+    },
+    "category": "air_plants",
+    "care": {
+      "base_interval_days": 7,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Soak 20-30 min weekly, shake out, dry upside down; never sit in water.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "beginner"
+    },
+    "origin": "Central America",
+    "common_conditions": [
+      "rot from water trapped in base",
+      "browning tips from dry air",
+      "fading from insufficient light",
+      "mushy base from sitting wet"
+    ]
+  },
+  {
+    "slug": "tillandsia-xerographica",
+    "latin_name": "Tillandsia xerographica",
+    "aliases": [],
+    "common_names": {
+      "en": ["Queen of air plants", "Xerographica"],
+      "nl": ["Koningin-luchtplant", "Xerographica"]
+    },
+    "category": "air_plants",
+    "care": {
+      "base_interval_days": 14,
+      "light_preference": "direct",
+      "placement_hints": "Xeric species — prefers misting and short dunks over long soaks.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "medium",
+      "difficulty": "intermediate"
+    },
+    "origin": "Mexico to El Salvador",
+    "common_conditions": [
+      "rot from over-soaking",
+      "curled tips from underwatering",
+      "brown center from water sitting in base",
+      "sunburn from direct midday sun through glass"
+    ]
+  },
+  {
+    "slug": "tillandsia-usneoides",
+    "latin_name": "Tillandsia usneoides",
+    "aliases": [],
+    "common_names": {
+      "en": ["Spanish moss", "Old man's beard"],
+      "nl": ["Spaans mos", "Louisianamos"]
+    },
+    "category": "air_plants",
+    "care": {
+      "base_interval_days": 5,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Hang with good airflow; mist daily or dunk 2-3 times a week.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "intermediate"
+    },
+    "origin": "Southeastern US to South America",
+    "common_conditions": [
+      "browning from stagnant air",
+      "thinning from too little water",
+      "rot from staying wet against a surface",
+      "fading in low light"
+    ]
+  },
+  {
+    "slug": "tillandsia-caput-medusae",
+    "latin_name": "Tillandsia caput-medusae",
+    "aliases": [],
+    "common_names": {
+      "en": ["Medusa's head", "Octopus plant"],
+      "nl": ["Medusakop", "Octopusplant"]
+    },
+    "category": "air_plants",
+    "care": {
+      "base_interval_days": 10,
+      "light_preference": "bright_indirect",
+      "placement_hints": "Mount with base slightly elevated so water runs off; bulb-base tolerates dry.",
+      "toxicity": "Non-toxic to pets.",
+      "size_category": "small",
+      "difficulty": "beginner"
+    },
+    "origin": "Central America",
+    "common_conditions": [
+      "rot in the hollow bulb base from trapped water",
+      "curling leaves from underwatering",
+      "pale color in low light",
+      "loss of leaves from extreme dryness"
+    ]
+  }
+]
