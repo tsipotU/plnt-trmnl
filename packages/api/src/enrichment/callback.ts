@@ -45,7 +45,7 @@ interface PlantRow {
 export function createEnrichmentRouter(db: Database.Database): Router {
   const router = Router();
 
-  // POST /api/enrichment/callback — receives enrichment result from n8n
+  // POST /api/enrichment/callback — receives enrichment result from the external enrichment agent
   router.post('/callback', (req: Request, res: Response) => {
     const body = req.body as EnrichmentCallbackBody;
     const plantId = body.plant_id;
@@ -139,7 +139,7 @@ export function createEnrichmentRouter(db: Database.Database): Router {
       plantId,
       eventType: 'enrichment_complete',
       newValue: String(newInterval),
-      reason: 'Enrichment data received from n8n',
+      reason: 'Enrichment data received via callback',
     });
 
     if (scheduled) {
