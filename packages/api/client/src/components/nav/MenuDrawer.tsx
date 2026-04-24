@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface MenuDrawerProps {
   open: boolean;
@@ -6,6 +7,27 @@ interface MenuDrawerProps {
 }
 
 export function MenuDrawer({ open, onClose }: MenuDrawerProps) {
+  const location = useLocation();
+  const initialPathname = useRef(location.pathname);
+
+  // Escape closes while open
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  // Route change closes (skip initial mount by comparing with initial pathname)
+  useEffect(() => {
+    if (open && location.pathname !== initialPathname.current) {
+      onClose();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   return (
     <>
       {open && (

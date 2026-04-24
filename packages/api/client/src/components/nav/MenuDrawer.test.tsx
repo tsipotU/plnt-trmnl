@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
+import { Routes, Route, Link, MemoryRouter } from 'react-router-dom';
 import { MenuDrawer } from './MenuDrawer';
 
 function renderDrawer(open: boolean, onClose = vi.fn()) {
@@ -52,5 +53,61 @@ describe('MenuDrawer — skeleton', () => {
       </MemoryRouter>,
     );
     expect(document.querySelector('[data-testid="menu-backdrop"]')).not.toBeNull();
+  });
+});
+
+describe('MenuDrawer — close affordances', () => {
+  it('calls onClose when Escape is pressed', async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={true} onClose={onClose} />
+      </MemoryRouter>,
+    );
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onClose on Escape when closed', async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={false} onClose={onClose} />
+      </MemoryRouter>,
+    );
+    await user.keyboard('{Escape}');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose when the backdrop is clicked', async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={true} onClose={onClose} />
+      </MemoryRouter>,
+    );
+    const backdrop = document.querySelector<HTMLDivElement>('[data-testid="menu-backdrop"]');
+    expect(backdrop).not.toBeNull();
+    await user.click(backdrop!);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onClose when the route changes', async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <MenuDrawer open={true} onClose={onClose} />
+        <Routes>
+          <Route path="/" element={<Link to="/archived">go archived</Link>} />
+          <Route path="/archived" element={<div>archived view</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole('link', { name: /go archived/i }));
+    expect(onClose).toHaveBeenCalled();
   });
 });
