@@ -469,3 +469,139 @@ describe('PlantDetail - Active Conditions Help', () => {
     expect(screen.queryByText(/Conditions are problems affecting your plant/)).not.toBeInTheDocument();
   });
 });
+
+describe('PlantDetail - About this plant card (#37)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  const basePlant = {
+    id: 1,
+    name: 'My Monstera',
+    species: 'Monstera deliciosa',
+    common_name: null,
+    identifier: null,
+    location: null,
+    pot_size_cm: null,
+    pot_size_category: null,
+    plant_size: null,
+    light_level: null,
+    current_interval: 7,
+    next_water_date: null,
+    last_watered_at: null,
+    illustration_path: null,
+    archived: 0,
+  };
+
+  const fullAbout = {
+    common_names: {
+      en: ['Swiss cheese plant', 'Monstera'],
+      nl: ['Gatenplant'],
+    },
+    origin: 'Southern Mexico and Central America',
+    toxicity: 'Toxic to pets (calcium oxalate crystals).',
+    lore: 'Named for its holey leaves reminiscent of Swiss cheese.',
+    etymology: "Monstera from Latin 'monstrum'; deliciosa refers to the edible fruit.",
+  };
+
+  function makeFetch(plant: any) {
+    return async (url: string) => {
+      if (url.includes('/api/plants/1') && !url.includes('/conditions') && !url.includes('/events')) {
+        return { json: () => Promise.resolve(plant), ok: true };
+      }
+      if (url.includes('/conditions')) {
+        return { json: () => Promise.resolve([]), ok: true };
+      }
+      if (url.includes('/events')) {
+        return { json: () => Promise.resolve([]), ok: true };
+      }
+      return { json: () => Promise.resolve(null), ok: false };
+    };
+  }
+
+  it('renders the card header with the plant name when about data is present', async () => {
+    RenderWithRouter('1', makeFetch({ ...basePlant, about: fullAbout }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /About My Monstera/i })).toBeInTheDocument();
+    });
+  });
+
+  it('is collapsed by default (content not visible)', async () => {
+    RenderWithRouter('1', makeFetch({ ...basePlant, about: fullAbout }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /About My Monstera/i })).toBeInTheDocument();
+    });
+
+    // Values from the About payload should NOT be visible before expanding.
+    expect(screen.queryByText(/Southern Mexico/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Gatenplant')).not.toBeInTheDocument();
+  });
+
+  it('expands and shows full catalog data on click', async () => {
+    RenderWithRouter('1', makeFetch({ ...basePlant, about: fullAbout }));
+
+    const header = await screen.findByRole('button', { name: /About My Monstera/i });
+    await userEvent.click(header);
+
+    expect(screen.getByText(/Swiss cheese plant/)).toBeInTheDocument();
+    expect(screen.getByText(/Gatenplant/)).toBeInTheDocument();
+    expect(screen.getByText(/Southern Mexico/)).toBeInTheDocument();
+    expect(screen.getByText(/Toxic to pets/)).toBeInTheDocument();
+    // Lore text (the common-name cell also contains "Swiss cheese" so match the whole line)
+    expect(screen.getByText(/Named for its holey leaves/)).toBeInTheDocument();
+    expect(screen.getByText(/Latin 'monstrum'/)).toBeInTheDocument();
+  });
+
+  it('collapses again on a second click', async () => {
+    RenderWithRouter('1', makeFetch({ ...basePlant, about: fullAbout }));
+
+    const header = await screen.findByRole('button', { name: /About My Monstera/i });
+    await userEvent.click(header);
+    expect(screen.getByText(/Southern Mexico/)).toBeInTheDocument();
+
+    await userEvent.click(header);
+    await waitFor(() => {
+      expect(screen.queryByText(/Southern Mexico/)).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not render the card when about is null (no catalog match)', async () => {
+    RenderWithRouter('1', makeFetch({ ...basePlant, about: null }));
+
+    // Wait for the page to finish loading by waiting for another known element.
+    await waitFor(() => {
+      expect(screen.getByText('No active conditions')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /About My Monstera/i })).not.toBeInTheDocument();
+  });
+
+  it('does not render the card when about is absent from the response', async () => {
+    RenderWithRouter('1', makeFetch(basePlant));
+
+    await waitFor(() => {
+      expect(screen.getByText('No active conditions')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /About/i })).not.toBeInTheDocument();
+  });
+
+  it('omits missing optional sections (no etymology / lore)', async () => {
+    const partial = {
+      common_names: { en: ['Rubber plant'], nl: ['Rubberboom'] },
+      origin: 'Northeast India',
+      toxicity: 'Toxic to pets.',
+    };
+    RenderWithRouter('1', makeFetch({ ...basePlant, about: partial }));
+
+    const header = await screen.findByRole('button', { name: /About My Monstera/i });
+    await userEvent.click(header);
+
+    expect(screen.getByText(/Rubber plant/)).toBeInTheDocument();
+    expect(screen.queryByText('Lore')).not.toBeInTheDocument();
+    expect(screen.queryByText('Etymology')).not.toBeInTheDocument();
+  });
+});

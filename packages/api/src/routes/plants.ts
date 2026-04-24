@@ -7,6 +7,8 @@ import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
 import { getSeasonalAdjustedInterval } from '../scheduling/seasonal.js';
 import { scheduleNextWater, type ScheduledPlant, type ScheduleResult } from '../scheduling/bin-packer.js';
 import type { Config } from '../config.js';
+import type { Catalog } from '../catalog/loader.js';
+import type { PlantAbout } from '../catalog/types.js';
 
 type HeatingSeasonConfig = Pick<Config, 'heatingSeasonStart' | 'heatingSeasonEnd'>;
 
@@ -132,9 +134,36 @@ const SOIL_FEEL_INTERVAL_MAP: Record<string, number> = {
 };
 const VALID_SOIL_FEEL = Object.keys(SOIL_FEEL_INTERVAL_MAP);
 
+/**
+ * Build an "About this plant" payload from a catalog entry (#37).
+ * Prefers the species string stored on the plant; falls back to common_name.
+ * Returns null when no catalog match is found so the client can hide the card.
+ */
+function buildAbout(
+  catalog: Catalog | undefined,
+  plant: Record<string, unknown>,
+): PlantAbout | null {
+  if (!catalog) return null;
+  const species = (plant.species as string | null) ?? null;
+  const commonName = (plant.common_name as string | null) ?? null;
+  const entry = catalog.findBySpecies(species) ?? catalog.findBySpecies(commonName);
+  if (!entry) return null;
+  return {
+    common_names: {
+      en: [...entry.common_names.en],
+      nl: [...entry.common_names.nl],
+    },
+    origin: entry.origin,
+    toxicity: entry.care.toxicity,
+    lore: entry.lore,
+    etymology: entry.etymology,
+  };
+}
+
 export function createPlantsRouter(
   db: Database.Database,
   heatingConfig?: HeatingSeasonConfig,
+  catalog?: Catalog,
 ): Router {
   const router = Router();
 
@@ -171,7 +200,9 @@ export function createPlantsRouter(
       res.status(404).json({ error: 'Plant not found' });
       return;
     }
-    res.json(plant);
+    // #37 — attach "about this plant" catalog payload; null when no match.
+    const about = buildAbout(catalog, plant);
+    res.json({ ...plant, about });
   });
 
   // POST /api/plants — create a new plant

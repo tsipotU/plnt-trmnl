@@ -192,4 +192,91 @@ describe('catalog loader', () => {
       expect(hits[0].slug).toBe('phalaenopsis');
     });
   });
+
+  describe('findBySpecies (#37)', () => {
+    const entries: CatalogEntry[] = [
+      makeEntry({
+        slug: 'monstera-deliciosa',
+        latin_name: 'Monstera deliciosa',
+        aliases: ['Split-leaf philodendron'],
+        common_names: { en: ['Swiss cheese plant', 'Monstera'], nl: ['Gatenplant'] },
+      }),
+      makeEntry({
+        slug: 'sansevieria-trifasciata',
+        latin_name: 'Sansevieria trifasciata',
+        aliases: ['Dracaena trifasciata'],
+        common_names: { en: ['Snake plant'], nl: ['Vrouwentong'] },
+      }),
+    ];
+
+    it('matches by exact Latin name (case-insensitive)', () => {
+      const catalog = createCatalog(entries);
+      expect(catalog.findBySpecies('Monstera deliciosa')?.slug).toBe('monstera-deliciosa');
+      expect(catalog.findBySpecies('monstera deliciosa')?.slug).toBe('monstera-deliciosa');
+    });
+
+    it('matches by alias', () => {
+      const catalog = createCatalog(entries);
+      expect(catalog.findBySpecies('Dracaena trifasciata')?.slug).toBe('sansevieria-trifasciata');
+    });
+
+    it('matches by English common name', () => {
+      const catalog = createCatalog(entries);
+      expect(catalog.findBySpecies('Swiss cheese plant')?.slug).toBe('monstera-deliciosa');
+    });
+
+    it('matches by Dutch common name', () => {
+      const catalog = createCatalog(entries);
+      expect(catalog.findBySpecies('Gatenplant')?.slug).toBe('monstera-deliciosa');
+    });
+
+    it('trims surrounding whitespace', () => {
+      const catalog = createCatalog(entries);
+      expect(catalog.findBySpecies('  Monstera deliciosa  ')?.slug).toBe('monstera-deliciosa');
+    });
+
+    it('returns undefined for null / empty / unknown', () => {
+      const catalog = createCatalog(entries);
+      expect(catalog.findBySpecies(null)).toBeUndefined();
+      expect(catalog.findBySpecies(undefined)).toBeUndefined();
+      expect(catalog.findBySpecies('')).toBeUndefined();
+      expect(catalog.findBySpecies('   ')).toBeUndefined();
+      expect(catalog.findBySpecies('Not a real plant')).toBeUndefined();
+    });
+
+    it('does not do substring matching (exact only)', () => {
+      const catalog = createCatalog(entries);
+      // "Monstera" alone IS a common_names.en entry, so matches.
+      expect(catalog.findBySpecies('Monstera')?.slug).toBe('monstera-deliciosa');
+      // But "Monster" is not in any name list.
+      expect(catalog.findBySpecies('Monster')).toBeUndefined();
+    });
+  });
+
+  describe('loader validates optional lore / etymology (#37)', () => {
+    function tmpLocal(json: string): string {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-test-'));
+      const p = path.join(dir, 'plants.json');
+      fs.writeFileSync(p, json, 'utf-8');
+      return p;
+    }
+
+    it('accepts entries with lore and etymology', () => {
+      const e = makeEntry({ lore: 'Ancient folklore', etymology: 'From Greek' });
+      const catalog = loadCatalog(tmpLocal(JSON.stringify([e])));
+      expect(catalog.all()[0].lore).toBe('Ancient folklore');
+      expect(catalog.all()[0].etymology).toBe('From Greek');
+    });
+
+    it('accepts entries with lore and etymology omitted', () => {
+      const e = makeEntry();
+      const catalog = loadCatalog(tmpLocal(JSON.stringify([e])));
+      expect(catalog.all()[0].lore).toBeUndefined();
+    });
+
+    it('rejects empty-string lore', () => {
+      const e = { ...makeEntry(), lore: '' } as CatalogEntry;
+      expect(() => loadCatalog(tmpLocal(JSON.stringify([e])))).toThrow(/lore/);
+    });
+  });
 });
