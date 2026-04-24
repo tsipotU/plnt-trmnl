@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArchiveDialog } from '../components/ArchiveDialog';
 import { NotesLog } from '../components/NotesLog';
 import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
+import { useDevInfo } from '../hooks/useDevInfo.js';
 import {
   daysBetween,
   computeIntervalHistory,
@@ -24,6 +25,10 @@ interface Plant {
   plant_size: string | null;
   light_level: string | null;
   current_interval: number | null;
+  base_interval?: number | null;
+  water_ratio?: number | null;
+  water_description?: string | null;
+  enrichment_status?: string | null;
   next_water_date: string | null;
   last_watered_at: string | null;
   illustration_path: string | null;
@@ -34,6 +39,7 @@ interface Plant {
   mother_plant_name: string | null;
   is_converged: number | null;
   created_at: string | null;
+  updated_at?: string | null;
 }
 
 const ORIGIN_TYPE_OPTIONS: { value: string; label: string }[] = [
@@ -460,6 +466,10 @@ export function PlantDetail() {
       return false;
     }
   });
+  const [devInfoEnabled] = useDevInfo();
+  const [devInfoExpanded, setDevInfoExpanded] = useState(false);
+  const [renamingSpecies, setRenamingSpecies] = useState(false);
+  const [speciesDraft, setSpeciesDraft] = useState('');
 
   // Fetch plant data
   useEffect(() => {
@@ -495,6 +505,28 @@ export function PlantDetail() {
     if (!res.ok) throw new Error('Update failed');
     const updated = await res.json();
     setPlant(updated);
+  }
+
+  // Species rename — sends PUT with new species and surfaces a toast.
+  // Re-enrichment runs server-side whenever the species value changes.
+  async function submitSpeciesRename() {
+    const trimmed = speciesDraft.trim();
+    if (!trimmed) {
+      setRenamingSpecies(false);
+      return;
+    }
+    if (trimmed === (plant?.species ?? '')) {
+      setRenamingSpecies(false);
+      return;
+    }
+    try {
+      await updatePlant({ species: trimmed });
+      showToast('Species updated — re-checking care profile');
+    } catch {
+      showToast('Failed to update species');
+    }
+    setRenamingSpecies(false);
+    setSpeciesDraft('');
   }
 
   // Handle pot size category change — may trigger repot dialog
@@ -714,12 +746,15 @@ export function PlantDetail() {
         )}
       </div>
 
-      {/* Plant name — inline editable */}
+      {/* Plant name + prominent enriched species — inline editable.
+          Species sits directly under the name at a prominent size so users
+          can catch misidentification at a glance, with a "Not this? Rename"
+          affordance that triggers re-enrichment server-side. */}
       <div className="card" style={{ marginBottom: 12 }}>
         <div style={{ marginBottom: 4, fontSize: 13, color: 'var(--text-secondary)' }}>
           Plant name
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 6 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
           <EditableField
             value={plant.name}
             onSave={(v) => updatePlant({ name: v }).catch(() => showToast('Failed to save'))}
@@ -727,6 +762,105 @@ export function PlantDetail() {
             style={{ fontSize: 24, fontWeight: 700 }}
           />
         </h1>
+
+        {/* Prominent species block */}
+        <div style={{ marginBottom: 10 }}>
+          {renamingSpecies ? (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <input
+                autoFocus
+                type="text"
+                value={speciesDraft}
+                onChange={(e) => setSpeciesDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submitSpeciesRename();
+                  if (e.key === 'Escape') {
+                    setRenamingSpecies(false);
+                    setSpeciesDraft('');
+                  }
+                }}
+                placeholder="Correct species (Latin or common name)"
+                aria-label="Species"
+                style={{ flex: 1, minWidth: 200, fontSize: 16 }}
+              />
+              <button
+                type="button"
+                onClick={submitSpeciesRename}
+                style={{ padding: '8px 14px', fontSize: 14 }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRenamingSpecies(false);
+                  setSpeciesDraft('');
+                }}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: 14,
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : plant.species ? (
+            <>
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: 600,
+                  fontStyle: 'italic',
+                  color: 'var(--text-primary)',
+                  marginBottom: 4,
+                }}
+                data-testid="plant-species"
+              >
+                {plant.species}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSpeciesDraft(plant.species ?? '');
+                  setRenamingSpecies(true);
+                }}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--accent)',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  minHeight: 24,
+                }}
+              >
+                Not this? Rename →
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setSpeciesDraft('');
+                setRenamingSpecies(true);
+              }}
+              style={{
+                background: 'transparent',
+                color: 'var(--accent)',
+                border: '1px dashed var(--border)',
+                padding: '8px 12px',
+                fontSize: 14,
+                cursor: 'pointer',
+                borderRadius: 'var(--radius)',
+              }}
+            >
+              + Set species
+            </button>
+          )}
+        </div>
+
         <div style={{ fontSize: 14, marginBottom: 6 }}>
           <EditableField
             value={plant.identifier ?? ''}
@@ -735,11 +869,6 @@ export function PlantDetail() {
             style={{ fontSize: 14 }}
           />
         </div>
-        {plant.species && (
-          <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: 14 }}>
-            {plant.species}
-          </p>
-        )}
       </div>
 
       {/* Info grid */}
@@ -1192,6 +1321,105 @@ export function PlantDetail() {
 
       {/* Notes log */}
       <NotesLog plantId={Number(id)} showToast={showToast} />
+
+      {/* Developer info — visible only when Settings > "Show developer info" is on.
+          Collapsed by default; expand to inspect enrichment mechanics.
+          Issue #74. */}
+      {devInfoEnabled && (() => {
+        const enrichmentEvent = events.find((e) => e.event_type === 'enrichment_complete');
+        // Infer source from the event reason prefix. Today only Claude enrichment
+        // exists; #56 (clipboard) + #58 (manual paste) will extend this.
+        const sourceFromReason = enrichmentEvent?.reason?.includes('Claude')
+          ? 'Claude (Agent SDK)'
+          : enrichmentEvent
+            ? 'enrichment'
+            : plant.enrichment_status === 'complete'
+              ? 'enrichment'
+              : plant.species
+                ? 'manual'
+                : '—';
+        const enrichmentTimestamp = enrichmentEvent?.created_at ?? null;
+        return (
+          <div className="card" style={{ marginBottom: 12 }}>
+            <button
+              type="button"
+              onClick={() => setDevInfoExpanded((v) => !v)}
+              aria-expanded={devInfoExpanded}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                color: 'var(--text-primary)',
+                border: 'none',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                minHeight: 32,
+              }}
+            >
+              <span>Developer info</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                {devInfoExpanded ? '▾' : '▸'}
+              </span>
+            </button>
+            {devInfoExpanded && (
+              <div
+                style={{
+                  marginTop: 12,
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr',
+                  columnGap: 12,
+                  rowGap: 6,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                <div>Source</div>
+                <div style={{ color: 'var(--text-primary)' }}>{sourceFromReason}</div>
+
+                <div>Confidence</div>
+                <div style={{ color: 'var(--text-primary)' }}>—</div>
+
+                <div>Status</div>
+                <div style={{ color: 'var(--text-primary)' }}>
+                  {plant.enrichment_status ?? '—'}
+                </div>
+
+                <div>Base interval</div>
+                <div style={{ color: 'var(--text-primary)' }}>
+                  {plant.base_interval != null ? `${plant.base_interval} days` : '—'}
+                </div>
+
+                <div>Current interval</div>
+                <div style={{ color: 'var(--text-primary)' }}>
+                  {plant.current_interval != null ? `${plant.current_interval} days` : '—'}
+                </div>
+
+                <div>Water ratio</div>
+                <div style={{ color: 'var(--text-primary)' }}>
+                  {plant.water_ratio != null ? plant.water_ratio.toString() : '—'}
+                </div>
+
+                <div>Water description</div>
+                <div style={{ color: 'var(--text-primary)' }}>
+                  {plant.water_description ?? '—'}
+                </div>
+
+                <div>Enriched at</div>
+                <div style={{ color: 'var(--text-primary)' }}>
+                  {enrichmentTimestamp
+                    ? new Date(enrichmentTimestamp).toLocaleString('en-GB')
+                    : '—'}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Archive plant */}
       <button

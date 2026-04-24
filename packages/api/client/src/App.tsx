@@ -8,6 +8,7 @@ import { TrmnlSetup } from './pages/TrmnlSetup.js';
 import { FeedbackList } from './pages/FeedbackList.js';
 import { FeedbackDetail } from './pages/FeedbackDetail.js';
 import { ArchivedPlants } from './pages/ArchivedPlants.js';
+import { Settings } from './pages/Settings.js';
 import { FeedbackButton } from './components/FeedbackButton.js';
 import { DialogProvider } from './context/DialogContext.js';
 
@@ -95,6 +96,15 @@ function Header() {
         >
           Feedback
         </Link>
+        <Link
+          to="/settings"
+          style={{
+            color: location.pathname === '/settings' ? 'var(--accent)' : 'var(--text-secondary)',
+            fontSize: 14,
+          }}
+        >
+          Settings
+        </Link>
       </nav>
     </header>
   );
@@ -116,6 +126,7 @@ export function App() {
             <Route path="/archived" element={<ArchivedPlants />} />
             <Route path="/feedback" element={<FeedbackList />} />
             <Route path="/feedback/:id" element={<FeedbackDetail />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>
         <FeedbackButton />
