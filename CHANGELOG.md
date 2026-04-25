@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Wave 13 — Plant detail structural rework (2026-04-26)
+
+- **#134** Plant passport IA scaffolding: new `CollapsibleSection` primitive, image hero promoted to the top of the plant detail page, History section wrapped as a proof-of-concept. Full passport-order reorder of remaining sections deferred to child issues #139–#143 (reorder, hero redesign, "this plant" consolidation, sticky in-page nav, origin & lore narrative card).
+- **#133** Common conditions UI: replaced ad-hoc inline rendering with the new `ConditionCard` primitive — identical-height collapsible cards with severity icons (⚠ warning, ℹ info), tag chips at fixed minimum width, optional `actionSlot` for the existing "Flag as active" interaction. Multiple cards can expand simultaneously. URL-persisted expand state intentionally dropped (diverges from issue AC) — local React state only.
+- **#60** Calibration UX: explanation tooltip ("Why am I being asked this?") with first-visit pulse, "Calibration N of ~5" progress in modal title, calibration progress pill on plant detail Schedule section, 🌿 dialed-in badge on PlantCard. New `convergence_event` field on `POST /api/plants/:id/calibration` response (`'converged'` / `'drifted'` / `null`); new `calibration_converged` and `calibration_drift_detected` event types in `event_log`. CalibrationModal shows an inline transition message in its result card; CalibrationSequence flashes a brief banner above the next question. Drift detection uses the existing convergence reset logic (the algorithm auto-flips `is_converged` 1→0 on a non-3 answer); a richer "drift from mean" model is filed as a v1.1 follow-up.
+
 ### Wave 12 — Polish & feedback (2026-04-26)
 
 - **Date strip (#126):** today is now rendered as a filled green tile with white text, while a separately-selected day uses a muted-fill + outline treatment — the two states look distinct. The strip now spans 11 days (5 back + today + 5 ahead) instead of 7-forward and auto-scrolls today into the centre on mount. New optional `?days=N` param on `GET /api/schedule/week` (default 7, range 1–30, back-compat).
