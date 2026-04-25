@@ -29,7 +29,7 @@ export interface EnrichmentSplashPreview {
   placementHint: string | null;
 }
 
-type Mode = 'enriching' | 'success' | 'correcting';
+type Mode = 'enriching' | 'success' | 'correcting' | 'no-match';
 
 interface EnrichmentSplashProps {
   mode: Mode;
@@ -85,7 +85,7 @@ export function EnrichmentSplash({
         <div style={{ fontSize: 48 }} aria-hidden="true">✨</div>
         <p style={{ fontSize: 18, fontWeight: 600 }}>Enriching {typedName}…</p>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-          Looking up care info and illustration
+          Refining care details — this usually takes a few seconds
         </p>
       </div>
     );
@@ -153,6 +153,85 @@ export function EnrichmentSplash({
           }}
         >
           Cancel
+        </button>
+      </div>
+    );
+  }
+
+  if (mode === 'no-match') {
+    return (
+      <div
+        role="dialog"
+        aria-labelledby="splash-no-match-title"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          minHeight: '60dvh',
+          gap: 16,
+          padding: '24px 16px',
+        }}
+      >
+        <p
+          style={{
+            fontSize: 13,
+            color: 'var(--text-secondary)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            textAlign: 'center',
+          }}
+        >
+          We don&rsquo;t have detailed info yet
+        </p>
+        <h1
+          id="splash-no-match-title"
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            textAlign: 'center',
+            lineHeight: 1.2,
+          }}
+        >
+          {typedName}
+        </h1>
+        <p
+          style={{
+            fontSize: 14,
+            color: 'var(--text-secondary)',
+            textAlign: 'center',
+          }}
+        >
+          We&rsquo;ll still track your watering and let you log notes. Connect an AI tool in Settings to fill in care details next time.
+        </p>
+        <button
+          type="button"
+          onClick={onLooksRight}
+          style={{
+            width: '100%',
+            fontSize: 17,
+            fontWeight: 600,
+            padding: '14px 0',
+            borderRadius: 12,
+            marginTop: 4,
+          }}
+        >
+          Continue
+        </button>
+        <button
+          type="button"
+          onClick={onNotQuite}
+          style={{
+            width: '100%',
+            fontSize: 15,
+            fontWeight: 500,
+            padding: '12px 0',
+            borderRadius: 12,
+            background: 'transparent',
+            border: '1px solid var(--border)',
+            color: 'var(--text-primary)',
+          }}
+        >
+          Try a different name
         </button>
       </div>
     );

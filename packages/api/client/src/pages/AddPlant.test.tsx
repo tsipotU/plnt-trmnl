@@ -50,6 +50,9 @@ describe('AddPlant — soil-feel fallback (issue #70)', () => {
   beforeEach(() => {
     // Default fetch: existing plants list empty, POST succeeds.
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (init?.method === 'POST') {
         const body = init.body ? JSON.parse(init.body as string) : {};
         return {
@@ -140,6 +143,9 @@ describe('AddPlant — soil-feel fallback (issue #70)', () => {
     const retryCalls: Array<{ url: string; body: unknown }> = [];
 
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       // POST /api/plants — create
       if (url === '/api/plants' && init?.method === 'POST') {
         const body = init.body ? JSON.parse(init.body as string) : {};
@@ -222,6 +228,9 @@ describe('AddPlant — soil-feel fallback (issue #70)', () => {
     const user = userEvent.setup();
 
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (url === '/api/plants' && init?.method === 'POST') {
         const body = init.body ? JSON.parse(init.body as string) : {};
         return {
@@ -294,6 +303,9 @@ describe('AddPlant — soil-feel fallback (issue #70)', () => {
 describe('AddPlant — catalog dropdown (issue #2)', () => {
   beforeEach(() => {
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (typeof url === 'string' && url.startsWith('/api/catalog/search')) {
         return {
           ok: true,
@@ -421,6 +433,9 @@ describe('AddPlant — catalog dropdown (issue #2)', () => {
 describe('AddPlant — room picker (issue #2)', () => {
   beforeEach(() => {
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (url === '/api/plants' && init?.method === 'POST') {
         const body = init.body ? JSON.parse(init.body as string) : {};
         return {
@@ -493,6 +508,9 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
 
     let statusCalls = 0;
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (url === '/api/plants' && init?.method === 'POST') {
         const body = init.body ? JSON.parse(init.body as string) : {};
         return {
@@ -564,6 +582,9 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     const user = userEvent.setup();
 
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (url === '/api/plants' && init?.method === 'POST') {
         return { ok: true, json: async () => ({ id: 12 }) } as Response;
       }
@@ -608,6 +629,9 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     let statusCalls = 0;
 
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (url === '/api/plants' && init?.method === 'POST') {
         return { ok: true, json: async () => ({ id: 33 }) } as Response;
       }
@@ -669,6 +693,9 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     });
 
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (url === '/api/plants' && init?.method === 'POST') {
         return { ok: true, json: async () => ({ id: 99 }) } as Response;
       }
@@ -703,6 +730,9 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     const user = userEvent.setup();
 
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
       if (url === '/api/plants' && init?.method === 'POST') {
         return { ok: true, json: async () => ({ id: 55 }) } as Response;
       }
