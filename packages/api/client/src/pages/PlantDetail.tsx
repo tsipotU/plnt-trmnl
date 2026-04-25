@@ -52,6 +52,7 @@ interface Plant {
   mother_plant_id: number | null;
   mother_plant_name: string | null;
   is_converged: number | null;
+  calibration_cycle?: number | null;
   created_at: string | null;
   updated_at?: string | null;
   /** #37 — catalog-derived "About this plant" payload, null when no match. */
@@ -1339,7 +1340,7 @@ export function PlantDetail() {
             />
           </div>
 
-          {/* Current interval */}
+          {/* Current interval + #60 calibration progress chip */}
           <div>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
               Interval
@@ -1347,6 +1348,37 @@ export function PlantDetail() {
             <span style={{ fontSize: 15 }}>
               {plant.current_interval ? `every ${plant.current_interval} days` : '—'}
             </span>
+            {plant.is_converged === 1 && (
+              <span
+                title="Calibrated to your home"
+                style={{
+                  display: 'inline-block',
+                  marginLeft: 8,
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  background: 'var(--accent-muted, rgba(0, 168, 107, 0.15))',
+                  color: 'var(--accent)',
+                  fontSize: 12,
+                }}
+              >
+                🌿 Dialed in
+              </span>
+            )}
+            {plant.is_converged !== 1 && (plant.calibration_cycle ?? 0) > 0 && (
+              <span
+                style={{
+                  display: 'inline-block',
+                  marginLeft: 8,
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-secondary)',
+                  fontSize: 12,
+                }}
+              >
+                🌱 Calibrating: {plant.calibration_cycle} of ~5
+              </span>
+            )}
           </div>
 
           {/* Next watering */}
