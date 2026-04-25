@@ -90,7 +90,7 @@ The auto-memory `project_plant_trmnl.md` already carries cross-session facts; do
 - **Never run bare `vitest`** on this Mac mini. Use `npm test`. The `maxForks: 2` cap is the only thing between you and an SSH-recovery freeze.
 - **`addColumnIfMissing`** — every new column needs both the `CREATE TABLE` entry *and* a call at the bottom of `initializeSchema` so live DBs get migrated.
 - **Routes with literal path segments before `/:id`** (e.g. `/archived`, `/water-all`) must be declared *before* the `:id` route or Express matches them as ids.
-- **Pre-existing tsc errors** in `routes/catalog.test.ts:24` and `routes/plants.ts:687-688` — neither blocks vitest (esbuild path) but they fail `tsc --build`. Investigate before any wave that needs a clean `npm run build` in `packages/api`.
+- **`tsc` is clean.** The three pre-existing errors in `routes/catalog.test.ts` and `routes/plants.ts` were fixed in `d3b52a0` (they were blocking docker build).
 - **Treat client type contracts as load-bearing.** No ErrorBoundary; any shape drift blanks the app. Wave 9 will fix this.
 
 ## Community-release scaffolding
