@@ -5,8 +5,11 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import cron from 'node-cron';
 import { loadConfig } from './config.js';
+import { createAuthRouter } from './routes/auth.js';
+import { requireAuth } from './auth/middleware.js';
 import { createDatabase } from './database/connection.js';
 import { seedFacts } from './database/seed.js';
 import { seedOrnaments } from './database/seed-ornaments.js';
@@ -49,11 +52,22 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'plant-api' });
 });
+
+// Auth routes — must be mounted BEFORE requireAuth so they can be reached
+// without a session.
+app.use('/api/auth', createAuthRouter(db));
+
+// Auth gate (#136): everything past this point requires a valid session
+// when an admin password is set. /api/auth/*, /health, and /api/feedback
+// are allowlisted inside the middleware. Bootstrap mode (no admin yet)
+// lets all traffic through.
+app.use(requireAuth(db));
 
 // API routes
 app.use('/api/plants', createPlantsRouter(db, {
