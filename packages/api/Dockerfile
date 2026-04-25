@@ -1,5 +1,7 @@
 FROM node:22-slim AS builder
 WORKDIR /app
+
+# --- Build the API (TypeScript -> dist/) ---
 COPY package.json ./
 RUN npm install
 COPY src/ src/
@@ -25,6 +27,16 @@ RUN printf '{\n\
 }\n' > tsconfig.json
 RUN npx tsc
 
+# --- Build the SPA (Vite -> dist/client/) ---
+# The client lives under packages/api/client/ and is NOT an npm workspace; its
+# package-lock.json is installed standalone so sharp/vite resolve from inside.
+# Vite's outDir = '../dist/client', so building from /app/client lands in
+# /app/dist/client — exactly where the API's static-file middleware expects it.
+COPY client/ client/
+WORKDIR /app/client
+RUN npm ci && npm run build
+
+# --- Runtime image ---
 FROM node:22-slim
 WORKDIR /app
 COPY --from=builder /app/dist ./dist

@@ -4,8 +4,8 @@ import type { ScheduleResult } from '../scheduling/bin-packer.js';
 export interface LogEventInput {
   plantId: number | null;
   eventType: string;
-  oldValue?: string;
-  newValue?: string;
+  oldValue?: string | null;
+  newValue?: string | null;
   reason: string;
   batchId?: string;
 }
