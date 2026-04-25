@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LightLevelTooltip } from '../components/LightLevelTooltip';
+import { PotSizeTooltip } from '../components/PotSizeTooltip';
 import { DidYouMeanSplash, type SuggestionOption } from '../components/DidYouMeanSplash';
 import {
   EnrichmentSplash,
@@ -835,12 +836,15 @@ export function AddPlant() {
 
           {/* Pot size */}
           <div>
-            <label
-              htmlFor="potSize"
-              style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
-            >
-              Pot size <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
-            </label>
+            <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 6 }}>
+              <label
+                htmlFor="potSize"
+                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)' }}
+              >
+                Pot size <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
+              </label>
+              <PotSizeTooltip />
+            </div>
             <select
               id="potSize"
               value={potCategory}
