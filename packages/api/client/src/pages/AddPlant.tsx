@@ -7,6 +7,7 @@ import {
   EnrichmentSplash,
   type EnrichmentSplashPreview,
 } from '../components/EnrichmentSplash';
+import { useAiConnection } from '../hooks/useAiConnection';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
@@ -93,13 +94,14 @@ export function AddPlant() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Post-add enrichment splash (#72). Three modes:
-  //   - 'enriching'  → waiting on Claude callback, showing spinner
+  // Post-add enrichment splash (#72 / #130). Modes:
+  //   - 'enriching'  → waiting on AI tool callback, showing spinner
   //   - 'success'    → preview with Looks right / Not quite
   //   - 'correcting' → user typing a correction
+  //   - 'no-match'   → catalog miss + no AI tool active; friendly fallback
   //   - null         → splash is closed (form visible)
   const [splashMode, setSplashMode] = useState<
-    'enriching' | 'success' | 'correcting' | null
+    'enriching' | 'success' | 'correcting' | 'no-match' | null
   >(null);
   const [splashPlantId, setSplashPlantId] = useState<number | null>(null);
   const [splashTypedName, setSplashTypedName] = useState<string>('');
@@ -117,6 +119,9 @@ export function AddPlant() {
 
   // Track whether this is the first plant (for contextual hints + celebration)
   const [isFirstPlant, setIsFirstPlant] = useState(false);
+
+  // AI-tool connection state — drives the post-add splash flavor (#130)
+  const { connected: aiConnected } = useAiConnection();
 
   useEffect(() => {
     fetch('/api/plants')
@@ -245,8 +250,22 @@ export function AddPlant() {
       setLoading(false);
       setSplashPlantId(plant.id);
       setSplashTypedName(name.trim());
-      setSplashMode('enriching');
 
+      // #130 — choose splash flavor based on what the POST already gave us
+      // and whether an AI tool is active to fill the gap.
+      // Catalog hit (species + illustration_path present) → success immediately.
+      // Catalog miss + AI not connected → no-match fallback (don't fake-loader).
+      // Catalog miss + AI connected → existing 'enriching' poll.
+      const hasCatalogPayload = !!(plant.species && plant.illustration_path);
+      if (hasCatalogPayload) {
+        await showSuccessSplash(plant.id, name.trim());
+        return;
+      }
+      if (!aiConnected) {
+        setSplashMode('no-match');
+        return;
+      }
+      setSplashMode('enriching');
       await waitForEnrichment(plant.id, name.trim());
     } catch {
       setError('Network error. Please try again.');
