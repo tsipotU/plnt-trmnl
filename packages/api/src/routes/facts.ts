@@ -27,6 +27,14 @@ export function createFactsRouter(db: Database.Database): Router {
     res.json(facts);
   });
 
+  // GET /api/facts/samples?n=10 — random facts as style anchors for the AI setup prompt
+  router.get('/facts/samples', (req: Request, res: Response) => {
+    const raw = Number(req.query.n);
+    const n = Number.isFinite(raw) && raw > 0 ? Math.min(20, Math.floor(raw)) : 10;
+    const rows = db.prepare(`SELECT id, text FROM facts WHERE is_disabled = 0 ORDER BY RANDOM() LIMIT ?`).all(n);
+    res.json(rows);
+  });
+
   // GET /api/facts/today — today's rotating fact (issue #38).
   // Returns the fact the daily cron picked, or 404 if none is set.
   router.get('/facts/today', (_req: Request, res: Response) => {

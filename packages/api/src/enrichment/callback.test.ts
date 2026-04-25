@@ -8,7 +8,7 @@ import { createEnrichmentRouter } from './callback.js';
 function buildApp(db: Database.Database) {
   const app = express();
   app.use(express.json());
-  app.use('/api/enrichment', createEnrichmentRouter(db));
+  app.use('/api', createEnrichmentRouter(db));
   return app;
 }
 
@@ -235,5 +235,60 @@ describe('POST /api/enrichment/callback', () => {
     const plant = db.prepare('SELECT base_interval, current_interval FROM plants WHERE id = ?').get(plantId) as any;
     expect(plant.base_interval).toBe(14);
     expect(plant.current_interval).toBe(14);
+  });
+});
+
+describe('POST /api/plants/:id/enrichment (alias)', () => {
+  let db: Database.Database;
+  let app: ReturnType<typeof buildApp>;
+
+  beforeEach(() => {
+    db = new Database(':memory:');
+    initializeSchema(db);
+    app = buildApp(db);
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('delegates to the callback handler', async () => {
+    const plantId = seedPlant(db);
+    seedQueue(db, plantId);
+    const payload = {
+      base_interval: 7,
+      water_ratio: 0.25,
+      water_description: '1 cup',
+      fertilizer_interval_weeks: 4,
+      heating_season_modifier: 1.0,
+      calibration_questions: [],
+      common_conditions: [],
+      facts: ['Pothos tolerates low light gracefully.'],
+    };
+
+    const res = await request(app).post(`/api/plants/${plantId}/enrichment`).send(payload);
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+
+    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as { enrichment_status: string; base_interval: number };
+    expect(plant.enrichment_status).toBe('complete');
+    expect(plant.base_interval).toBe(7);
+  });
+
+  it('returns 404 if plant missing', async () => {
+    const res = await request(app).post('/api/plants/9999/enrichment').send({
+      base_interval: 7, water_ratio: 0.25, water_description: 'x',
+      fertilizer_interval_weeks: 4, heating_season_modifier: 1.0,
+      calibration_questions: [], common_conditions: [], facts: [],
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 400 if the body is missing required fields', async () => {
+    const plantId = seedPlant(db);
+    seedQueue(db, plantId);
+    const res = await request(app).post(`/api/plants/${plantId}/enrichment`).send({}); // empty body
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/Invalid enrichment body/);
   });
 });

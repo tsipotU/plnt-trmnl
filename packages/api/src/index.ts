@@ -78,7 +78,7 @@ app.use(
 );
 app.use('/api/vacation', createVacationRouter(db));
 app.use('/api/feedback', createFeedbackRouter(db, { uploadDir: feedbackUploadDir }));
-app.use('/api/enrichment', createEnrichmentRouter(db));
+app.use('/api', createEnrichmentRouter(db));
 app.use('/api/schedule', createScheduleRouter(db));
 
 // Proxy renderer endpoints (avoids CORS from browser → renderer direct)

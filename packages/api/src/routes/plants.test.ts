@@ -7,13 +7,6 @@ import { createPlantsRouter } from './plants.js';
 import { createCatalog } from '../catalog/loader.js';
 import type { CatalogEntry } from '../catalog/types.js';
 
-// Prevent real Claude Agent SDK calls from firing in tests.
-// Existing POST /api/plants and new species-correction PUT both trigger
-// background enrichment — we stub it to a no-op resolved promise.
-vi.mock('../enrichment/claude-enrich.js', () => ({
-  enrichPlantWithClaude: vi.fn(async () => undefined),
-  updateCareForCondition: vi.fn(async () => null),
-}));
 
 function createTestApp() {
   const db = new Database(':memory:');
@@ -304,6 +297,16 @@ describe('POST /api/plants', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid origin_type');
+  });
+
+  it('POST /api/plants leaves enrichment_status as pending — no in-process SDK call', async () => {
+    const { app, db } = createTestApp();
+    const res = await request(app).post('/api/plants').send({ name: 'Pothos', lastWateredAt: '2026-04-01' });
+    expect(res.status).toBe(201);
+    // Wait a tick to confirm no async background flip happens
+    await new Promise(r => setTimeout(r, 50));
+    const plant = db.prepare(`SELECT enrichment_status FROM plants WHERE id = ?`).get(res.body.id) as { enrichment_status: string };
+    expect(plant.enrichment_status).toBe('pending');
   });
 });
 
@@ -1783,5 +1786,37 @@ describe('GET /api/plants/:id/events', () => {
   it('returns 404 for unknown plant', async () => {
     const res = await request(app).get('/api/plants/9999/events');
     expect(res.status).toBe(404);
+  });
+});
+
+describe('GET /api/plants?enrichment=pending', () => {
+  it('GET /api/plants?enrichment=pending returns only pending plants', async () => {
+    const { app, db } = createTestApp();
+    // Seed: 1 pending, 1 complete
+    db.prepare(`INSERT INTO plants (name, enrichment_status) VALUES ('Pothos', 'pending')`).run();
+    db.prepare(`INSERT INTO plants (name, enrichment_status) VALUES ('Monstera', 'complete')`).run();
+
+    const res = await request(app).get('/api/plants?enrichment=pending');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].name).toBe('Pothos');
+    expect(res.body[0].enrichment_status).toBe('pending');
+  });
+
+  it('GET /api/plants?enrichment=pending excludes archived plants', async () => {
+    const { app, db } = createTestApp();
+    db.prepare(`INSERT INTO plants (name, enrichment_status, archived) VALUES ('Old', 'pending', 1)`).run();
+    db.prepare(`INSERT INTO plants (name, enrichment_status) VALUES ('New', 'pending')`).run();
+
+    const res = await request(app).get('/api/plants?enrichment=pending');
+    expect(res.body.map((p: { name: string }) => p.name)).toEqual(['New']);
+  });
+
+  it('GET /api/plants?enrichment=bogus rejects unsupported filter values', async () => {
+    const { app } = createTestApp();
+    // Seed nothing — the rejection should happen before any DB lookup.
+    const res = await request(app).get('/api/plants?enrichment=bogus');
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/enrichment/i);
   });
 });

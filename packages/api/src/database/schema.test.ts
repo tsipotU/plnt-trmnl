@@ -111,4 +111,35 @@ describe('initializeSchema', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('adds care_update_status column to plant_conditions', () => {
+    initializeSchema(db);
+    const cols = db.prepare(`PRAGMA table_info(plant_conditions)`).all() as Array<{ name: string; dflt_value: string | null }>;
+    const col = cols.find((c) => c.name === 'care_update_status');
+    expect(col).toBeDefined();
+    expect(col?.dflt_value).toMatch(/'not_needed'/);
+  });
+
+  it('care_update_status column migration is idempotent on existing databases', () => {
+    // Simulate a legacy DB created before care_update_status existed.
+    db.prepare(
+      `CREATE TABLE plant_conditions (
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         plant_id INTEGER NOT NULL,
+         condition_name TEXT NOT NULL
+       )`,
+    ).run();
+
+    // First migration run — adds the column.
+    initializeSchema(db);
+    let cols = db.prepare(`PRAGMA table_info(plant_conditions)`).all() as Array<{ name: string; dflt_value: string | null }>;
+    const col = cols.find((c) => c.name === 'care_update_status');
+    expect(col).toBeDefined();
+    expect(col?.dflt_value).toMatch(/'not_needed'/);
+
+    // Second run — no-op, no throw, column still there exactly once.
+    expect(() => initializeSchema(db)).not.toThrow();
+    cols = db.prepare(`PRAGMA table_info(plant_conditions)`).all() as Array<{ name: string; dflt_value: string | null }>;
+    expect(cols.filter((c) => c.name === 'care_update_status')).toHaveLength(1);
+  });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -65,5 +65,62 @@ describe('Settings page', () => {
 
     expect(toggle).not.toBeChecked();
     expect(localStorage.getItem(DEV_INFO_STORAGE_KEY)).toBe('false');
+  });
+});
+
+describe('Settings — Connect your AI', () => {
+  beforeEach(() => {
+    // Clear any prior fetch mock
+    localStorage.clear();
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/facts/samples')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 1, text: 'Sample fact alpha.' }, { id: 2, text: 'Sample fact bravo.' }]) });
+      }
+      if (url.includes('/api/plants?enrichment=pending')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 1 }, { id: 2 }, { id: 3 }]) });
+      }
+      if (url.includes('/api/conditions?care_update=pending')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 99 }]) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    }) as typeof fetch;
+  });
+
+  it('renders the Connect your AI heading + Copy button', async () => {
+    renderSettings();
+    expect(await screen.findByRole('heading', { name: /Connect your AI/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Copy AI setup prompt/i })).toBeInTheDocument();
+  });
+
+  it('clicking the button writes the prompt to clipboard with current origin', async () => {
+    // userEvent.setup() installs the clipboard stub on navigator — spy AFTER setup()
+    const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+    renderSettings();
+    const btn = await screen.findByRole('button', { name: /Copy AI setup prompt/i });
+    await user.click(btn);
+    expect(writeText).toHaveBeenCalledTimes(1);
+    const arg = writeText.mock.calls[0][0] as string;
+    expect(arg).toContain(window.location.origin);
+    expect(arg).toContain('/api/plants?enrichment=pending');
+    expect(arg).toContain('Sample fact alpha.');
+  });
+
+  it('shows the pending counts with correct pluralization', async () => {
+    renderSettings();
+    expect(await screen.findByText(/3 plants pending enrichment/i)).toBeInTheDocument();
+    expect(await screen.findByText(/1 condition awaiting care update/i)).toBeInTheDocument();
+  });
+
+  it('shows a manual-copy fallback when clipboard write fails', async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    const btn = await screen.findByRole('button', { name: /Copy AI setup prompt/i });
+
+    // Make clipboard reject for this test
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValueOnce(new Error('denied'));
+
+    await user.click(btn);
+    expect(await screen.findByText(/copy manually/i)).toBeInTheDocument();
   });
 });
