@@ -66,3 +66,12 @@ select {
   padding: 16px;
   margin-bottom: 12px;
 }
+
+/* Issue #124: hamburger should not show focus state on tap, only on keyboard nav */
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible) {
+  outline: none;
+}
