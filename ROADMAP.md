@@ -8,71 +8,14 @@ For shipped work, see [`CHANGELOG.md`](CHANGELOG.md). For the current snapshot, 
 
 ## Status
 
-- **Waves 1–10 + 12 shipped.** Catalog at 250 species across 12 categories. Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing (monstera fixture), AddPlant onboarding polish, date-strip rework, memorial page redesign all in. Repo is private; v1.0.0 not yet tagged. See `CHANGELOG.md`.
-- **Now:** Wave 13 — plant detail structural rework (#134 epic + #133 + #60).
-- **Wave 11 deferred → re-bundled into Wave 14** — pipeline design landed (#138) but generation source not chosen. Picking up tomorrow alongside #7 (TRMNL template).
-- **Next active waves:** 13 → 14 → 15 → 16, in order. v1.0 ships at end of Wave 16.
+- **Waves 1–10 + 12 + 13 shipped.** Catalog at 250 species across 12 categories. Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing (monstera fixture), AddPlant onboarding polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding (CollapsibleSection, ConditionCard primitives), calibration UX (explanation, progress, convergence/drift) all in. Repo is private; v1.0.0 not yet tagged. See `CHANGELOG.md`.
+- **Now:** Wave 14 (next session) — TRMNL identity (#7 template + #138 illustrations). Generation source for #138 must be chosen before that part can ship.
+- **Next active waves:** 14 → 15 → 16, in order. v1.0 ships at end of Wave 16.
+- **Open child issues from Wave 13** (filed for future waves): [#139](https://github.com/tsipotU/plant-trmnl/issues/139) full passport-order section reorder, [#140](https://github.com/tsipotU/plant-trmnl/issues/140) hero block redesign, [#141](https://github.com/tsipotU/plant-trmnl/issues/141) "this plant" consolidation, [#142](https://github.com/tsipotU/plant-trmnl/issues/142) sticky in-page nav, [#143](https://github.com/tsipotU/plant-trmnl/issues/143) origin & lore narrative card.
 
-## Wave 9 — Hardening
+## Shipped waves (1–10 + 12 + 13)
 
-**Goal:** Make the app behave like a professional product when something goes wrong, not a research prototype.
-
-**Why this is first.** The blank-screen incident on 2026-04-25 (`/api/calibration/due` returning a plant without its `question` field, no error boundary, whole React tree unmounted) made it clear: a community installer wouldn't know how to recover. Fix the class of problem, not just the instance.
-
-**Brainstorm topics for the design pass:**
-- Top-level React `ErrorBoundary` so a crash on one route doesn't blank the whole app.
-- Server contract guards: every route returns the shape the client expects, or a typed error envelope; no silent shape drift.
-- "Healthy on boot" startup checks: catalog loads, DB schema migrates, env validates, TRMNL keys reachable. Print a one-screen startup banner with pass/fail.
-- A user-facing `/about` or `/diagnostics` page that surfaces version, DB row counts, last cron run, last enrichment activity, last TRMNL push — so a non-technical user can answer "is it working?" without grepping logs.
-- Container restart policies + clear logs when the API crashes.
-- Optional auth on enrichment endpoints (the long-standing v1.1 limitation in `INSTALL.md`).
-
-**Likely outputs:** `docs/plans/<date>-wave-9-hardening-{design,plan}.md`, ErrorBoundary + diagnostics page, startup banner, contract tests on critical routes.
-
-## Wave 10 — Onboarding flow
-
-**Goal:** First-time users see a guided setup, not an empty dashboard.
-
-**Brainstorm topics:**
-- Empty-state detection: zero plants AND no `TRMNL_API_KEY` set → onboarding screen, not dashboard.
-- Step-by-step flow: TRMNL keys (API key + plugin UUID) → connect-your-AI prompt copy → add-first-plant → confirm screen.
-- Skippable but resumable — user can come back to it from Settings.
-- Help inline for "what is this key, where do I find it" without making the user leave the app.
-- Add-first-plant supports both AI-enrichment-pending AND fully-manual paths (some users won't connect an AI at all).
-
-**Likely outputs:** `docs/plans/<date>-wave-10-onboarding-{design,plan}.md`, an `/onboarding` route, gating logic in App.tsx, copy for each step.
-
-## Wave 11 — DEFERRED — Image generation pipeline
-
-Design landed 2026-04-26 — see **[#138](https://github.com/tsipotU/plant-trmnl/issues/138)** for the full spec (two-variant-per-species, convention-based catalog wiring, build-time dithering script, generator-agnostic). Held until a generation source is chosen (paid API vs self-hosted vs LLM-SVG vs hand-commissioned). Until then the existing monstera placeholder serves PlantDetail; nothing blocks downstream waves.
-
-Detailed write-up moved to the bottom of this file under [Deferred / out-of-band](#deferred--out-of-band).
-
-## Wave 12 — Polish & feedback
-
-**Status:** Design landed 2026-04-26 — see [`docs/specs/2026-04-26-wave-12-polish-design.md`](docs/specs/2026-04-26-wave-12-polish-design.md).
-
-**Scope:** Two issues, bundled in one squash-merge PR.
-
-- [#126](https://github.com/tsipotU/plant-trmnl/issues/126) — date strip: distinguish today from selected, ±5-day centered scroll
-- [#135](https://github.com/tsipotU/plant-trmnl/issues/135) — archive flow: post-archive nav fix + memorial page (full redesign, both halves bundled because the bug fix needs the new page to land on)
-
-**Explicitly out of scope:** #133 (overlaps Wave 13's design pass), #59 PWA (new capability, not polish), #18 auto-detect (new feature).
-
-**Likely outputs:** `docs/plans/<date>-wave-12-plan.md`, the implementation under one squash-merge PR.
-
-## Wave 13 — Plant detail structural rework
-
-**Status:** In flight 2026-04-26. Spec landing in `docs/specs/2026-04-26-wave-13-plant-detail-design.md`.
-
-**Scope:**
-- [#134](https://github.com/tsipotU/plant-trmnl/issues/134) — **Epic:** Plant passport information architecture. Reframe the plant detail page as five conceptual layers (database knowledge → care defaults → this-specific-plant facts → schedule → history). Output: design doc + child issues filed + foundational implementation (image hero + section ordering).
-- [#133](https://github.com/tsipotU/plant-trmnl/issues/133) — Common conditions UI redesign. Identical-height collapsible cards with severity icons; tap to expand Remedy + Prevention. Multiple cards expandable simultaneously, expand state in URL.
-- [#60](https://github.com/tsipotU/plant-trmnl/issues/60) — Calibration UX. Four pieces: explanation tooltip, progress indicator (`N of ~M`), convergence celebration (toast + dialed-in badge), drift detection (un-converge on sustained answer shift).
-
-**Explicitly out of scope:** Visual identity work (palette, typography, logo) — those land in Wave 16's pre-flip polish, not here. Wave 13 stays within the existing visual language.
-
-**Likely outputs:** `docs/plans/2026-04-26-wave-13-plan.md`, the implementation under one squash-merge PR (or split if scope demands), 3–4 new child issues filed under #134.
+For each shipped wave's full scope and outcome, see [`CHANGELOG.md`](CHANGELOG.md). Specs and plans live under [`docs/specs/`](docs/specs/) and [`docs/plans/`](docs/plans/) (current waves) and [`docs/archive/`](docs/archive/) (Waves 1–8). Wave 11 was deferred and re-bundled into Wave 14 below.
 
 ## Wave 14 — TRMNL identity (template + illustrations)
 
