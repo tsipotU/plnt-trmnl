@@ -48,17 +48,18 @@ Design landed 2026-04-26 — see **[#138](https://github.com/tsipotU/plant-trmnl
 
 Detailed write-up moved to the bottom of this file under [Deferred / out-of-band](#deferred--out-of-band).
 
-## Wave 12 — Bugfix + feedback wave
+## Wave 12 — Polish & feedback
 
-**Goal:** Burn down the in-app feedback table and the open GitHub issues that surfaced during the dog-food window.
+**Status:** Design landed 2026-04-26 — see [`docs/specs/2026-04-26-wave-12-polish-design.md`](docs/specs/2026-04-26-wave-12-polish-design.md).
 
-**Brainstorm topics:**
-- Triage what's left in the in-app feedback table (`/api/feedback` open + in-progress).
-- Look at GitHub issues that accumulated post-Wave-8 dog-fooding.
-- No big new features — just polish, fixes, small UX wins, accessibility.
-- Maybe a small refactor rotation slot per `docs/RELEASE-PROCESS.md`.
+**Scope:** Two issues, bundled in one squash-merge PR.
 
-**Likely outputs:** `docs/plans/<date>-wave-12-polish-{design,plan}.md`, a triaged list, a series of small fixes under one squash-merge PR.
+- [#126](https://github.com/tsipotU/plant-trmnl/issues/126) — date strip: distinguish today from selected, ±5-day centered scroll
+- [#135](https://github.com/tsipotU/plant-trmnl/issues/135) — archive flow: post-archive nav fix + memorial page (full redesign, both halves bundled because the bug fix needs the new page to land on)
+
+**Explicitly out of scope:** #133 (overlaps Wave 13's design pass), #59 PWA (new capability, not polish), #18 auto-detect (new feature).
+
+**Likely outputs:** `docs/plans/<date>-wave-12-plan.md`, the implementation under one squash-merge PR.
 
 ## Wave 13 — Design + identity
 
