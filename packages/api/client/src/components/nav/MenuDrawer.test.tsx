@@ -149,7 +149,7 @@ describe('MenuDrawer — focus management', () => {
     expect(trigger).toHaveFocus();
   });
 
-  it('wraps Tab from the last link back to the first', async () => {
+  it('wraps Tab from the last focusable back to the first link', async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -157,14 +157,15 @@ describe('MenuDrawer — focus management', () => {
       </MemoryRouter>,
     );
     const addLink = screen.getByRole('link', { name: /add plant/i });
-    const aboutLink = screen.getByRole('link', { name: /about/i });
-    aboutLink.focus();
-    expect(aboutLink).toHaveFocus();
+    // Log out button (#136) is now the last focusable in the drawer
+    const logout = screen.getByRole('button', { name: /log out/i });
+    logout.focus();
+    expect(logout).toHaveFocus();
     await user.tab();
     expect(addLink).toHaveFocus();
   });
 
-  it('wraps Shift+Tab from the first link back to the last', async () => {
+  it('wraps Shift+Tab from the first link back to the last focusable', async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -172,10 +173,10 @@ describe('MenuDrawer — focus management', () => {
       </MemoryRouter>,
     );
     const addLink = screen.getByRole('link', { name: /add plant/i });
-    const aboutLink = screen.getByRole('link', { name: /about/i });
+    const logout = screen.getByRole('button', { name: /log out/i });
     addLink.focus();
     await user.tab({ shift: true });
-    expect(aboutLink).toHaveFocus();
+    expect(logout).toHaveFocus();
   });
 });
 
