@@ -42,6 +42,52 @@ export function createConditionsRouter(db: Database.Database): Router {
     res.json(rows);
   });
 
+  // POST /api/conditions/:id/care-update — receive AI-suggested care adjustment
+  router.post('/conditions/:id/care-update', (req: Request, res: Response) => {
+    const conditionId = Number(req.params.id);
+    const { interval_delta_days, light_preference, rationale } = req.body ?? {};
+
+    if (typeof interval_delta_days !== 'number' || typeof rationale !== 'string') {
+      res.status(400).json({ error: 'interval_delta_days (number) and rationale (string) are required' });
+      return;
+    }
+    if (light_preference !== undefined && typeof light_preference !== 'string') {
+      res.status(400).json({ error: 'light_preference must be a string when provided' });
+      return;
+    }
+
+    const condition = db.prepare(`SELECT * FROM plant_conditions WHERE id = ?`).get(conditionId) as { id: number; plant_id: number; care_update_status: string } | undefined;
+    if (!condition) {
+      res.status(404).json({ error: 'Condition not found' });
+      return;
+    }
+    if (condition.care_update_status === 'complete') {
+      res.status(409).json({ error: 'Care update already applied' });
+      return;
+    }
+
+    const plant = db.prepare(`SELECT current_interval, light_level FROM plants WHERE id = ?`).get(condition.plant_id) as { current_interval: number; light_level: string | null } | undefined;
+    if (!plant) {
+      res.status(500).json({ error: 'Plant data inconsistency' });
+      return;
+    }
+    const newInterval = Math.max(1, plant.current_interval + interval_delta_days);
+
+    db.prepare(`UPDATE plants SET current_interval = ?, light_level = COALESCE(?, light_level), updated_at = datetime('now') WHERE id = ?`)
+      .run(newInterval, light_preference ?? null, condition.plant_id);
+
+    db.prepare(`UPDATE plant_conditions SET care_update_status = 'complete' WHERE id = ?`).run(conditionId);
+
+    logEvent(db, {
+      plantId: condition.plant_id,
+      eventType: 'care_updated',
+      newValue: String(newInterval),
+      reason: rationale,
+    });
+
+    res.json({ ok: true, condition_id: conditionId, new_interval: newInterval });
+  });
+
   // POST /api/plants/:id/conditions — create a condition
   router.post('/plants/:id/conditions', (req: Request, res: Response) => {
     const plantId = Number(req.params.id);
