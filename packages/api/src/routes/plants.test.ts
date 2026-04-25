@@ -7,13 +7,6 @@ import { createPlantsRouter } from './plants.js';
 import { createCatalog } from '../catalog/loader.js';
 import type { CatalogEntry } from '../catalog/types.js';
 
-// Prevent real Claude Agent SDK calls from firing in tests.
-// Existing POST /api/plants and new species-correction PUT both trigger
-// background enrichment — we stub it to a no-op resolved promise.
-vi.mock('../enrichment/claude-enrich.js', () => ({
-  enrichPlantWithClaude: vi.fn(async () => undefined),
-  updateCareForCondition: vi.fn(async () => null),
-}));
 
 function createTestApp() {
   const db = new Database(':memory:');
@@ -304,6 +297,16 @@ describe('POST /api/plants', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid origin_type');
+  });
+
+  it('POST /api/plants leaves enrichment_status as pending — no in-process SDK call', async () => {
+    const { app, db } = createTestApp();
+    const res = await request(app).post('/api/plants').send({ name: 'Pothos', lastWateredAt: '2026-04-01' });
+    expect(res.status).toBe(201);
+    // Wait a tick to confirm no async background flip happens
+    await new Promise(r => setTimeout(r, 50));
+    const plant = db.prepare(`SELECT enrichment_status FROM plants WHERE id = ?`).get(res.body.id) as { enrichment_status: string };
+    expect(plant.enrichment_status).toBe('pending');
   });
 });
 

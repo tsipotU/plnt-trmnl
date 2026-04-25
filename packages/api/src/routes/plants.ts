@@ -3,7 +3,6 @@ import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 import { calculateNextWaterDate, calculateRepotAdjustment } from '../scheduling/engine.js';
 import { logEvent, getEventsForPlant, logScheduleEvents } from '../database/event-log.js';
-import { enrichPlantWithClaude } from '../enrichment/claude-enrich.js';
 import { applySeasonalMultipliers, type SeasonalConfig } from '../scheduling/seasonal.js';
 import { scheduleNextWater, type ScheduledPlant, type ScheduleResult } from '../scheduling/bin-packer.js';
 import type { Config } from '../config.js';
@@ -492,15 +491,6 @@ export function createPlantsRouter(
 
     const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<string, unknown>;
     res.status(201).json(plant);
-
-    // Fire Claude enrichment in the background (don't block the response)
-    enrichPlantWithClaude(db, plantId, {
-      name,
-      potSizeCm: potSizeCm ?? null,
-      plantSize: plantSize ?? null,
-      location: location ?? null,
-      lightLevel: lightLevel ?? null,
-    }).catch(() => { /* logged inside enrichPlantWithClaude */ });
   });
 
   // GET /api/plants/:id/enrichment-status — poll for enrichment completion
@@ -542,14 +532,6 @@ export function createPlantsRouter(
     ).run(plantId);
 
     res.json({ ok: true, id: plantId, name: plant.name });
-
-    enrichPlantWithClaude(db, plantId, {
-      name: plant.name as string,
-      potSizeCm: (plant.pot_size_cm as number | null) ?? null,
-      plantSize: (plant.plant_size as string | null) ?? null,
-      location: (plant.location as string | null) ?? null,
-      lightLevel: (plant.light_level as string | null) ?? null,
-    }).catch(() => { /* logged inside enrichPlantWithClaude */ });
   });
 
   // PUT /api/plants/:id — update plant fields
@@ -699,20 +681,6 @@ export function createPlantsRouter(
         reason: `Species corrected: ${oldSpecies ?? '—'} → ${trimmedSpecies}`,
       });
 
-      const refreshed = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<
-        string,
-        unknown
-      >;
-      // Fire-and-forget; failure handled inside enrichPlantWithClaude.
-      enrichPlantWithClaude(db, plantId, {
-        name: (refreshed.name as string) ?? '',
-        potSizeCm: (refreshed.pot_size_cm as number | null) ?? null,
-        plantSize: (refreshed.plant_size as string | null) ?? null,
-        location: (refreshed.location as string | null) ?? null,
-        lightLevel: (refreshed.light_level as string | null) ?? null,
-      }).catch(() => {
-        /* logged inside enrichPlantWithClaude */
-      });
     }
 
     const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId);
