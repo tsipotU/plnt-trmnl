@@ -2,47 +2,70 @@
 
 ## Project Overview
 
-**Plant TRMNL** is a plant care management system with two surfaces:
-1. A **TRMNL e-ink display** showing a daily digest of plants needing attention
-2. A **mobile web app** for quick watering/fertilizing logging on the go
+**Plant TRMNL** (user-visible name **PLNT**) is a plant care management system with two surfaces:
+1. A **TRMNL e-ink display** showing a daily digest of plants needing attention.
+2. A **mobile-first web app** for quick watering / fertilizing logging on the go.
+
+For status and roadmap, see [`ROADMAP.md`](ROADMAP.md). For shipped work, see [`CHANGELOG.md`](CHANGELOG.md). For the current handoff snapshot, see [`docs/HANDOFF.md`](docs/HANDOFF.md).
 
 ## Tech Stack
 
 - **Runtime:** Node.js 25 + TypeScript
 - **API:** Express 5, better-sqlite3 (WAL mode)
-- **Frontend:** React 19 + Vite
-- **Infra:** Docker Compose, OrbStack
+- **Frontend:** React 19 + Vite, vitest + jsdom for client tests
+- **Infra:** Docker Compose (production); `tsx watch` from project root (dev on the Mac mini)
 
 ## Architecture
 
-Two containers, both in the same Docker Compose network:
+Two services, both in the same Docker Compose network in production. In dev they run side-by-side as `tsx watch` processes from the project root.
 
-| Container | Port | Purpose |
-|-----------|------|---------|
-| `plant-api` | 3900 | REST API + SQLite database |
-| `plant-renderer` | 3901 | TRMNL screenshot renderer + cron |
+| Service | Port | Purpose |
+|---|---|---|
+| `plant-api` | 3900 | REST API + SQLite database + serves the SPA from `dist/client/` |
+| `plant-renderer` | 3901 | TRMNL screenshot renderer + push cron |
 
-The renderer calls the API internally via `API_INTERNAL_URL=http://plant-api:3900`.
+The renderer talks to the API over the Docker network via `API_INTERNAL_URL=http://plant-api:3900` (in containers) or `http://localhost:3900` (in dev).
+
+**Enrichment is pull-based.** plant-trmnl owns plant state; an external AI tool (Claude Desktop scheduled task is the canonical recipe) polls `GET /api/plants?enrichment=pending` and `GET /api/conditions?care_update=pending`, then POSTs back to `/api/plants/:id/enrichment` and `/api/conditions/:id/care-update`. There is no in-process LLM. If "nothing happens" after a user adds a plant, check whether their AI tool is connected — that's where enrichment lives now. Persistence helpers live in `packages/api/src/enrichment/callback.ts` (top-level `handleCallback(db, plantId, body, res)` is shared by both endpoints).
+
+State machines:
+- `plants.enrichment_status ∈ {pending, complete, failed}` (`failed` is legacy from the in-process era; new plants go pending → complete).
+- `plant_conditions.care_update_status ∈ {not_needed, pending, complete}`.
 
 ## Directory Layout
 
 ```
 plant-trmnl/
   packages/
-    api/          — Express API, SQLite, business logic
-    renderer/     — React + Vite TRMNL renderer, screenshot cron
+    api/
+      src/                    — Express API source
+      catalog/plants.json     — 250-species catalog (loaded + strict-validated on boot)
+      client/                 — React SPA source (NOT a separate workspace; vite/sharp resolve from inside)
+      dist/client/            — built SPA, served by Express
+    renderer/                 — TRMNL screenshot renderer + push cron
   docs/
-    specs/        — Design specifications
-    plans/        — Implementation plans
+    HANDOFF.md                — current snapshot for any new session / contributor
+    RELEASE-PROCESS.md        — maintainer playbook
+    incidents/                — post-mortems (institutional memory)
+    specs/                    — current design specs
+    plans/                    — current wave plans
+    archive/                  — historical wave plans/specs/manual-tests (Waves 1-8)
+    trmnl-templates/          — Liquid templates for TRMNL plugin
+  scripts/                    — pre-public-flip hygiene scripts (Wave 8)
+  ROADMAP.md                  — Waves 9-14 forward plan
+  CHANGELOG.md                — what shipped when
+  INSTALL.md                  — community install guide
+  README.md                   — elevator pitch
+  CLAUDE.md                   — this file
   docker-compose.yml
-  package.json    — Root workspace
+  package.json                — root workspace
   tsconfig.base.json
 ```
 
 ## Key Conventions
 
 ### TDD — Tests First
-Write tests using **vitest** before writing implementation code. No feature ships without tests.
+Write tests using **vitest** before implementation. No feature ships without tests.
 
 ### Config — No Hardcoded Secrets
 All configuration via `.env`. Every env var must be validated on startup. Use `.env.example` as the reference.
@@ -69,44 +92,51 @@ Use **pino** for structured JSON logging. No `console.log` in production code.
 ### Express 5 Error Handling
 Express 5 uses promise-based middleware. Do NOT use callback-style error handlers. Use `async` route handlers — unhandled promise rejections propagate automatically.
 
-## Reference Docs
+### Catalog Schema
+Strict at boot. Adding new entries requires:
+- All 12 valid categories: `foliage | flowering | succulents | cacti | indoor_trees | ferns | palms | air_plants | orchids | carnivorous | herbs | terrarium`.
+- Light enum: `low | medium | bright_indirect | direct` (in `care.light_preference`, `light_profile.{ideal,tolerance_min,tolerance_max}`).
+- Exactly 15 conditions per entry, exactly 15 unique facts, exactly 4 placement_tips.
+- Unique slug across all entries (kebab-case).
 
-- Design spec: `docs/specs/2026-04-07-plant-trmnl-design.md`
-- Implementation plan: `docs/plans/2026-04-07-plant-trmnl-plan.md`
+If the loader fails to validate at boot the API will not start. The full validator lives at `packages/api/src/catalog/loader.ts`.
 
 ## Test Execution Rules (Resource Safety)
 
-On 2026-04-23 (and 2026-04-22), unbounded Vitest parallelism on this Mac Mini consumed enough RAM to freeze the system and force an SSH-only recovery. See `docs/incidents/2026-04-23-vitest-resource-exhaustion.md`. Rules to prevent recurrence:
+On 2026-04-23 (and 2026-04-22), unbounded Vitest parallelism on this Mac mini consumed enough RAM to freeze the system and force an SSH-only recovery. See `docs/incidents/2026-04-23-vitest-resource-exhaustion.md`. Rules to prevent recurrence:
 
 - Use `npm test` (= `vitest run`), never bare `vitest` or `--watch` on this headless machine. `test:watch` is explicit opt-in only.
 - All vitest configs cap concurrency via `pool: 'forks'` + `maxForks: 2`. Do not remove or raise these caps without discussing trade-offs first.
 - If a run exceeds 2 minutes, **check progress before assuming trouble**:
   - Is the test counter advancing? Is RSS sawtoothing (healthy) or monotonic (leak)?
   - High CPU + no progress → likely infinite loop. Use `sample <pid> 3` to confirm.
-  - Low CPU + no progress → likely awaiting unmocked I/O (network, Claude Agent SDK, fs).
+  - Low CPU + no progress → likely awaiting unmocked I/O.
 - Kill only after diagnosing — never on a blind timer.
 - **Hard ceiling:** if total RSS across vitest processes exceeds 3GB, kill regardless. That's the system-safety line.
-- Never spawn real Claude Agent SDK calls inside test suites without mocking — that path is how a single test can balloon to 800MB+.
 
 ## Gotchas
 
-- `better-sqlite3` is synchronous — do not mix with async DB patterns
-- The renderer container has no direct DB access — it only talks to the API
-- TRMNL fetches the screenshot on its own schedule; the renderer pre-renders and serves a static image
-- `CALIBRATION_DEADLINE_HOUR` controls the cutoff for same-day calibration (default: 12 = noon)
-- **Heating season:** affects watering frequency recommendations (`HEATING_SEASON_START` / `HEATING_SEASON_END`). The seasonal multiplier is applied in the water handler when `isInHeatingSeason()` is true; only seasonal_adjustment event is logged if interval differs. See `packages/api/src/scheduling/seasonal.ts`.
-- **Growing season + dormancy (#36):** `GROWING_SEASON_START/END` (default Apr 1–Sep 30) + `GROWING_SEASON_MULTIPLIER` (default 0.8) + `DORMANCY_MULTIPLIER` (default 1.3) + `DRY_DAYS_BASE` (default 7). Stacks multiplicatively with the per-plant `heating_season_modifier`: `effective = round(current_interval × heatingMod × growOrDormancyMult)`. Only one `seasonal_adjustment` event per watering; its `reason` enumerates which layers fired. `current_interval` is the "dry-days target" (unchanged column, new semantic). See `packages/api/src/scheduling/seasonal.ts` → `applySeasonalMultipliers()` and `docs/plans/2026-04-24-issue-36-design.md`.
+- `better-sqlite3` is synchronous — do not mix with async DB patterns.
+- The renderer container has no direct DB access — it only talks to the API.
+- TRMNL fetches the screenshot on its own schedule; the renderer pre-renders and serves a static image.
+- `CALIBRATION_DEADLINE_HOUR` controls the cutoff for same-day calibration (default: 12 = noon).
+- **Heating season:** affects watering frequency (`HEATING_SEASON_START` / `HEATING_SEASON_END`). The seasonal multiplier is applied in the water handler when `isInHeatingSeason()` is true; only `seasonal_adjustment` event is logged if interval differs. See `packages/api/src/scheduling/seasonal.ts`.
+- **Growing season + dormancy (#36):** `GROWING_SEASON_START/END` (default Apr 1–Sep 30) + `GROWING_SEASON_MULTIPLIER` (default 0.8) + `DORMANCY_MULTIPLIER` (default 1.3) + `DRY_DAYS_BASE` (default 7). Stacks multiplicatively with the per-plant `heating_season_modifier`: `effective = round(current_interval × heatingMod × growOrDormancyMult)`. Only one `seasonal_adjustment` event per watering; its `reason` enumerates which layers fired. `current_interval` is the "dry-days target" (unchanged column, new semantic). See `packages/api/src/scheduling/seasonal.ts` → `applySeasonalMultipliers()`.
 - **Undo-water state:** Each water event stores `old_value` as JSON (old `last_watered_at`, `next_water_date`, `calibration_cycle`). The `POST /:id/undo-water` route restores state from this snapshot.
 - **Archive soft-delete:** All scheduling queries must filter `WHERE archived = 0`. Species facts are soft-disabled when the last plant of a species is archived (checked in enrichment).
 - **`createPlantsRouter()` signature:** May accept optional `heatingConfig` parameter (test fixtures can override season dates).
 - In `index.ts`, the scoped `/api` 404 handler must be registered AFTER all API routers but BEFORE the SPA catch-all (`app.get('{*path}', ...)`). Without it, GETs to unknown `/api/*` paths fall through to the SPA fallback and return `index.html` with status 200 — surfacing as cryptic `Unexpected token '<'` JSON parse errors in the client.
 - **Parallel agents:** agents share the working directory without worktree isolation, causing branch-clobbering and stale checkouts if 2+ agents run concurrently. Solution: serialize agents or explicitly set isolation in dispatcher config.
-- **next_water_date mutations:** Any code path that writes `next_water_date` MUST funnel the target date through `scheduleNextWater(idealDate, location, existing)` from `scheduling/bin-packer.ts` AND call `logScheduleEvents(db, plantId, result)` so `overflow_rebalance` / `schedule_congested` events fire consistently. Wired call sites: `routes/plants.ts` (water + PUT repot), `routes/calibration.ts`, `enrichment/callback.ts`, `enrichment/claude-enrich.ts`, `scheduling/vacation.ts`. Single-water uses `waterPlant()` helper in `routes/plants.ts`; `POST /water-all` uses the same helper per plant. Note: `POST /api/plants` bypasses this on initial insert by design — enrichment runs the rebalance seconds later.
-- **Test environments:** API vitest (`packages/api/vitest.config.ts`) runs in node env and excludes `client/**`. Client vitest (`packages/api/client/vitest.config.ts`) runs in jsdom with `@testing-library/react` + `jest-dom` matchers. Never run client `.test.tsx` files under the API runner — they'll crash with `ReferenceError: document is not defined`. If a new workspace is added, mirror the `exclude: ['client/**']` pattern.
-- **Batch events & undo isolation:** `waterPlant()` passes `batchId` ONLY to `watered` + `seasonal_adjustment` events, never to `overflow_rebalance` / `schedule_congested`. This keeps `/undo-batch`'s `DELETE WHERE batch_id = ?` from destroying the rebalance audit trail. Overflow/congested events survive an undo by design.
+- **next_water_date mutations:** Any code path that writes `next_water_date` MUST funnel the target date through `scheduleNextWater(idealDate, location, existing)` from `scheduling/bin-packer.ts` AND call `logScheduleEvents(db, plantId, result)` so `overflow_rebalance` / `schedule_congested` events fire consistently. Wired call sites: `routes/plants.ts` (water + PUT repot), `routes/calibration.ts`, `enrichment/callback.ts`, `scheduling/vacation.ts`. Single-water uses `waterPlant()` helper in `routes/plants.ts`; `POST /water-all` uses the same helper per plant. `POST /api/plants` bypasses this on initial insert by design — enrichment runs the rebalance seconds later.
+- **Test environments:** API vitest (`packages/api/vitest.config.ts`) runs in node env and excludes `client/**`. Client vitest (`packages/api/client/vitest.config.ts`) runs in jsdom with `@testing-library/react` + `jest-dom` matchers. Never run client `.test.tsx` files under the API runner — they'll crash with `ReferenceError: document is not defined`.
+- **Batch events & undo isolation:** `waterPlant()` passes `batchId` ONLY to `watered` + `seasonal_adjustment` events, never to `overflow_rebalance` / `schedule_congested`. This keeps `/undo-batch`'s `DELETE WHERE batch_id = ?` from destroying the rebalance audit trail.
+- **`/api/calibration/due` joins questions.** The route enriches each due plant with its next calibration question (`calibration_questions[cycle % length]`) before returning, and filters out plants that have no questions seeded (those can't be calibrated yet — usually plants whose enrichment is `failed` from the legacy SDK era). The `CalibrationModal` component in the SPA reads `plant.question.question_text` directly with no defense, so the server-side filter is what keeps the modal from crashing.
+- **`<App />` has no top-level ErrorBoundary** as of Wave 8. Any uncaught render error in any route blanks the whole app. Wave 9 (hardening) will add one. In the meantime, treat type contracts as load-bearing.
 
-## Wave 8 architecture — pull-based enrichment
+## Reference Docs
 
-After Wave 8, plant-trmnl has **zero in-process LLM code**. Adding a plant or flagging a condition no longer fires anything; the row's status flips to `pending` and waits for an external AI tool to call the enrichment endpoints. If you're confused why "nothing happens" after adding a plant, check the user's connected AI tool — that's where enrichment lives now.
-
-Persistence helpers in `packages/api/src/enrichment/callback.ts` are agent-agnostic and shared by both the legacy `POST /api/enrichment/callback` and the new `POST /api/plants/:id/enrichment` alias via the top-level `handleCallback(db, plantId, body, res)` function. The router is mounted at `/api`, with internal routes `/enrichment/callback` and `/plants/:id/enrichment`. State machines: `plants.enrichment_status ∈ {pending, complete}` and `plant_conditions.care_update_status ∈ {not_needed, pending, complete}`.
+- Roadmap: [`ROADMAP.md`](ROADMAP.md)
+- Current handoff: [`docs/HANDOFF.md`](docs/HANDOFF.md)
+- Release playbook: [`docs/RELEASE-PROCESS.md`](docs/RELEASE-PROCESS.md)
+- Master design spec: `docs/specs/2026-04-07-plant-trmnl-design.md` (Wave 1, partly superseded by later wave docs — read the high-level architecture sections, skip the detailed feature specs)
+- Historical wave plans: `docs/archive/`

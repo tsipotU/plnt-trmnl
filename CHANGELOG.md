@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 - **Architecture:** All in-process LLM calls removed. plant-trmnl now exposes a pull-based enrichment API; users connect their own AI tool (Claude Desktop scheduled task, ChatGPT scheduled tasks, Cursor, Ollama + cron, n8n, etc.).
+- **Catalog:** Expanded from 30 → 250 species across 12 categories (added `orchids`, `carnivorous`, `herbs`, `terrarium`). 60+ cultivars/variegated forms across major collector genera (Monstera, Pothos, Philodendron, Sansevieria, Ficus, Echeveria, Calathea, Aglaonema). Phalaenopsis migrated from `flowering` to its new `orchids` category.
 - **Settings:** New "Connect your AI" section with a "Copy AI setup prompt" button that copies a ready-to-paste prompt teaching the user's AI which endpoints to call.
 
 ### Added
@@ -18,8 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `POST /api/conditions/:id/care-update` — receive AI-suggested care adjustment.
 - `GET /api/facts/samples?n=10` — random facts as style anchors for the AI setup prompt.
 - `INSTALL.md` — full install guide for newcomers.
+- `ROADMAP.md` — forward plan (Waves 9–14).
 - `docs/RELEASE-PROCESS.md` — maintainer playbook including the pre-public-flip checklist.
+- `docs/archive/` — historical wave plans/designs/manual-tests for Waves 1–8 (moved out of the active `docs/plans/` and `docs/specs/` directories).
 - `scripts/pre-flip-audit.sh` and `scripts/audit-issues.sh` — pre-publish hygiene tooling.
+
+### Fixed
+- **Calibration crash that blanked the entire app.** `GET /api/calibration/due` returned plants without their `question` field, but `CalibrationModal` reads `plant.question.question_text` directly. When a plant was due for calibration today and had no questions seeded (e.g. `enrichment_status = failed` from the legacy SDK era), the modal threw an uncaught `TypeError` and React unmounted the whole tree. The route now joins each due plant with its next calibration question and filters out plants that have none.
 
 ### Removed
 - `@anthropic-ai/claude-agent-sdk` dependency.
