@@ -12,7 +12,7 @@
  *   5 (soaking)    → lengthen by 2 days
  *
  * The semantic shift from "days between waterings" to "dry-days target" is
- * noted in docs/plans/2026-04-24-issue-36-design.md. No DB migration needed —
+ * noted in docs/archive/2026-04-24-issue-36-design.md. No DB migration needed —
  * the existing `current_interval` column holds the same number, just renamed
  * conceptually.
  */

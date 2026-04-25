@@ -105,7 +105,7 @@ export interface SeasonalResult {
  *
  * The per-plant `current_interval` in the DB is never mutated — only the
  * computed `next_water_date` reflects the adjustment. See
- * docs/plans/2026-04-24-issue-36-design.md for the rationale.
+ * docs/archive/2026-04-24-issue-36-design.md for the rationale.
  */
 export function applySeasonalMultipliers(input: ApplySeasonalInput): SeasonalResult {
   const { baseInterval, perPlantHeatingModifier, today, config } = input;
