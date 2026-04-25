@@ -28,6 +28,8 @@ export function HamburgerMenu({ open, onToggle, ref }: HamburgerMenuProps) {
         lineHeight: 1,
         cursor: 'pointer',
         padding: 0,
+        WebkitTapHighlightColor: 'transparent',
+        outline: 'none',
       }}
     >
       <span aria-hidden="true">≡</span>
