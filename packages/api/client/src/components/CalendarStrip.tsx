@@ -38,6 +38,8 @@ export function CalendarStrip({ days, selectedDate, onDaySelect }: Props) {
           const dayNum = dt.getUTCDate();
           const isSelected = selectedDate === day.date;
           const isEmpty = day.count === 0;
+          const isTodayOnly = day.is_today;
+          const isSelectedNotToday = isSelected && !day.is_today;
 
           return (
             <button
@@ -50,12 +52,16 @@ export function CalendarStrip({ days, selectedDate, onDaySelect }: Props) {
                 minWidth: 56,
                 minHeight: 64,
                 padding: '0.25rem',
-                background: isSelected ? 'var(--accent-muted, rgba(0, 168, 107, 0.15))' : 'var(--bg-card)',
-                border: isSelected
-                  ? '2px solid var(--accent)'
-                  : day.is_today
-                  ? '2px solid var(--accent)'
-                  : '1px solid var(--border, #ddd)',
+                background: isTodayOnly
+                  ? 'var(--accent)'
+                  : isSelectedNotToday
+                  ? 'var(--accent-muted, rgba(0, 168, 107, 0.15))'
+                  : 'var(--bg-card)',
+                border:
+                  isTodayOnly || isSelectedNotToday
+                    ? '2px solid var(--accent)'
+                    : '1px solid var(--border, #ddd)',
+                color: isTodayOnly ? 'white' : 'inherit',
                 borderRadius: 8,
                 cursor: 'pointer',
                 display: 'flex',
@@ -67,11 +73,16 @@ export function CalendarStrip({ days, selectedDate, onDaySelect }: Props) {
               }}
             >
               <span
-                style={{ fontSize: '0.75rem', color: 'var(--text-muted, #888)' }}
+                style={{
+                  fontSize: '0.75rem',
+                  color: isTodayOnly ? 'rgba(255,255,255,0.85)' : 'var(--text-muted, #888)',
+                }}
               >
                 {dow}
               </span>
-              <span style={{ fontWeight: 600 }}>{dayNum}</span>
+              <span style={{ fontWeight: 600, color: isTodayOnly ? 'white' : 'inherit' }}>
+                {dayNum}
+              </span>
               {day.count > 0 ? (
                 <span
                   style={{

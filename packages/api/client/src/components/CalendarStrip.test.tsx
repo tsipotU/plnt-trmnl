@@ -44,13 +44,35 @@ describe('CalendarStrip', () => {
     expect(onDaySelect).toHaveBeenCalledWith(null);
   });
 
-  it('visually indicates selected day', () => {
+  it('visually indicates selected day with distinct treatment from today', () => {
     const { container } = render(
       <CalendarStrip days={days} selectedDate="2026-04-24" onDaySelect={() => {}} />,
     );
     const dayButtons = container.querySelectorAll('button');
-    const selectedButton = dayButtons[2]; // 2026-04-24 is index 2
+    const todayButton = dayButtons[0]; // 2026-04-22, is_today: true
+    const selectedButton = dayButtons[2]; // 2026-04-24, selected (not today)
+    // Today: filled green background
+    expect(todayButton).toHaveStyle('background: var(--accent)');
+    // Selected (not today): muted background
     expect(selectedButton).toHaveStyle('background: var(--accent-muted, rgba(0, 168, 107, 0.15))');
+  });
+
+  it('renders today-only treatment when selected day equals today', () => {
+    const { container } = render(
+      <CalendarStrip days={days} selectedDate="2026-04-22" onDaySelect={() => {}} />,
+    );
+    const dayButtons = container.querySelectorAll('button');
+    const todayButton = dayButtons[0];
+    expect(todayButton).toHaveStyle('background: var(--accent)');
+  });
+
+  it('today gets white text when filled', () => {
+    const { container } = render(
+      <CalendarStrip days={days} selectedDate="2026-04-24" onDaySelect={() => {}} />,
+    );
+    const dayButtons = container.querySelectorAll('button');
+    const todayButton = dayButtons[0];
+    expect(todayButton).toHaveStyle('color: rgb(255, 255, 255)');
   });
 
   it('dims empty-day cards', () => {
