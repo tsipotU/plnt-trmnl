@@ -1,0 +1,125 @@
+# Changelog
+
+All notable changes to plant-trmnl are documented here.
+
+The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Changed
+- **Architecture:** All in-process LLM calls removed. plant-trmnl now exposes a pull-based enrichment API; users connect their own AI tool (Claude Desktop scheduled task, ChatGPT scheduled tasks, Cursor, Ollama + cron, n8n, etc.).
+- **Settings:** New "Connect your AI" section with a "Copy AI setup prompt" button that copies a ready-to-paste prompt teaching the user's AI which endpoints to call.
+
+### Added
+- `GET /api/plants?enrichment=pending` — list plants needing enrichment.
+- `POST /api/plants/:id/enrichment` — receive enrichment payload (alias to the existing callback endpoint).
+- `GET /api/conditions?care_update=pending` — list conditions awaiting care suggestions.
+- `POST /api/conditions/:id/care-update` — receive AI-suggested care adjustment.
+- `GET /api/facts/samples?n=10` — random facts as style anchors for the AI setup prompt.
+- `INSTALL.md` — full install guide for newcomers.
+- `docs/RELEASE-PROCESS.md` — maintainer playbook including the pre-public-flip checklist.
+- `scripts/pre-flip-audit.sh` and `scripts/audit-issues.sh` — pre-publish hygiene tooling.
+
+### Removed
+- `@anthropic-ai/claude-agent-sdk` dependency.
+- `packages/api/src/enrichment/claude-enrich.ts` (286 lines).
+
+### Security
+- N/A (auth on enrichment endpoints remains a known limitation, slated for v1.1.)
+
+## [0.7.0] — 2026-04-25
+
+### Removed
+- n8n enrichment client (`webhook.ts`, `retry.ts` and their tests). The n8n env vars `N8N_ENRICHMENT_WEBHOOK_URL` and `N8N_ENRICHMENT_MAX_RETRIES` are no longer read.
+
+### Fixed
+- AddPlant post-add enrichment splash test flake (intermittent timeouts on `findByRole('dialog')`).
+
+## [0.6.0] — 2026-04-24
+
+### Changed
+- App renamed to **PLNT** in user-visible copy.
+
+### Added
+- 🪴 favicon + PWA manifest (full PWA install lands in v1.1).
+- Hamburger menu in top-nav with focus-trapped drawer, Escape close, backdrop click, route-change auto-close, body scroll lock.
+- About page stub at `/about`.
+
+### Removed
+- Vacation toggle from Dashboard (UI-hidden; the underlying scheduling path and `/vacation-start` / `/vacation-end` routes remain functional).
+
+## [0.5.0] — 2026-04-24
+
+### Added
+- Plant catalog foundation: 30 curated species with care, light profile, placement tips, 15 conditions, 15 facts, origin, lore, etymology.
+- Catalog endpoints: `/api/catalog/search`, `/api/catalog/suggest`, `/api/catalog/entry`.
+- AddPlant catalog dropdown with free-text fallback (#2).
+- Rich care profiles (light, placement, top 15 conditions per species) on the plant detail page (#3).
+- Daily fact rotation: TRMNL screen picks the least-recently-shown fact at 6 AM, resets when the species cycle is exhausted (#38).
+- "Did you mean…" suggestion fallback for misspelled plant names (#39).
+- "About this plant" card on detail page (#37).
+- Settings page (`/settings`) with a "Show developer info" toggle.
+- Conditions picker on plant detail with generic + species-specific sections (#75).
+- Soil-feel seeds calibration when last-watered date is unknown (#70).
+- Light-level help tooltip on AddPlant (#71).
+- Image attachments on feedback submissions (#77).
+- Post-add enrichment splash confirms species + care preview (#72).
+
+### Changed
+- Dry-soil-aware calibration: replaces the previous interval-tweak model with a `dry-days-target` semantic with growing-season (× 0.8) and dormancy (× 1.3) multipliers stacked multiplicatively with each plant's `heating_season_modifier` (#36).
+- Prominent species header on the plant detail page (#74).
+
+## [0.4.0] — 2026-04-23
+
+### Added
+- End-to-end watering lifecycle integration test covering Wave 2 features (#9).
+- Archived plants view (#33).
+- Plant origin story (purchased / received / seedling / unknown) with mother plant references (#35).
+- Stats card + calibration trend UI on plant detail (#16).
+- Timestamped notes log via a new `plant_notes` table (#32).
+
+### Changed
+- Condition resolve URL fix (#34).
+- Vitest fork cap (`maxForks: 2`, `pool: forks`) after a second resource-exhaustion freeze; full post-mortem at `docs/incidents/2026-04-23-vitest-resource-exhaustion.md`.
+
+### Removed
+- Legacy `plants.notes` column (replaced by `plant_notes` table).
+
+## [0.3.0] — 2026-04-22
+
+### Added
+- Batch water with batch undo toast (#11).
+- 7-day calendar strip on Dashboard (#12).
+- Pot size categories (Extra Small / Small / Medium / Large / Extra Large / Other) (#31).
+- Bin-packer scheduling overflow / rebalance — every `next_water_date` mutation now goes through `scheduleNextWater` + `logScheduleEvents` (#6).
+- Reason-specific memorial toasts on archive (#30).
+
+### Changed
+- Archive dialog CSS polish (#29).
+
+### Fixed
+- JSON render in event timeline (#25).
+- Undo countdown stuck at 15s (#26).
+- Watered button regression (#27).
+- Flag-condition flow (#28).
+
+## [0.2.0] — 2026-04-22
+
+### Added
+- Welcome empty state with first-plant hints + celebration toast (#13).
+- Undo-water with 15-second window and full state restoration (#14).
+- Seasonal modifier applied to scheduling (#15).
+- Archive flow with reason / note / memorial UI (#17).
+
+## [0.1.0] — 2026-04-22
+
+### Added
+- Plant identifier field (#10).
+- Docker compose hygiene pass (#8).
+- Feedback submission system with screenshot attachments (#19).
+
+## [0.0.1] — 2026-04-07
+
+### Added
+- Initial scaffold: API container (`plant-api` :3900), renderer container (`plant-renderer` :3901), TRMNL webhook push integration, SQLite (WAL), Express 5, React 19 + Vite, Docker Compose.
