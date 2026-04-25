@@ -5,6 +5,8 @@ import { ConditionsPicker } from '../components/ConditionsPicker';
 import { NotesLog } from '../components/NotesLog';
 import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
 import { useDevInfo } from '../hooks/useDevInfo.js';
+import { useAiConnection } from '../hooks/useAiConnection';
+import { Link } from 'react-router-dom';
 import {
   daysBetween,
   computeIntervalHistory,
@@ -623,6 +625,7 @@ export function PlantDetail() {
   const [devInfoExpanded, setDevInfoExpanded] = useState(false);
   const [renamingSpecies, setRenamingSpecies] = useState(false);
   const [speciesDraft, setSpeciesDraft] = useState('');
+  const { connected: aiConnected, loading: aiLoading } = useAiConnection();
 
   // Fetch plant data
   useEffect(() => {
@@ -967,29 +970,52 @@ export function PlantDetail() {
         <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Dashboard</span>
       </div>
 
-      {/* #72 — "Still enriching" badge. Shown when the post-add splash timed
-          out at 10s and the server is still working. Auto-hides once the
-          plant row reports enrichment_status 'complete'. */}
-      {stillEnrichingHint && plant.enrichment_status !== 'complete' && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)',
-            padding: '10px 14px',
-            marginBottom: 16,
-            fontSize: 13,
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <span aria-hidden="true">⏳</span>
-          <span>Still enriching — check back shortly</span>
-        </div>
+      {/* #72 / #131 — pending-enrichment indicator. Two flavors:
+          1. AI tool connected → keep the existing "Still enriching" wait copy.
+          2. No AI tool connected → swap to a "Connect an AI tool" CTA, since
+             waiting forever is worse than telling the truth. */}
+      {stillEnrichingHint && plant.enrichment_status !== 'complete' && !aiLoading && (
+        aiConnected ? (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: '10px 14px',
+              marginBottom: 16,
+              fontSize: 13,
+              color: 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <span aria-hidden="true">⏳</span>
+            <span>Still enriching — check back shortly</span>
+          </div>
+        ) : (
+          <div
+            role="status"
+            style={{
+              background: 'rgba(243, 156, 18, 0.10)',
+              border: '1px solid var(--warning, #f39c12)',
+              borderRadius: 'var(--radius)',
+              padding: '12px 14px',
+              marginBottom: 16,
+              fontSize: 13,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+            }}
+          >
+            <span>✨ Connect an AI tool to fill in care details for this plant.</span>
+            <Link to="/settings" style={{ color: 'var(--accent)', fontSize: 13, alignSelf: 'flex-start' }}>
+              Connect AI →
+            </Link>
+          </div>
+        )
       )}
 
       {/* Hero illustration */}
