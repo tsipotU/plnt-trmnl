@@ -21,6 +21,31 @@ docker compose up -d
 
 That's it. The API runs on `:3900`, the renderer on `:3901`. Open `http://localhost:3900` in a browser.
 
+## First-time setup (claim your instance)
+
+When the API starts for the first time it generates a one-time setup token in its logs:
+
+```
+[auth] No admin password set — setup token: ABCD-1234-EFGH
+[auth] Visit / and enter this token to claim this instance.
+```
+
+Find it with:
+
+```bash
+docker compose logs plant-api | grep "setup token"
+```
+
+Visit `http://localhost:3900` — you'll be redirected to a **Welcome** page. Paste the setup token, choose a password (minimum 12 characters), and you're in. Subsequent visits show a login page.
+
+### Lost your password?
+
+```bash
+docker compose exec plant-api node scripts/reset-password.js
+```
+
+This clears the password and all sessions. Restart the API (`docker compose restart plant-api`) and a fresh setup token will appear in the logs.
+
 ## Set up your TRMNL plugin
 
 1. In your TRMNL dashboard, create a new **Private Plugin**.
@@ -115,5 +140,6 @@ Schedule the workflow hourly. Same pattern for `/api/conditions?care_update=pend
 
 ## Limitations
 
-- **No authentication** on the enrichment endpoints. plant-trmnl is designed for LAN / local-network use. Do not expose `:3900` to the open internet without a reverse proxy + auth in front. (Auth as a first-class feature is planned for v1.1.)
+- **Single-user only.** The auth gate (#136) protects the dashboard and API with a single admin password. Multi-user accounts, OAuth, and 2FA are not supported. The enrichment callback endpoints (`POST /api/plants/:id/enrichment`, `POST /api/conditions/:id/care-update`) currently inherit the same gate; if your AI tool runs from a different machine, it'll need to authenticate as the admin (cookie-based) — API-key auth for the callback is planned for v1.1.
+- **In-app feedback is unauthenticated** by design (community can drop feedback without an account). If you don't want this, fork and tighten the `requireAuth` allowlist.
 - **AI quality varies.** Different AI tools produce different fact tone / care-data accuracy. The setup prompt is tuned for Claude / GPT-4 family models. Smaller / cheaper models may need additional in-context examples.
