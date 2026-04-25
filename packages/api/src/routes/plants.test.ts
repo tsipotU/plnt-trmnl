@@ -537,6 +537,48 @@ describe('POST /api/plants — catalog_slug baseline (issue #2)', () => {
   });
 });
 
+describe('POST /api/plants — catalog image_path → illustration_path (#132)', () => {
+  it('copies catalog image_path onto plants.illustration_path on creation', async () => {
+    // Catalog entry with image_path set — mirrors the production
+    // monstera-deliciosa-albo-variegata configuration.
+    const entries = catalogFixture();
+    entries[0] = { ...entries[0], image_path: 'monstera-deliciosa-albo-variegata.png' };
+    const { app, db } = createTestAppWithCatalog(entries);
+
+    try {
+      const res = await request(app)
+        .post('/api/plants')
+        .send({
+          name: 'My Monstera',
+          catalog_slug: 'monstera-deliciosa',
+          lastWateredAt: '2026-04-01',
+        });
+      expect(res.status).toBe(201);
+      expect(res.body.illustration_path).toBe('monstera-deliciosa-albo-variegata.png');
+    } finally {
+      db.close();
+    }
+  });
+
+  it('leaves illustration_path null when catalog entry has no image_path', async () => {
+    // Default catalogFixture omits image_path — the original Wave 5 baseline.
+    const { app, db } = createTestAppWithCatalog(catalogFixture());
+    try {
+      const res = await request(app)
+        .post('/api/plants')
+        .send({
+          name: 'My Monstera',
+          catalog_slug: 'monstera-deliciosa',
+          lastWateredAt: '2026-04-01',
+        });
+      expect(res.status).toBe(201);
+      expect(res.body.illustration_path).toBeNull();
+    } finally {
+      db.close();
+    }
+  });
+});
+
 describe('GET /api/plants/:id', () => {
   let app: express.Express;
   let db: Database.Database;

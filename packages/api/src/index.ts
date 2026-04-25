@@ -78,8 +78,22 @@ app.use(
 );
 app.use('/api/vacation', createVacationRouter(db));
 app.use('/api/feedback', createFeedbackRouter(db, { uploadDir: feedbackUploadDir }));
-app.use('/api', createEnrichmentRouter(db));
+app.use('/api', createEnrichmentRouter(db, catalog));
 app.use('/api/schedule', createScheduleRouter(db));
+
+// Catalog illustrations (#132) — static botanical images keyed by bare
+// filename. The catalog loader rejects entries whose `image_path` contains
+// path separators, so the only filenames written to plants.illustration_path
+// from the catalog path are guaranteed safe. `fallthrough: false` returns a
+// real 404 instead of letting the SPA catch-all swallow missing files.
+const catalogImagesDir = path.resolve(__dirname, '..', 'assets', 'catalog-images');
+app.use(
+  '/api/illustrations',
+  express.static(catalogImagesDir, {
+    fallthrough: false,
+    maxAge: '7d',
+  })
+);
 
 // Proxy renderer endpoints (avoids CORS from browser → renderer direct)
 const rendererUrl = process.env.API_INTERNAL_URL?.replace(':3900', ':3901') || 'http://localhost:3901';

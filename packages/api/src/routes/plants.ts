@@ -199,7 +199,12 @@ const VALID_SOIL_FEEL = Object.keys(SOIL_FEEL_INTERVAL_MAP);
 function applyCatalogBaseline(
   catalog: Catalog | undefined,
   catalogSlug: unknown,
-): { baseInterval: number; lightPreference: string; species: string } | null {
+): {
+  baseInterval: number;
+  lightPreference: string;
+  species: string;
+  imagePath: string | null;
+} | null {
   if (!catalog) return null;
   if (typeof catalogSlug !== 'string' || catalogSlug.length === 0) return null;
   const entry = catalog.get(catalogSlug);
@@ -208,6 +213,10 @@ function applyCatalogBaseline(
     baseInterval: entry.care.base_interval_days,
     lightPreference: entry.care.light_preference,
     species: entry.latin_name,
+    // #132 — copy through the catalog's bare filename. Loader has already
+    // validated that this contains no path separators, so it's safe to
+    // hand to the client which will fetch /api/illustrations/<filename>.
+    imagePath: entry.image_path ?? null,
   };
 }
 
@@ -436,12 +445,16 @@ export function createPlantsRouter(
 
     const effectiveLightLevel = lightLevel ?? catalogBaseline?.lightPreference ?? null;
     const effectiveSpecies = catalogBaseline?.species ?? null;
+    // #132 — when the catalog entry ships an image_path, copy it through to
+    // plants.illustration_path so the detail page hero renders immediately.
+    // Enrichment may still overwrite this later via the callback's COALESCE.
+    const effectiveIllustrationPath = catalogBaseline?.imagePath ?? null;
 
     const result = db.prepare(
       `INSERT INTO plants
          (name, species, pot_size_cm, pot_size_category, plant_size, identifier, location, light_level, base_interval, current_interval,
-          last_watered_at, next_water_date, enrichment_status, origin_type, origin_source, mother_plant_id, skip_next_calibration)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`
+          last_watered_at, next_water_date, enrichment_status, origin_type, origin_source, mother_plant_id, skip_next_calibration, illustration_path)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`
     ).run(
       name,
       effectiveSpecies,
@@ -459,6 +472,7 @@ export function createPlantsRouter(
       originSource ?? null,
       motherPlantId ?? null,
       skipNextCalibration,
+      effectiveIllustrationPath,
     );
 
     const plantId = result.lastInsertRowid as number;

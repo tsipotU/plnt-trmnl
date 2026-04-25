@@ -1009,11 +1009,12 @@ export function PlantDetail() {
         {plant.illustration_path ? (
           <img
             src={`/api/illustrations/${encodeURIComponent(plant.illustration_path)}`}
-            alt={plant.name}
+            alt={plant.species ?? plant.name}
+            loading="lazy"
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         ) : (
-          <span style={{ fontSize: 80 }}>🌿</span>
+          <span style={{ fontSize: 80 }} aria-hidden="true">🪴</span>
         )}
       </div>
 

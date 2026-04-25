@@ -83,6 +83,14 @@ export interface CatalogEntry {
   /** Naming origin / word roots (issue #37). Optional. */
   etymology?: string;
   /**
+   * Optional bare filename of a botanical illustration shipped under
+   * `packages/api/assets/catalog-images/` (issue #132). Served via
+   * `/api/illustrations/:filename`. When present, copied to
+   * `plants.illustration_path` on POST /api/plants and via the enrichment
+   * callback. Must be a bare filename (no '/' or '..').
+   */
+  image_path?: string;
+  /**
    * Species-specific facts (issue #4). Exactly 15 per species, seeded into
    * the facts table on plant creation with `source='catalog'`. Mix of care
    * tips (≥3), botanical trivia (≥3), cultural/historical (≥2), and

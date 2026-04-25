@@ -4,6 +4,7 @@ import pino from 'pino';
 import { calculateNextWaterDate } from '../scheduling/engine.js';
 import { logEvent, logScheduleEvents } from '../database/event-log.js';
 import { scheduleNextWater, type ScheduledPlant } from '../scheduling/bin-packer.js';
+import type { Catalog } from '../catalog/loader.js';
 
 const logger = pino({ name: 'enrichment.callback' });
 
@@ -62,6 +63,7 @@ function handleCallback(
   plantId: number,
   body: Omit<EnrichmentCallbackBody, 'plant_id'>,
   res: Response,
+  catalog?: Catalog,
 ): void {
   const plant = db.prepare('SELECT * FROM plants WHERE id = ?').get(plantId) as PlantRow | undefined;
   if (!plant) {
@@ -72,6 +74,21 @@ function handleCallback(
   if (!isValidEnrichmentBody(body)) {
     res.status(400).json({ error: 'Invalid enrichment body: required fields missing or wrong type' });
     return;
+  }
+
+  // #132 — when the enrichment-resolved species matches a catalog entry that
+  // ships an `image_path`, prefer the bundled illustration over the upstream
+  // `illustration_url`. The catalog filename is bare (loader-validated) so it
+  // serializes safely into /api/illustrations/<filename> on the client. Falls
+  // back to body.illustration_url when no catalog match (uncatalogued species).
+  let resolvedIllustrationPath: string | null = body.illustration_url ?? null;
+  if (catalog) {
+    const species = (plant.species as string | null) ?? null;
+    const commonName = (plant.common_name as string | null) ?? null;
+    const entry = catalog.findBySpecies(species) ?? catalog.findBySpecies(commonName);
+    if (entry?.image_path) {
+      resolvedIllustrationPath = entry.image_path;
+    }
   }
 
   const newInterval = body.base_interval;
@@ -113,7 +130,7 @@ function handleCallback(
     body.water_description,
     body.fertilizer_interval_weeks,
     body.heating_season_modifier,
-    body.illustration_url ?? null,
+    resolvedIllustrationPath,
     nextWaterDate,
     plantId
   );
@@ -169,14 +186,14 @@ function handleCallback(
   res.json({ ok: true });
 }
 
-export function createEnrichmentRouter(db: Database.Database): Router {
+export function createEnrichmentRouter(db: Database.Database, catalog?: Catalog): Router {
   const router = Router();
 
   // POST /api/enrichment/callback — legacy endpoint (still used by tests + AI tools)
   router.post('/enrichment/callback', (req: Request, res: Response) => {
     const body = req.body as EnrichmentCallbackBody;
     const plantId = body.plant_id;
-    handleCallback(db, plantId, body, res);
+    handleCallback(db, plantId, body, res, catalog);
   });
 
   // POST /api/plants/:id/enrichment — alias with plant_id from path
@@ -186,7 +203,7 @@ export function createEnrichmentRouter(db: Database.Database): Router {
       res.status(400).json({ error: 'invalid plant id' });
       return;
     }
-    handleCallback(db, plantId, req.body, res);
+    handleCallback(db, plantId, req.body, res, catalog);
   });
 
   return router;
