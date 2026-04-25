@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PlantDetail } from './PlantDetail';
+import { DialogProvider } from '../context/DialogContext';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -954,5 +955,105 @@ describe('PlantDetail — still-enriching badge (issue #72)', () => {
     RenderWithState({}, plantFixture({ enrichment_status: 'pending' }));
     await screen.findByText(/My Monstera/);
     expect(screen.queryByText(/Still enriching/i)).toBeNull();
+  });
+});
+
+describe('PlantDetail — post-archive navigation (#135)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  function buildArchiveFetch(plant: ReturnType<typeof plantFixture>) {
+    let archivePosted = false;
+    const fn = vi.fn(async (url: RequestInfo, init?: RequestInit) => {
+      const u = typeof url === 'string' ? url : url.toString();
+      if (u === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
+      if (u.endsWith(`/api/plants/${plant.id}/archive`) && init?.method === 'POST') {
+        archivePosted = true;
+        return {
+          ok: true,
+          json: async () => ({
+            ...plant,
+            archived: 1,
+            archived_at: '2026-04-26 00:00:00',
+            archive_reason: 'died',
+            created_at: '2025-04-26 00:00:00',
+          }),
+        } as Response;
+      }
+      if (u.includes('/api/catalog/entry')) {
+        return { ok: false, json: async () => null } as Response;
+      }
+      if (u.endsWith(`/api/plants/${plant.id}/conditions`)) {
+        return { ok: true, json: async () => [] } as Response;
+      }
+      if (u.endsWith(`/api/plants/${plant.id}/events`)) {
+        return { ok: true, json: async () => [] } as Response;
+      }
+      if (u.endsWith(`/api/plants/${plant.id}`)) {
+        return { ok: true, json: async () => plant } as Response;
+      }
+      return { ok: false, json: async () => null } as Response;
+    });
+    return { fn, getArchivePosted: () => archivePosted };
+  }
+
+  it('navigates to /archive/:id immediately after a successful archive', async () => {
+    const plant = plantFixture({ id: 42, name: 'Doomed Pothos' });
+    const { fn, getArchivePosted } = buildArchiveFetch(plant);
+    (global.fetch as any).mockImplementation(fn);
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={[`/plants/${plant.id}`]}>
+        <DialogProvider>
+          <Routes>
+            <Route path="/plants/:id" element={<PlantDetail />} />
+            <Route path="/archive/:id" element={<div>memorial page</div>} />
+          </Routes>
+        </DialogProvider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Doomed Pothos/)).toBeInTheDocument();
+    });
+
+    // Open archive flow
+    const archiveBtn = await screen.findByRole('button', { name: /Archive plant/i });
+    await user.click(archiveBtn);
+
+    // Pick reason + confirm
+    const diedRadio = await screen.findByLabelText(/It died/i);
+    await user.click(diedRadio);
+    const confirmBtn = screen.getByRole('button', { name: /^Confirm$/i });
+    await user.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(getArchivePosted()).toBe(true);
+      expect(screen.getByText('memorial page')).toBeInTheDocument();
+    });
+  });
+
+  it('redirects to /archive/:id when the plant is already archived', async () => {
+    const plant = plantFixture({ id: 99, name: 'Already Archived', archived: 1 });
+    const { fn } = buildArchiveFetch(plant);
+    (global.fetch as any).mockImplementation(fn);
+
+    render(
+      <MemoryRouter initialEntries={[`/plants/${plant.id}`]}>
+        <Routes>
+          <Route path="/plants/:id" element={<PlantDetail />} />
+          <Route path="/archive/:id" element={<div>memorial page</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('memorial page')).toBeInTheDocument();
+    });
   });
 });
