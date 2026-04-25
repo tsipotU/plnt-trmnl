@@ -4,6 +4,7 @@ import { ArchiveDialog } from '../components/ArchiveDialog';
 import { ConditionsPicker } from '../components/ConditionsPicker';
 import { NotesLog } from '../components/NotesLog';
 import { CollapsibleSection } from '../components/CollapsibleSection';
+import { ConditionCard } from '../components/ConditionCard';
 import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
 import { useDevInfo } from '../hooks/useDevInfo.js';
 import { useAiConnection } from '../hooks/useAiConnection';
@@ -1633,77 +1634,43 @@ export function PlantDetail() {
               const activeAlready = conditions.some(
                 (existing) => existing.is_active && existing.condition_name === c.name,
               );
+              const tags: string[] = [];
+              if (c.is_common) tags.push('COMMON');
               return (
-                <button
+                <ConditionCard
                   key={`${c.name}-${i}`}
-                  onClick={() => handleFlagCatalogCondition(c)}
-                  disabled={activeAlready}
-                  style={{
-                    background: c.is_common ? 'var(--bg-secondary)' : 'transparent',
-                    color: 'var(--text-primary)',
-                    border: 'none',
-                    borderBottom: '1px solid var(--border)',
-                    borderRadius: 0,
-                    padding: '10px 0',
-                    textAlign: 'left',
-                    cursor: activeAlready ? 'default' : 'pointer',
-                    opacity: activeAlready ? 0.55 : 1,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 10,
+                  condition={{
+                    name: c.name,
+                    severity: c.severity === 'info' ? 'info' : 'warning',
+                    symptoms: c.symptoms,
+                    remedy: c.remedy,
+                    prevention: c.prevention,
+                    tags,
                   }}
-                  aria-label={`Flag ${c.name} as active`}
-                >
-                  <span
-                    style={{
-                      background: severityColor(c.severity),
-                      color: 'white',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      padding: '2px 6px',
-                      borderRadius: 10,
-                      textTransform: 'uppercase',
-                      flexShrink: 0,
-                      marginTop: 3,
-                    }}
-                  >
-                    {c.severity}
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                      <span style={{ fontWeight: 600, fontSize: 14 }}>{c.name}</span>
-                      {c.is_common && (
-                        <span
-                          style={{
-                            fontSize: 10,
-                            color: 'var(--accent)',
-                            border: '1px solid var(--accent)',
-                            padding: '1px 6px',
-                            borderRadius: 10,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.04em',
-                          }}
-                        >
-                          Common
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
-                      {c.symptoms}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                      <strong style={{ color: 'var(--text-primary)' }}>Remedy:</strong> {c.remedy}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                      <strong style={{ color: 'var(--text-primary)' }}>Prevention:</strong> {c.prevention}
-                    </div>
-                  </div>
-                  {activeAlready && (
-                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', flexShrink: 0, marginTop: 3 }}>
-                      active
-                    </span>
-                  )}
-                </button>
+                  actionSlot={
+                    activeAlready ? (
+                      <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>active</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleFlagCatalogCondition(c)}
+                        aria-label={`Flag ${c.name} as active`}
+                        style={{
+                          background: 'var(--bg-secondary)',
+                          color: 'var(--text-secondary)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 6,
+                          fontSize: 12,
+                          padding: '4px 10px',
+                          cursor: 'pointer',
+                          minHeight: 'unset',
+                        }}
+                      >
+                        Flag
+                      </button>
+                    )
+                  }
+                />
               );
             })}
           </div>
