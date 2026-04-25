@@ -197,7 +197,21 @@ export function createCalibrationRouter(db: Database.Database): Router {
       return true;
     });
 
-    res.json(due);
+    const questionStmt = db.prepare(
+      `SELECT * FROM calibration_questions
+       WHERE plant_id = ?
+       ORDER BY display_order ASC`
+    );
+    const enriched = due
+      .map((p) => {
+        const questions = questionStmt.all(p.id) as CalibrationQuestionRow[];
+        if (questions.length === 0) return null;
+        const question = questions[p.calibration_cycle % questions.length];
+        return { ...p, question };
+      })
+      .filter((p): p is PlantRow & { question: CalibrationQuestionRow } => p !== null);
+
+    res.json(enriched);
   });
 
   return router;

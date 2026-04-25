@@ -345,13 +345,26 @@ describe('Calibration routes', () => {
   describe('GET /api/calibration/due', () => {
     it('returns plants with next_water_date = today', async () => {
       const today = new Date().toISOString().slice(0, 10);
-      insertPlant(db, { name: 'Due Plant', next_water_date: today });
+      const plantId = insertPlant(db, { name: 'Due Plant', next_water_date: today });
+      insertQuestion(db, plantId);
 
       const app = buildApp(db);
       const res = await request(app).get('/api/calibration/due');
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);
       expect(res.body[0].name).toBe('Due Plant');
+      expect(res.body[0].question).toBeDefined();
+      expect(res.body[0].question.question_text).toBe('Question 0');
+    });
+
+    it('excludes plants with no calibration questions', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      insertPlant(db, { name: 'Question-less', next_water_date: today });
+
+      const app = buildApp(db);
+      const res = await request(app).get('/api/calibration/due');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(0);
     });
 
     it('excludes plants due on a different date', async () => {
@@ -394,12 +407,13 @@ describe('Calibration routes', () => {
 
     it('includes converged plants when cycle % 3 === 0', async () => {
       const today = new Date().toISOString().slice(0, 10);
-      insertPlant(db, {
+      const plantId = insertPlant(db, {
         name: 'Converged Due',
         next_water_date: today,
         is_converged: 1,
         calibration_cycle: 3,
       });
+      insertQuestion(db, plantId);
 
       const app = buildApp(db);
       const res = await request(app).get('/api/calibration/due');
@@ -424,12 +438,13 @@ describe('Calibration routes', () => {
 
     it('includes non-converged plants regardless of cycle', async () => {
       const today = new Date().toISOString().slice(0, 10);
-      insertPlant(db, {
+      const plantId = insertPlant(db, {
         name: 'Normal Plant',
         next_water_date: today,
         is_converged: 0,
         calibration_cycle: 2,
       });
+      insertQuestion(db, plantId);
 
       const app = buildApp(db);
       const res = await request(app).get('/api/calibration/due');
