@@ -1,4 +1,4 @@
-FROM node:22-slim AS builder
+FROM node:25-slim AS builder
 WORKDIR /app
 COPY package.json ./
 RUN npm install
@@ -24,7 +24,7 @@ RUN printf '{\n\
 }\n' > tsconfig.json
 RUN npx tsc
 
-FROM node:22-slim
+FROM node:25-slim
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
