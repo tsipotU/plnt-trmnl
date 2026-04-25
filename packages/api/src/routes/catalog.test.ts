@@ -47,6 +47,7 @@ function entry(overrides: Partial<CatalogEntry> = {}): CatalogEntry {
     },
     placement_tips: ['Near an east window'],
     conditions: makeConditions(),
+    facts: [],
     ...overrides,
   };
 }
