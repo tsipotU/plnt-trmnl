@@ -226,32 +226,35 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Floating Add button */}
-      <Link
-        to="/add"
-        style={{
-          position: 'fixed',
-          bottom: 24,
-          right: 16,
-          left: 16,
-          maxWidth: 398,
-          margin: '0 auto',
-          display: 'block',
-          background: 'var(--accent)',
-          color: 'white',
-          textAlign: 'center',
-          padding: '14px 0',
-          borderRadius: 12,
-          fontWeight: 600,
-          fontSize: 17,
-          boxShadow: '0 4px 20px rgba(0, 168, 107, 0.35)',
-        }}
-      >
-        + Add Plant
-      </Link>
+      {/* Floating Add button — hidden in empty state where the welcome card
+          already has its own large CTA (#125). */}
+      {plants.length > 0 && (
+        <Link
+          to="/add"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 16,
+            left: 16,
+            maxWidth: 398,
+            margin: '0 auto',
+            display: 'block',
+            background: 'var(--accent)',
+            color: 'white',
+            textAlign: 'center',
+            padding: '14px 0',
+            borderRadius: 12,
+            fontWeight: 600,
+            fontSize: 17,
+            boxShadow: '0 4px 20px rgba(0, 168, 107, 0.35)',
+          }}
+        >
+          + Add Plant
+        </Link>
+      )}
 
-      {/* Bottom padding to clear the floating button */}
-      <div style={{ height: 80 }} />
+      {/* Bottom padding to clear the floating button (only when it renders) */}
+      {plants.length > 0 && <div style={{ height: 80 }} />}
 
       {/* Batch undo toast */}
       {batchToast && (
