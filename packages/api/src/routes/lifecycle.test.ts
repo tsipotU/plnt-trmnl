@@ -41,7 +41,7 @@ function buildFullApp(db: Database.Database, heatingConfig = HEATING_CONFIG) {
   app.use(express.json());
   app.use('/api/plants', createPlantsRouter(db, heatingConfig));
   app.use('/api', createCalibrationRouter(db));
-  app.use('/api/enrichment', createEnrichmentRouter(db));
+  app.use('/api', createEnrichmentRouter(db));
   app.use('/api', createScreenRouter(db, heatingConfig));
   app.use('/api/schedule', createScheduleRouter(db));
   return app;

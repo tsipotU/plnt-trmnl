@@ -173,4 +173,44 @@ describe('facts routes', () => {
       expect(events[0].new_value).toBe(String(factId));
     });
   });
+
+  describe('GET /api/facts/samples', () => {
+    it('returns up to n random facts', async () => {
+      for (let i = 0; i < 30; i++) seedFact(db, `Fact number ${i}: short trivia.`);
+
+      const res = await request(app).get('/api/facts/samples?n=10');
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(10);
+      for (const item of res.body) {
+        expect(typeof item.text).toBe('string');
+        expect(typeof item.id).toBe('number');
+      }
+    });
+
+    it('clamps n to a hard cap of 20', async () => {
+      for (let i = 0; i < 50; i++) seedFact(db, `f${i}`);
+
+      const res = await request(app).get('/api/facts/samples?n=9999');
+      expect(res.body.length).toBeLessThanOrEqual(20);
+    });
+
+    it('defaults n to 10 when absent or invalid', async () => {
+      for (let i = 0; i < 25; i++) seedFact(db, `f${i}`);
+
+      const res1 = await request(app).get('/api/facts/samples');
+      expect(res1.body).toHaveLength(10);
+
+      const res2 = await request(app).get('/api/facts/samples?n=abc');
+      expect(res2.body).toHaveLength(10);
+
+      const res3 = await request(app).get('/api/facts/samples?n=-5');
+      expect(res3.body).toHaveLength(10);
+    });
+
+    it('returns an empty array when no facts exist', async () => {
+      const res = await request(app).get('/api/facts/samples?n=5');
+      expect(res.body).toEqual([]);
+    });
+  });
 });

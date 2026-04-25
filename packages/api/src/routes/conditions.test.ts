@@ -101,6 +101,19 @@ describe('conditions routes', () => {
       expect(events).toHaveLength(1);
       expect(events[0].new_value).toBe('Spider mites');
     });
+
+    it('POST /api/plants/:id/conditions marks the new condition with care_update_status=pending', async () => {
+      const res = await request(app).post(`/api/plants/${plantId}/conditions`).send({
+        conditionName: 'yellow leaves',
+        symptoms: 'yellowing on lower leaves',
+        remedy: 'check watering',
+        severity: 'warning',
+      });
+      expect(res.status).toBe(201);
+
+      const cond = db.prepare(`SELECT care_update_status FROM plant_conditions WHERE plant_id = ?`).get(plantId) as { care_update_status: string };
+      expect(cond.care_update_status).toBe('pending');
+    });
   });
 
   describe('GET /api/plants/:id/conditions', () => {
@@ -183,6 +196,124 @@ describe('conditions routes', () => {
 
       expect(events).toHaveLength(1);
       expect(events[0].new_value).toBe('Overwatering');
+    });
+  });
+
+  describe('GET /api/conditions?care_update=pending', () => {
+    it('GET /api/conditions?care_update=pending returns only pending care updates', async () => {
+      // Need a second plant for variety, plus 3 conditions with mixed statuses.
+      db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'yellow leaves', 'pending', 1)`).run(plantId);
+      db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'old condition', 'complete', 1)`).run(plantId);
+      db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'never updated', 'not_needed', 1)`).run(plantId);
+
+      const res = await request(app).get('/api/conditions?care_update=pending');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].condition_name).toBe('yellow leaves');
+      expect(res.body[0].plant_name).toBeDefined();
+    });
+
+    it('GET /api/conditions?care_update=bogus returns 400', async () => {
+      const res = await request(app).get('/api/conditions?care_update=bogus');
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('POST /api/conditions/:id/care-update', () => {
+    it('applies interval delta and flips status to complete', async () => {
+      const cond = db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'yellow leaves', 'pending', 1)`).run(plantId);
+      const conditionId = Number(cond.lastInsertRowid);
+
+      const res = await request(app).post(`/api/conditions/${conditionId}/care-update`).send({
+        interval_delta_days: -2,
+        rationale: 'Reduce watering until yellow leaves recover.',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.ok).toBe(true);
+      expect(res.body.condition_id).toBe(conditionId);
+      expect(res.body.new_interval).toBe(5); // 7 - 2
+
+      const updatedCond = db.prepare(`SELECT * FROM plant_conditions WHERE id = ?`).get(conditionId) as { care_update_status: string };
+      expect(updatedCond.care_update_status).toBe('complete');
+      const plant = db.prepare(`SELECT current_interval FROM plants WHERE id = ?`).get(plantId) as { current_interval: number };
+      expect(plant.current_interval).toBe(5);
+    });
+
+    it('clamps new_interval to 1 minimum (delta cannot push below 1)', async () => {
+      const cond = db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'x', 'pending', 1)`).run(plantId);
+      const conditionId = Number(cond.lastInsertRowid);
+
+      const res = await request(app).post(`/api/conditions/${conditionId}/care-update`).send({
+        interval_delta_days: -100,
+        rationale: 'extreme delta',
+      });
+      expect(res.status).toBe(200);
+      expect(res.body.new_interval).toBe(1);
+    });
+
+    it('updates light_level when light_preference is provided', async () => {
+      const cond = db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'pale leaves', 'pending', 1)`).run(plantId);
+      const conditionId = Number(cond.lastInsertRowid);
+
+      await request(app).post(`/api/conditions/${conditionId}/care-update`).send({
+        interval_delta_days: 0,
+        light_preference: 'bright_indirect',
+        rationale: 'Wants brighter spot',
+      });
+
+      const plant = db.prepare(`SELECT light_level FROM plants WHERE id = ?`).get(plantId) as { light_level: string };
+      expect(plant.light_level).toBe('bright_indirect');
+    });
+
+    it('is idempotent — second POST returns 409', async () => {
+      const cond = db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'x', 'pending', 1)`).run(plantId);
+      const conditionId = Number(cond.lastInsertRowid);
+
+      await request(app).post(`/api/conditions/${conditionId}/care-update`).send({ interval_delta_days: -1, rationale: 'r' });
+      const res2 = await request(app).post(`/api/conditions/${conditionId}/care-update`).send({ interval_delta_days: -1, rationale: 'r' });
+      expect(res2.status).toBe(409);
+    });
+
+    it('returns 404 for missing condition', async () => {
+      const res = await request(app).post('/api/conditions/9999/care-update').send({ interval_delta_days: 0, rationale: 'r' });
+      expect(res.status).toBe(404);
+    });
+
+    it('returns 400 if interval_delta_days is missing', async () => {
+      const cond = db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'x', 'pending', 1)`).run(plantId);
+      const conditionId = Number(cond.lastInsertRowid);
+
+      const res = await request(app).post(`/api/conditions/${conditionId}/care-update`).send({ rationale: 'r' });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when light_preference is not a string', async () => {
+      const cond = db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'x', 'pending', 1)`).run(plantId);
+      const conditionId = Number(cond.lastInsertRowid);
+      const res = await request(app).post(`/api/conditions/${conditionId}/care-update`).send({
+        interval_delta_days: 0,
+        light_preference: 42,
+        rationale: 'r',
+      });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/light_preference/);
+    });
+
+    it('returns 500 if the condition references a deleted plant', async () => {
+      const cond = db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'orphan', 'pending', 1)`).run(plantId);
+      const conditionId = Number(cond.lastInsertRowid);
+      // Force-delete the plant directly (bypassing route logic) to simulate FK-disabled deletion.
+      db.pragma('foreign_keys = OFF');
+      db.prepare(`DELETE FROM plants WHERE id = ?`).run(plantId);
+      db.pragma('foreign_keys = ON');
+
+      const res = await request(app).post(`/api/conditions/${conditionId}/care-update`).send({
+        interval_delta_days: 0,
+        rationale: 'r',
+      });
+      expect(res.status).toBe(500);
+      expect(res.body.error).toMatch(/inconsistency/i);
     });
   });
 });
