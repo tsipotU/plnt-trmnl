@@ -317,6 +317,85 @@ describe('Calibration routes', () => {
       expect(plant.is_converged).toBe(0);
     });
 
+    describe('convergence transitions (#60)', () => {
+      it('returns convergence_event=converged on 0→1 transition (third 3 in a row)', async () => {
+        const plantId = insertPlant(db, { is_converged: 0, calibration_cycle: 0 });
+        const qId = insertQuestion(db, plantId);
+        const app = buildApp(db);
+
+        await request(app)
+          .post(`/api/plants/${plantId}/calibration`)
+          .send({ questionId: qId, answerValue: 3 });
+        await request(app)
+          .post(`/api/plants/${plantId}/calibration`)
+          .send({ questionId: qId, answerValue: 3 });
+
+        const res = await request(app)
+          .post(`/api/plants/${plantId}/calibration`)
+          .send({ questionId: qId, answerValue: 3 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.is_converged).toBe(1);
+        expect(res.body.convergence_event).toBe('converged');
+
+        const events = db
+          .prepare(
+            `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'calibration_converged'`,
+          )
+          .all(plantId);
+        expect(events).toHaveLength(1);
+      });
+
+      it('returns convergence_event=drifted on 1→0 transition', async () => {
+        const plantId = insertPlant(db, { is_converged: 1, calibration_cycle: 5 });
+        const qId = insertQuestion(db, plantId);
+
+        // Seed two prior 3s so the recent-window contains them.
+        db.prepare(
+          `INSERT INTO calibrations (plant_id, question_id, answer_value, interval_before, interval_after) VALUES (?, ?, 3, 7, 7)`,
+        ).run(plantId, qId);
+        db.prepare(
+          `INSERT INTO calibrations (plant_id, question_id, answer_value, interval_before, interval_after) VALUES (?, ?, 3, 7, 7)`,
+        ).run(plantId, qId);
+
+        const app = buildApp(db);
+        const res = await request(app)
+          .post(`/api/plants/${plantId}/calibration`)
+          .send({ questionId: qId, answerValue: 1 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.is_converged).toBe(0);
+        expect(res.body.convergence_event).toBe('drifted');
+
+        const events = db
+          .prepare(
+            `SELECT * FROM event_log WHERE plant_id = ? AND event_type = 'calibration_drift_detected'`,
+          )
+          .all(plantId);
+        expect(events).toHaveLength(1);
+      });
+
+      it('returns convergence_event=null when no transition (already-converged stays converged)', async () => {
+        const plantId = insertPlant(db, { is_converged: 1, calibration_cycle: 5 });
+        const qId = insertQuestion(db, plantId);
+        db.prepare(
+          `INSERT INTO calibrations (plant_id, question_id, answer_value, interval_before, interval_after) VALUES (?, ?, 3, 7, 7)`,
+        ).run(plantId, qId);
+        db.prepare(
+          `INSERT INTO calibrations (plant_id, question_id, answer_value, interval_before, interval_after) VALUES (?, ?, 3, 7, 7)`,
+        ).run(plantId, qId);
+
+        const app = buildApp(db);
+        const res = await request(app)
+          .post(`/api/plants/${plantId}/calibration`)
+          .send({ questionId: qId, answerValue: 3 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.is_converged).toBe(1);
+        expect(res.body.convergence_event).toBeNull();
+      });
+    });
+
     it('inserts a row into calibrations table', async () => {
       const plantId = insertPlant(db, { current_interval: 7 });
       const qId = insertQuestion(db, plantId);

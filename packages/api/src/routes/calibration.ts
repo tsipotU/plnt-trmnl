@@ -132,6 +132,15 @@ export function createCalibrationRouter(db: Database.Database): Router {
     const recentValues = recent.map((r) => r.answer_value).reverse();
     const converged = checkConvergence(recentValues) ? 1 : 0;
 
+    // #60 — detect convergence transition for surfacing in UI.
+    const preIsConverged = plant.is_converged;
+    let convergenceEvent: 'converged' | 'drifted' | null = null;
+    if (preIsConverged === 0 && converged === 1) {
+      convergenceEvent = 'converged';
+    } else if (preIsConverged === 1 && converged === 0) {
+      convergenceEvent = 'drifted';
+    }
+
     // Update plant
     db.prepare(
       `UPDATE plants SET
@@ -150,6 +159,24 @@ export function createCalibrationRouter(db: Database.Database): Router {
       newValue: String(newInterval),
       reason: `Calibration answer: ${answerValue}/5`,
     });
+
+    // #60 — emit transition event when crossing convergence boundary.
+    if (convergenceEvent === 'converged') {
+      logEvent(db, {
+        plantId: plant.id,
+        eventType: 'calibration_converged',
+        newValue: String(newInterval),
+        reason: `Converged at ${newInterval}-day interval`,
+      });
+    } else if (convergenceEvent === 'drifted') {
+      logEvent(db, {
+        plantId: plant.id,
+        eventType: 'calibration_drift_detected',
+        oldValue: String(oldInterval),
+        newValue: String(newInterval),
+        reason: `Drifted from ${oldInterval}-day interval`,
+      });
+    }
 
     // If the interval changed and we have a last_watered_at, recompute
     // next_water_date through the bin-packer so overflow/congested events fire.
@@ -170,7 +197,11 @@ export function createCalibrationRouter(db: Database.Database): Router {
       .prepare(`SELECT * FROM plants WHERE id = ?`)
       .get(plant.id) as PlantRow;
 
-    res.json({ current_interval: updated.current_interval, is_converged: updated.is_converged });
+    res.json({
+      current_interval: updated.current_interval,
+      is_converged: updated.is_converged,
+      convergence_event: convergenceEvent,
+    });
   });
 
   // GET /api/calibration/due
