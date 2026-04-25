@@ -29,6 +29,8 @@ export function CalibrationSequence({ plantIds, plantNames, onComplete }: Props)
   const [queue, setQueue] = useState<Question[] | null>(null);
   const [index, setIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  // #60 — flash a short message after each submit when a convergence transition fires.
+  const [flash, setFlash] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,11 +76,22 @@ export function CalibrationSequence({ plantIds, plantNames, onComplete }: Props)
     if (submitting) return;
     setSubmitting(true);
     try {
-      await fetch(`/api/plants/${current.plantId}/calibration`, {
+      const res = await fetch(`/api/plants/${current.plantId}/calibration`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionId: current.questionId, answerValue: value }),
       });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          current_interval?: number;
+          convergence_event?: 'converged' | 'drifted' | null;
+        };
+        if (data.convergence_event === 'converged') {
+          setFlash(`🌿 ${current.plantName} is dialed in at ${data.current_interval} days.`);
+        } else if (data.convergence_event === 'drifted') {
+          setFlash(`${current.plantName} is drinking differently lately — recalibrating.`);
+        }
+      }
     } catch {
       // Swallow — don't block the queue on a single failed submit.
     }
@@ -97,6 +110,21 @@ export function CalibrationSequence({ plantIds, plantNames, onComplete }: Props)
         marginBottom: 16,
       }}
     >
+      {flash && (
+        <div
+          role="status"
+          style={{
+            background: 'var(--accent-muted, rgba(0, 168, 107, 0.15))',
+            color: 'var(--accent)',
+            padding: '6px 10px',
+            borderRadius: 6,
+            fontSize: 13,
+            marginBottom: 8,
+          }}
+        >
+          {flash}
+        </div>
+      )}
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
         {index + 1} of {queue.length}
       </div>
