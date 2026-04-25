@@ -15,7 +15,11 @@ export type PlantCategory =
   | 'indoor_trees'
   | 'ferns'
   | 'palms'
-  | 'air_plants';
+  | 'air_plants'
+  | 'orchids'
+  | 'carnivorous'
+  | 'herbs'
+  | 'terrarium';
 
 export type LightPreference = 'low' | 'medium' | 'bright_indirect' | 'direct';
 export type SizeCategory = 'small' | 'medium' | 'large' | 'tree';

@@ -20,6 +20,10 @@ const VALID_CATEGORIES: readonly PlantCategory[] = [
   'ferns',
   'palms',
   'air_plants',
+  'orchids',
+  'carnivorous',
+  'herbs',
+  'terrarium',
 ];
 const VALID_LIGHT: readonly LightPreference[] = ['low', 'medium', 'bright_indirect', 'direct'];
 const VALID_SIZE: readonly SizeCategory[] = ['small', 'medium', 'large', 'tree'];
