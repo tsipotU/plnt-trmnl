@@ -106,7 +106,7 @@ export function ArchivedPlants() {
             {visible.map((p) => (
               <li key={p.id}>
                 <Link
-                  to={`/plants/${p.id}`}
+                  to={`/archive/${p.id}`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',

@@ -7,6 +7,7 @@ import { TrmnlSetup } from './pages/TrmnlSetup.js';
 import { FeedbackList } from './pages/FeedbackList.js';
 import { FeedbackDetail } from './pages/FeedbackDetail.js';
 import { ArchivedPlants } from './pages/ArchivedPlants.js';
+import { MemorialPlant } from './pages/MemorialPlant.js';
 import { Settings } from './pages/Settings.js';
 import { About } from './pages/About.js';
 import { Welcome } from './pages/Welcome.js';
@@ -40,6 +41,7 @@ export function App() {
                       <Route path="/preview" element={<TrmnlPreview />} />
                       <Route path="/setup" element={<TrmnlSetup />} />
                       <Route path="/archived" element={<ArchivedPlants />} />
+                      <Route path="/archive/:id" element={<MemorialPlant />} />
                       <Route path="/feedback" element={<FeedbackList />} />
                       <Route path="/feedback/:id" element={<FeedbackDetail />} />
                       <Route path="/settings" element={<Settings />} />
