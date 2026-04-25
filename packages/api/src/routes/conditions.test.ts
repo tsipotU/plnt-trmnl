@@ -185,4 +185,24 @@ describe('conditions routes', () => {
       expect(events[0].new_value).toBe('Overwatering');
     });
   });
+
+  describe('GET /api/conditions?care_update=pending', () => {
+    it('GET /api/conditions?care_update=pending returns only pending care updates', async () => {
+      // Need a second plant for variety, plus 3 conditions with mixed statuses.
+      db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'yellow leaves', 'pending', 1)`).run(plantId);
+      db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'old condition', 'complete', 1)`).run(plantId);
+      db.prepare(`INSERT INTO plant_conditions (plant_id, condition_name, care_update_status, is_active) VALUES (?, 'never updated', 'not_needed', 1)`).run(plantId);
+
+      const res = await request(app).get('/api/conditions?care_update=pending');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].condition_name).toBe('yellow leaves');
+      expect(res.body[0].plant_name).toBeDefined();
+    });
+
+    it('GET /api/conditions?care_update=bogus returns 400', async () => {
+      const res = await request(app).get('/api/conditions?care_update=bogus');
+      expect(res.status).toBe(400);
+    });
+  });
 });

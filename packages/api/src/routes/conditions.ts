@@ -25,6 +25,23 @@ export function createConditionsRouter(db: Database.Database): Router {
     res.json(conditions);
   });
 
+  // GET /api/conditions?care_update=pending — list conditions awaiting AI care suggestion
+  router.get('/conditions', (req: Request, res: Response) => {
+    const filter = typeof req.query.care_update === 'string' ? req.query.care_update : null;
+    if (filter !== 'pending') {
+      res.status(400).json({ error: "Required query: care_update=pending" });
+      return;
+    }
+    const rows = db.prepare(
+      `SELECT pc.*, p.name as plant_name
+         FROM plant_conditions pc
+         JOIN plants p ON p.id = pc.plant_id
+         WHERE pc.care_update_status = 'pending'
+         ORDER BY pc.created_at ASC`
+    ).all();
+    res.json(rows);
+  });
+
   // POST /api/plants/:id/conditions — create a condition
   router.post('/plants/:id/conditions', (req: Request, res: Response) => {
     const plantId = Number(req.params.id);
