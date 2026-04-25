@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export interface CalendarDay {
   date: string;
@@ -21,6 +21,13 @@ const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export function CalendarStrip({ days, selectedDate, onDaySelect }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const expandedDay = expanded ? days.find((d) => d.date === expanded) : null;
+  const todayRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (todayRef.current) {
+      todayRef.current.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+    }
+  }, [days]);
 
   return (
     <div style={{ marginBottom: '1rem' }}>
@@ -44,6 +51,7 @@ export function CalendarStrip({ days, selectedDate, onDaySelect }: Props) {
           return (
             <button
               key={day.date}
+              ref={day.is_today ? todayRef : null}
               onClick={() => {
                 setExpanded(expanded === day.date ? null : day.date);
                 onDaySelect(isSelected ? null : day.date);
