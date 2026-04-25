@@ -181,6 +181,19 @@ export function initializeSchema(db: Database.Database): void {
     )
   `).run();
 
+  // Issue #136: auth gate. Single-user; the admin password lives in app_state
+  // (key='admin_password_hash'), the one-time setup token lives in app_state
+  // (key='setup_token') until the password is set, and active sessions live
+  // in this table.
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      expires_at TEXT NOT NULL,
+      last_used_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `).run();
+
   // Idempotent column additions for live databases created before the column existed.
   // CREATE TABLE IF NOT EXISTS above leaves existing tables untouched.
   addColumnIfMissing(db, 'plants', 'identifier', 'TEXT');

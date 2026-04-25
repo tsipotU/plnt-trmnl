@@ -32,6 +32,21 @@ describe('initializeSchema', () => {
     expect(names).toContain('enrichment_queue');
     expect(names).toContain('app_state');
     expect(names).toContain('feedback_images');
+    expect(names).toContain('sessions');
+  });
+
+  it('sessions table has the expected columns (#136)', () => {
+    initializeSchema(db);
+    const cols = db
+      .prepare(`PRAGMA table_info(sessions)`)
+      .all() as Array<{ name: string; type: string; notnull: number; pk: number }>;
+    const names = cols.map((c) => c.name);
+    expect(names).toContain('id');
+    expect(names).toContain('created_at');
+    expect(names).toContain('expires_at');
+    expect(names).toContain('last_used_at');
+    const pk = cols.find((c) => c.pk === 1);
+    expect(pk?.name).toBe('id');
   });
 
   it('feedback_images cascades on feedback deletion', () => {
