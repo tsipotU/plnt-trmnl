@@ -107,8 +107,8 @@ export function createConditionsRouter(db: Database.Database): Router {
 
     const result = db.prepare(
       `INSERT INTO plant_conditions
-         (plant_id, condition_name, symptoms, remedy, severity, detected_via, is_active)
-       VALUES (?, ?, ?, ?, ?, 'manual', 1)`
+         (plant_id, condition_name, symptoms, remedy, severity, detected_via, is_active, care_update_status)
+       VALUES (?, ?, ?, ?, ?, 'manual', 1, 'pending')`
     ).run(
       plantId,
       conditionName,

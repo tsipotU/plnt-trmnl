@@ -101,6 +101,19 @@ describe('conditions routes', () => {
       expect(events).toHaveLength(1);
       expect(events[0].new_value).toBe('Spider mites');
     });
+
+    it('POST /api/plants/:id/conditions marks the new condition with care_update_status=pending', async () => {
+      const res = await request(app).post(`/api/plants/${plantId}/conditions`).send({
+        conditionName: 'yellow leaves',
+        symptoms: 'yellowing on lower leaves',
+        remedy: 'check watering',
+        severity: 'warning',
+      });
+      expect(res.status).toBe(201);
+
+      const cond = db.prepare(`SELECT care_update_status FROM plant_conditions WHERE plant_id = ?`).get(plantId) as { care_update_status: string };
+      expect(cond.care_update_status).toBe('pending');
+    });
   });
 
   describe('GET /api/plants/:id/conditions', () => {
