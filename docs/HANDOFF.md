@@ -2,37 +2,41 @@
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
-**Last updated:** 2026-04-26 (post Waves 9 + 10 ship; Wave 11 deferred to #138)
+**Last updated:** 2026-04-26 (post Wave 12 ship; Wave 11 still deferred to #138)
 
 ---
 
 ## Where we are
 
-- **Waves 1–10 are shipped and merged to `main`.**
+- **Waves 1–10 + 12 are shipped and merged to `main`.**
   - Wave 8 (PR #114, squash `fa8289d`) — pull-based architecture
-  - Wave 9 (this session) — auth gate, ErrorBoundary, hamburger fix, monstera plant image, AI-connection heuristic
-  - Wave 10 (this session) — empty-state polish, AddPlant tooltips, post-add splash refactor
+  - Wave 9 — auth gate, ErrorBoundary, hamburger fix, monstera plant image, AI-connection heuristic
+  - Wave 10 — empty-state polish, AddPlant tooltips, post-add splash refactor
+  - Wave 12 (this session) — date strip distinct today/selected + 11-day centred scroll (#126); archive-flow nav fix + memorial page redesign (#135)
 - **Wave 11 deferred.** Design landed in [#138](https://github.com/tsipotU/plant-trmnl/issues/138); held until generation source is chosen. The original [#54](https://github.com/tsipotU/plant-trmnl/issues/54) was closed as superseded.
 - **Catalog at 250 species** across 12 categories. Strict validator green at boot.
 - **Architecture is pull-based:** zero in-process LLM. External AI tools poll `/api/plants?enrichment=pending` and `/api/conditions?care_update=pending`, then POST back. Connect-your-AI UI in Settings.
 - **Auth gate live.** Self-hosted instances now require a setup token (printed in API logs at first start) → `/welcome` page to claim → `/login` for return visits. `/health`, `/api/auth/*`, and `/api/feedback` are public; everything else requires session. Bootstrap mode (no admin password yet) lets all traffic through.
 - **Repo is still private.** Public flip + v1.0.0 tag scheduled for Wave 14.
-- **Test baseline:** API **563** tests, client **130** tests (was 515 + 118 before this session).
+- **Test baseline:** API **575** tests, client **140** tests, renderer **43** tests (758 total). Wave 12 added 12 API + 10 client.
 
 ## What just happened (last 24h, in case you've been away)
 
-1. **Dog-food triage round** (2026-04-25) — 17 in-app feedback items → 14 GitHub issues (#124–#137). All 17 in-app rows marked `done` with cross-link comments.
-2. **Wave 9 — Hardening** shipped (commits `74b26e7` → `cc902cf`):
+1. **Wave 12 — Polish & feedback** shipped (this session). Two issues, one wave:
+   - `#126` Date strip — `?days=N` API param, hook now requests 11-day window centred on today, distinct visual treatments for today (filled green) vs selected (muted + outline), `scrollIntoView` on mount.
+   - `#135` Archive flow — `setTimeout(navigate('/'), 3000)` replaced with immediate `navigate('/archive/:id', { replace: true })`. New `MemorialPlant` page at `/archive/:id` shows lifetime stats grid (waterings, offspring, calibration cycles, lifespan), cause line, past-tense location, small Restore action. New `GET /api/plants/:id/memorial` and `POST /api/plants/:id/restore` endpoints. PlantDetail redirects archived plants to memorial page.
+2. **Dog-food triage round** (2026-04-25) — 17 in-app feedback items → 14 GitHub issues (#124–#137). All 17 in-app rows marked `done` with cross-link comments.
+3. **Wave 9 — Hardening** shipped (commits `74b26e7` → `cc902cf`):
    - Top-level `ErrorBoundary` (no GH issue) — wraps `<App />`, friendly fallback + Reload button
    - `#124` Hamburger menu — iOS Safari tap-highlight + focus-visible scoping
    - `#131` Still-enriching banner — `/api/system/ai-connection` heuristic, hides stale "pending" UI when no AI tool active
    - `#132` Plant images (monstera-only) — `/api/illustrations/:filename` static endpoint, catalog `image_path` field, copy through to `plants.illustration_path` on POST
    - `#136` **Auth gate** — bcrypt + cookie sessions, `/welcome` setup, `/login`, `requireAuth` middleware, `scripts/reset-password.js`, INSTALL.md docs
-3. **Wave 10 — Onboarding lite** shipped (commits `f0b0858` and 2 others):
+4. **Wave 10 — Onboarding lite** shipped (commits `f0b0858` and 2 others):
    - `#125` Hide redundant Add button in empty state
    - `#129` AddPlant tooltips — 4-level light + new pot-size rule-of-thumb
    - `#130` Post-add splash — three-way fork (catalog hit / AI active / no-AI fallback)
-4. **Wave 11 designed + deferred** (commit `b5a4b2b`):
+5. **Wave 11 designed + deferred** (commit `b5a4b2b`):
    - Design captured in [#138](https://github.com/tsipotU/plant-trmnl/issues/138) — two committed PNG variants per species (X 1872×1404 16-grey + OG 800×480 4-grey), convention-based catalog wiring, build-time dithering script using `sharp`
    - Generation source decision deferred (paid API vs self-hosted vs LLM-SVG vs hand-commissioned)
    - Style direction: line art / line art + shading
@@ -69,12 +73,10 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 | #55 | TRMNL-X dual-resolution renderer support | Wave 11 (re-evaluate when generator picked) |
 | #59 | PWA: installable home-screen app + offline | Wave 12 |
 | #60 | Calibration UX: explanation, progress, convergence celebration | Wave 13 |
-| #126 | Date strip: distinguish selected + ±5-day scroll | Wave 12 |
 | #127 | Calendar view (week/month/year) | Wave 15+ (post-v1.0) |
 | #128 | "Identify my plant" walkthrough | Wave 15+ (post-v1.0) |
-| #133 | Common conditions UI redesign | Wave 12 / 13 |
+| #133 | Common conditions UI redesign | Wave 13 |
 | #134 | **Epic:** Plant passport IA | Wave 13 (design-doc front-half) |
-| #135 | Memorial / archive page redesign | Wave 12 / 13 |
 | #138 | **Wave 11 (deferred):** two-variant illustration pipeline | Wave 11+ (deferred) |
 
 (`#137` GH-bridge port from goat-tracker was closed as not-planned — manual triage works for now.)
@@ -88,6 +90,8 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 - **AI-connection heuristic** (Wave 9, #131): `GET /api/system/ai-connection` returns `{connected: bool}` based on `enrichment_complete` events in the last 7 days. SPA hook `useAiConnection` consumes this; PlantCard hides "pending" badge and PlantDetail swaps banner for "Connect AI" CTA when no recent activity.
 - **Plant image plumbing** (Wave 9, #132): `plants.illustration_path` (existing column) holds a relative filename. `/api/illustrations/:filename` serves from `packages/api/assets/catalog-images/`. PlantDetail and EnrichmentSplash render `<img>` when set, fall back to 🪴 emoji.
 - **Post-add splash flow** (Wave 10, #130): three-way fork after POST `/api/plants` — catalog hit (species + illustration_path on response) → success immediately; catalog miss + AI connected → 'enriching' poll (10s ceiling); catalog miss + no AI → 'no-match' fallback.
+- **Memorial page** (Wave 12, #135): `GET /api/plants/:id/memorial` returns plant + computed lifetime stats (waterings = `event_log` count, offspring = `mother_plant_id` count, calibration cycles = `plants.calibration_cycle`, lifespan = `archived_at - created_at` in days). `POST /api/plants/:id/restore` un-archives, re-enables species facts that were soft-disabled at archive time, logs a `restored` event. SPA route `/archive/:id` → `MemorialPlant.tsx`. PlantDetail has a `Navigate` guard that bounces archived plants to the memorial page.
+- **Date strip** (Wave 12, #126): `/api/schedule/week` accepts optional `?days=N` (default 7, range 1–30, back-compat). Dashboard hook now requests `from=today-5&days=11` so the strip spans ±5 days centred on today. `CalendarStrip.tsx` distinguishes today (filled green, white text) from selected (muted fill + outline) and scrolls the today tile into the centre on mount via `scrollIntoView({ inline: 'center' })`.
 - **ErrorBoundary** (Wave 9): `packages/api/client/src/components/ErrorBoundary.tsx` wraps `<App />`. Don't remove.
 - **Scheduling (#36):** `effective_interval = round(current_interval × heatingMod × growOrDormancyMult)`.
 - **Facts lifecycle:** seeded from catalog on create (dedup by species), soft-disabled on archive of last plant of species, re-enabled on add. Daily cron picks least-recently-shown.

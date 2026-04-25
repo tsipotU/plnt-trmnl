@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Wave 12 — Polish & feedback (2026-04-26)
+
+- **Date strip (#126):** today is now rendered as a filled green tile with white text, while a separately-selected day uses a muted-fill + outline treatment — the two states look distinct. The strip now spans 11 days (5 back + today + 5 ahead) instead of 7-forward and auto-scrolls today into the centre on mount. New optional `?days=N` param on `GET /api/schedule/week` (default 7, range 1–30, back-compat).
+- **Archive flow & memorial page (#135):** archiving a plant now navigates immediately to a new `/archive/:id` *in memoriam* page (no more 3-second delay before bouncing to a half-scrolled dashboard). The page hides the watering schedule, conditions, notes editor, archive button, and current pot size, and instead shows a stats grid (waterings, offspring, calibration cycles, lifespan), the cause, past-tense location, and a small Restore action. Visiting `/plants/:id` for an archived plant redirects to the memorial page. The archive index now links to memorial pages directly. `POST /api/plants/:id/restore` un-archives a plant, re-enables its species facts, and logs a `restored` event.
+
 ### Wave 9 — Hardening (2026-04-25)
 
 - **Auth gate (#136):** New bootstrap-token + session-cookie auth on the API. Fresh installs must claim the instance via the `/welcome` page using a one-time setup token printed in the server logs. After bootstrap all `/api/*` routes (except `/api/auth/*` and `/api/feedback`) require a valid session. SPA `/login` page handles return visits. `scripts/reset-password.js` clears credentials offline. INSTALL.md documents the bootstrap flow.
