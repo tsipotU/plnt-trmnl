@@ -1,0 +1,8 @@
+/Users/admin==>[redacted-path]
+/Users/emiel==>[redacted-path]
+192.168.50.10==>localhost
+192.168.50.15==>localhost
+192.168.50.50==>localhost
+baristi-v2==>[private-repo]
+baristi==>[private-repo]
+CampingHappy==>[private-repo]
