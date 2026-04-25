@@ -110,7 +110,7 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
           paddingTop: 24,
         }}
       >
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
           <Link to="/add" style={drawerLinkStyle}>Add plant</Link>
           <Link to="/archived" style={drawerLinkStyle}>Archive</Link>
           <Link to="/feedback" style={drawerLinkStyle}>Feedback</Link>
@@ -118,6 +118,24 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
           <Link to="/setup" style={drawerLinkStyle}>Setup</Link>
           <Link to="/about" style={drawerLinkStyle}>About</Link>
         </nav>
+        <button
+          type="button"
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.assign('/login');
+          }}
+          style={{
+            ...drawerLinkStyle,
+            background: 'transparent',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            textAlign: 'left',
+            cursor: 'pointer',
+            marginTop: 8,
+          }}
+        >
+          Log out
+        </button>
       </aside>
     </>
   );
