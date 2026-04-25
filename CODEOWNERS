@@ -1,0 +1,16 @@
+# CODEOWNERS — auto-assigned reviewers for paths
+# Syntax: <pattern> <@owner> [<@additional-owner>]
+# https://docs.github.com/en/repositories/managing-your-repositories-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @tsipotU
+
+# Catalog data needs a Dutch-speaker review for nl translations
+/packages/api/catalog/ @tsipotU
+
+# CI / release tooling
+/.github/ @tsipotU
+/scripts/ @tsipotU
+/docs/RELEASE-PROCESS.md @tsipotU
+/CHANGELOG.md @tsipotU
+/ROADMAP.md @tsipotU

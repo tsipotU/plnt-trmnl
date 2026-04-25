@@ -1,0 +1,61 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    groups:
+      types:
+        patterns:
+          - "@types/*"
+      dev-tooling:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "tsx"
+          - "typescript"
+
+  - package-ecosystem: npm
+    directory: /packages/api/client
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - client
+    groups:
+      types:
+        patterns:
+          - "@types/*"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - ci
+
+  - package-ecosystem: docker
+    directory: /packages/api
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: docker
+    directory: /packages/renderer
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - docker

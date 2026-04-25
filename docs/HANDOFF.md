@@ -93,19 +93,25 @@ The auto-memory `project_plant_trmnl.md` already carries cross-session facts; do
 - **Pre-existing tsc errors** in `routes/catalog.test.ts:24` and `routes/plants.ts:687-688` — neither blocks vitest (esbuild path) but they fail `tsc --build`. Investigate before any wave that needs a clean `npm run build` in `packages/api`.
 - **Treat client type contracts as load-bearing.** No ErrorBoundary; any shape drift blanks the app. Wave 9 will fix this.
 
-## What's missing for community release (Wave 14 territory)
+## Community-release scaffolding
 
-These don't exist yet and will need to before flipping public:
+Landed during the post-Wave-8 cleanup pass — review at flip time but don't expect to write them from scratch:
 
-- `LICENSE` (the README claims MIT but there's no file).
-- `SECURITY.md` (vulnerability disclosure policy).
-- `CONTRIBUTING.md`.
-- `CODE_OF_CONDUCT.md` (Contributor Covenant standard).
-- `.github/ISSUE_TEMPLATE/{bug,feature}.md`.
-- `.github/pull_request_template.md`.
-- `.github/workflows/test.yml` (CI on push/PR).
-- `.github/dependabot.yml` (security updates).
-- `.nvmrc` pinning Node 25.
-- `.editorconfig`.
+- `LICENSE` (MIT, matching the README's claim).
+- `SECURITY.md` — disclosure policy + scope (LAN-only deployment is by design, not a vuln).
+- `CONTRIBUTING.md` — dev setup, test commands, wave cadence, commit/PR conventions.
+- `CODE_OF_CONDUCT.md` — points at Contributor Covenant 2.1.
+- `CODEOWNERS` — maintainer auto-assign.
+- `.github/ISSUE_TEMPLATE/{bug,feature}.md` and `.github/pull_request_template.md`.
+- `.github/workflows/test.yml` — CI runs API + renderer + client suites on push/PR.
+- `.github/dependabot.yml` — weekly npm + monthly GitHub Actions / Docker.
+- `.nvmrc` — pins Node 24 (matches the live runtime; CI reads it via `node-version-file`).
+- `.editorconfig` — 2-space LF UTF-8.
 
-`docs/RELEASE-PROCESS.md` already documents the pre-flip mechanics (history audit, filter-repo, repo-settings flip, tag, announce).
+What's still pending for Wave 14:
+- Native Dutch-name audit on the 250-plant catalog (Emiel).
+- Run `scripts/pre-flip-audit.sh` + `git filter-repo` on history.
+- README screenshot pass + `INSTALL.md` smoke test on a clean machine.
+- Tag v1.0.0 + announce.
+
+`docs/RELEASE-PROCESS.md` documents the mechanics in detail.

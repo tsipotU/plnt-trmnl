@@ -94,13 +94,22 @@ Closes issues #7, #40, #60. May spawn additional issues for follow-up.
 
 **Goal:** Everything that has to be true on the day we flip the repo public.
 
+**Already in place** (landed during the post-Wave-8 cleanup pass — verify they're still accurate at flip time):
+- `LICENSE` (MIT), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `CODEOWNERS`.
+- `.github/ISSUE_TEMPLATE/{bug,feature}.md`, `.github/pull_request_template.md`.
+- `.github/workflows/test.yml` (CI), `.github/dependabot.yml`.
+- `.nvmrc`, `.editorconfig`.
+- `scripts/pre-flip-audit.sh`, `scripts/audit-issues.sh`, `scripts/filter-repo-replacements.txt`.
+
 **Brainstorm topics:**
-- Run `scripts/pre-flip-audit.sh` and `scripts/audit-issues.sh` (already exist from Wave 8).
-- Run `git filter-repo` against `scripts/filter-repo-replacements.txt` (already prepared).
-- License + community-release files (LICENSE, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, .github/ISSUE_TEMPLATE, etc. — see `docs/HANDOFF.md` for the inventory of what's missing).
-- CI workflow (.github/workflows/test.yml).
+- Run `scripts/pre-flip-audit.sh` — should fail on first run (history contains personal paths). That triggers the next step.
+- Run `git filter-repo --replace-text scripts/filter-repo-replacements.txt`. Re-run the audit; expect exit 0. Force-push.
+- Run `scripts/audit-issues.sh`; edit any flagged GitHub issues.
 - README final pass — every link works, every screenshot reflects shipping reality, every command in `INSTALL.md` runs on a clean machine.
-- Tag v1.0.0, draft GitHub Release notes from CHANGELOG.
+- Native Dutch-name audit pass on the 250-plant catalog (Emiel) — soft pre-flip dependency.
+- CI dry-run on a fork — make sure `.github/workflows/test.yml` actually goes green on a clean machine before contributors hit it.
+- Repo settings → Visibility → public.
+- Tag v1.0.0, draft GitHub Release notes from CHANGELOG `[Unreleased]` → `[1.0.0]`.
 - Announce: TRMNL Discord, TRMNL forum, /r/houseplants, /r/selfhosted, HN.
 
 **Likely outputs:** `docs/plans/<date>-wave-14-release-{design,plan}.md`, v1.0.0 tag, public repo, release notes, announcement.
