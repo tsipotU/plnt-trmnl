@@ -78,6 +78,7 @@ export function initializeSchema(db: Database.Database): void {
       is_active INTEGER DEFAULT 1,
       detected_via TEXT CHECK(detected_via IN ('calibration', 'manual')),
       resolved_at TEXT,
+      care_update_status TEXT DEFAULT 'not_needed' CHECK(care_update_status IN ('not_needed','pending','complete')),
       created_at TEXT DEFAULT (datetime('now'))
     )
   `).run();
@@ -191,6 +192,7 @@ export function initializeSchema(db: Database.Database): void {
   addColumnIfMissing(db, 'plants', 'mother_plant_id', 'INTEGER');
   addColumnIfMissing(db, 'event_log', 'batch_id', 'TEXT');
   addColumnIfMissing(db, 'plants', 'skip_next_calibration', 'INTEGER DEFAULT 0');
+  addColumnIfMissing(db, 'plant_conditions', 'care_update_status', `TEXT DEFAULT 'not_needed' CHECK(care_update_status IN ('not_needed','pending','complete'))`);
 
   // One-way migration: legacy `plants.notes` column superseded by the
   // `plant_notes` table (#32). Safe to drop on live DBs created before v0.14.
