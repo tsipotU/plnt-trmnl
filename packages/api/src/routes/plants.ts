@@ -955,5 +955,97 @@ export function createPlantsRouter(
     res.json({ ...updated, care_duration_days: careDurationDays });
   });
 
+  // GET /api/plants/:id/memorial — plant + lifetime stats for the memorial page
+  router.get('/:id/memorial', (req: Request, res: Response) => {
+    const plantId = Number(req.params.id);
+    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as
+      | Record<string, unknown>
+      | undefined;
+    if (!plant) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+
+    const wateringsRow = db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM event_log WHERE plant_id = ? AND event_type = 'watered'`
+      )
+      .get(plantId) as { n: number };
+
+    const offspringRow = db
+      .prepare(`SELECT COUNT(*) AS n FROM plants WHERE mother_plant_id = ?`)
+      .get(plantId) as { n: number };
+
+    const createdAt = plant.created_at as string;
+    const archivedAt = (plant.archived_at as string | null) ?? null;
+    const lifespanDays = archivedAt
+      ? Math.max(
+          0,
+          Math.floor(
+            (new Date(archivedAt).getTime() - new Date(createdAt).getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+        )
+      : 0;
+
+    res.json({
+      plant,
+      stats: {
+        waterings: wateringsRow.n,
+        offspring: offspringRow.n,
+        calibration_cycles: (plant.calibration_cycle as number) ?? 0,
+        lifespan_days: lifespanDays,
+        joined_at: createdAt,
+        archived_at: archivedAt,
+      },
+    });
+  });
+
+  // POST /api/plants/:id/restore — un-archive a plant; idempotent on non-archived
+  router.post('/:id/restore', (req: Request, res: Response) => {
+    const plantId = Number(req.params.id);
+    const plant = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as
+      | Record<string, unknown>
+      | undefined;
+    if (!plant) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
+
+    const wasArchived = (plant.archived as number) === 1;
+
+    db.prepare(
+      `UPDATE plants SET
+         archived       = 0,
+         archived_at    = NULL,
+         archive_reason = NULL,
+         archive_note   = NULL,
+         updated_at     = datetime('now')
+       WHERE id = ?`
+    ).run(plantId);
+
+    // Re-enable species facts that were soft-disabled at archive time
+    const species = plant.species as string | null;
+    if (species) {
+      db.prepare(
+        `UPDATE facts SET is_disabled = 0 WHERE plant_id = ? OR species = ?`
+      ).run(plantId, species);
+    }
+
+    if (wasArchived) {
+      logEvent(db, {
+        plantId,
+        eventType: 'restored',
+        reason: 'Plant restored from archive',
+      });
+    }
+
+    const updated = db.prepare(`SELECT * FROM plants WHERE id = ?`).get(plantId) as Record<
+      string,
+      unknown
+    >;
+    res.json({ plant: updated });
+  });
+
   return router;
 }
