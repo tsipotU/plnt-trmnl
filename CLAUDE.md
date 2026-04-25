@@ -10,7 +10,7 @@ For status and roadmap, see [`ROADMAP.md`](ROADMAP.md). For shipped work, see [`
 
 ## Tech Stack
 
-- **Runtime:** Node.js 25 + TypeScript
+- **Runtime:** Node.js 24 (`.nvmrc` pinned) + TypeScript
 - **API:** Express 5, better-sqlite3 (WAL mode)
 - **Frontend:** React 19 + Vite, vitest + jsdom for client tests
 - **Infra:** Docker Compose (production); `tsx watch` from project root (dev on the Mac mini)
