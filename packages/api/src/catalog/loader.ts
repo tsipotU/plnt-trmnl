@@ -162,6 +162,17 @@ function validateEntry(raw: unknown, index: number): CatalogEntry {
     throw new Error(`${loc}.etymology must be a non-empty string when provided`);
   }
 
+  // Optional field (#132): image_path. Bare filename only (no path separators
+  // or '..'); served from /api/illustrations/:filename. Path-traversal guard.
+  if (e.image_path !== undefined) {
+    if (typeof e.image_path !== 'string' || e.image_path.length === 0) {
+      throw new Error(`${loc}.image_path must be a non-empty string when provided`);
+    }
+    if (e.image_path.includes('/') || e.image_path.includes('\\') || e.image_path.includes('..')) {
+      throw new Error(`${loc}.image_path must be a bare filename (no path separators or '..')`);
+    }
+  }
+
   // #3: light_profile
   if (!e.light_profile || typeof e.light_profile !== 'object') {
     throw new Error(`${loc}.light_profile must be an object`);

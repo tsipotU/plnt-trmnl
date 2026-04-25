@@ -444,4 +444,45 @@ describe('catalog loader', () => {
       expect(() => loadCatalog(tmpLocal(JSON.stringify([e])))).toThrow(/lore/);
     });
   });
+
+  describe('loader validates optional image_path (#132)', () => {
+    function tmpLocal(json: string): string {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-test-'));
+      const p = path.join(dir, 'plants.json');
+      fs.writeFileSync(p, json, 'utf-8');
+      return p;
+    }
+
+    it('accepts entries with a bare-filename image_path', () => {
+      const e = makeEntry({ image_path: 'monstera.png' });
+      const catalog = loadCatalog(tmpLocal(JSON.stringify([e])));
+      expect(catalog.all()[0].image_path).toBe('monstera.png');
+    });
+
+    it('accepts entries with image_path omitted', () => {
+      const e = makeEntry();
+      const catalog = loadCatalog(tmpLocal(JSON.stringify([e])));
+      expect(catalog.all()[0].image_path).toBeUndefined();
+    });
+
+    it('rejects image_path containing a forward slash', () => {
+      const e = { ...makeEntry(), image_path: 'sub/dir/monstera.png' } as CatalogEntry;
+      expect(() => loadCatalog(tmpLocal(JSON.stringify([e])))).toThrow(/image_path/);
+    });
+
+    it("rejects image_path containing '..'", () => {
+      const e = { ...makeEntry(), image_path: '../escape.png' } as CatalogEntry;
+      expect(() => loadCatalog(tmpLocal(JSON.stringify([e])))).toThrow(/image_path/);
+    });
+
+    it('rejects image_path containing a backslash', () => {
+      const e = { ...makeEntry(), image_path: 'sub\\monstera.png' } as CatalogEntry;
+      expect(() => loadCatalog(tmpLocal(JSON.stringify([e])))).toThrow(/image_path/);
+    });
+
+    it('rejects empty-string image_path', () => {
+      const e = { ...makeEntry(), image_path: '' } as CatalogEntry;
+      expect(() => loadCatalog(tmpLocal(JSON.stringify([e])))).toThrow(/image_path/);
+    });
+  });
 });
