@@ -14,11 +14,11 @@ Single-file briefing so a new session, contributor, or future-you can pick up wo
   - Wave 10 — empty-state polish, AddPlant tooltips, post-add splash refactor
   - Wave 12 — date strip distinct today/selected + 11-day centred scroll (#126); archive-flow nav fix + memorial page redesign (#135)
   - Wave 13 (this session) — plant detail structural rework: passport IA scaffolding (#134, foundation only), ConditionCard cards (#133), calibration UX (#60). Filed 5 child issues (#139–#143) for the deferred reorder / per-section redesigns.
-- **Wave 11 deferred.** Design landed in [#138](https://github.com/tsipotU/plant-trmnl/issues/138); held until generation source is chosen. The original [#54](https://github.com/tsipotU/plant-trmnl/issues/54) was closed as superseded.
+- **Wave 11 (illustration pipeline) re-bundled into Wave 14** alongside the TRMNL template (#7). Design landed in [#138](https://github.com/tsipotU/plant-trmnl/issues/138); generation source still needs to be chosen before that part can ship. The original [#54](https://github.com/tsipotU/plant-trmnl/issues/54) was closed as superseded.
 - **Catalog at 250 species** across 12 categories. Strict validator green at boot.
 - **Architecture is pull-based:** zero in-process LLM. External AI tools poll `/api/plants?enrichment=pending` and `/api/conditions?care_update=pending`, then POST back. Connect-your-AI UI in Settings.
 - **Auth gate live.** Self-hosted instances now require a setup token (printed in API logs at first start) → `/welcome` page to claim → `/login` for return visits. `/health`, `/api/auth/*`, and `/api/feedback` are public; everything else requires session. Bootstrap mode (no admin password yet) lets all traffic through.
-- **Repo is still private.** Public flip + v1.0.0 tag scheduled for Wave 14.
+- **Repo is still private.** Public flip + v1.0.0 tag scheduled for Wave 16.
 - **Test baseline:** API **578** tests, client **151** tests, renderer **43** tests (772 total). Wave 13 added 3 API + 11 client.
 
 ## What just happened (last 24h, in case you've been away)
@@ -72,23 +72,21 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 
 | # | Title | Wave |
 |---|---|---|
-| #1 | Plant catalog: 250+ houseplant database | shipped (250 entries; native-Dutch audit pending → Wave 14) |
-| #7 | TRMNL template: visual redesign to match Lovable mockups | Wave 13 |
-| #18 | Auto-detect conditions from calibration patterns | Wave 12 |
-| #40 | Frontend design pass: holistic UI refresh | Wave 13 |
-| #55 | TRMNL-X dual-resolution renderer support | Wave 11 (re-evaluate when generator picked) |
-| #59 | PWA: installable home-screen app + offline | Wave 12 |
-| #60 | Calibration UX: explanation, progress, convergence celebration | Wave 13 |
-| #127 | Calendar view (week/month/year) | v2 (post-flip) |
-| #128 | "Identify my plant" walkthrough | v2 (post-flip) |
-| #139 | Plant detail: full section reorder to passport IA | child of #134 — could land any wave |
+| #7 | TRMNL template: visual redesign to match Lovable mockups | Wave 14 (next) |
+| #138 | Two-variant illustration pipeline (resumed Wave 11) | Wave 14 (next, blocked on generator pick) |
+| #55 | TRMNL-X dual-resolution renderer support | Wave 15 |
+| #59 | PWA: installable home-screen app + offline | Wave 15 |
+| #40 | Frontend design pass: holistic UI refresh | Wave 16 (pre-flip) |
+| #1 | Native Dutch-name audit (250-plant catalog) | Wave 16 (pre-flip; Emiel) |
+| #139 | Plant detail: full section reorder to passport IA | child of #134, Wave 16 or sooner |
 | #140 | Plant detail: hero block visual redesign | Wave 16 |
-| #141 | Plant detail: "This plant" section consolidation | child of #134 |
+| #141 | Plant detail: "This plant" section consolidation | Wave 16 |
 | #142 | Plant detail: sticky in-page nav | Wave 16 |
 | #143 | Plant detail: origin & lore narrative card | Wave 16 |
-| #138 | **Wave 11 (deferred):** two-variant illustration pipeline | Wave 11+ (deferred) |
+| #127 | Calendar view (week/month/year) | v2 (post-flip) |
+| #128 | "Identify my plant" walkthrough | v2 (post-flip) |
 
-(`#137` GH-bridge port from goat-tracker was closed as not-planned — manual triage works for now.)
+Closed during Wave 13 (2026-04-26): #134, #133, #60, #18 (won't-fix). Closed during Wave 12 (2026-04-26): #126, #135. Closed earlier: #137 (goat-tracker GH bridge, not-planned), #54 (superseded by #138).
 
 ## Architectural carry-forwards
 
@@ -148,7 +146,7 @@ Landed during the post-Wave-8 cleanup pass — review at flip time but don't exp
 - `.github/workflows/test.yml`, `.github/dependabot.yml`.
 - `.nvmrc`, `.editorconfig`.
 
-What's still pending for Wave 14:
+What's still pending for Wave 16 (release):
 - Native Dutch-name audit on the 250-plant catalog (Emiel).
 - Run `scripts/pre-flip-audit.sh` + `git filter-repo` on history.
 - README screenshot pass + `INSTALL.md` smoke test on a clean machine.

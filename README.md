@@ -23,7 +23,7 @@ See [INSTALL.md](INSTALL.md). It walks you from `git clone` to a running TRMNL s
 
 - [`INSTALL.md`](INSTALL.md) — install + AI tool setup recipes
 - [`CHANGELOG.md`](CHANGELOG.md) — what shipped when
-- [`ROADMAP.md`](ROADMAP.md) — forward plan (Waves 9–14)
+- [`ROADMAP.md`](ROADMAP.md) — forward plan (Waves 14–16, then v1.0 release)
 - [`docs/HANDOFF.md`](docs/HANDOFF.md) — current snapshot for new contributors / sessions
 - [`docs/RELEASE-PROCESS.md`](docs/RELEASE-PROCESS.md) — maintainer playbook
 - [`docs/specs/`](docs/specs/) — design specs (current)
