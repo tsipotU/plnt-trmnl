@@ -24,7 +24,18 @@ export function createScheduleRouter(db: Database.Database): Router {
       from = fromRaw;
     }
 
-    const to = addDays(from, 6);
+    const daysRaw = typeof req.query.days === 'string' ? req.query.days : undefined;
+    let dayCount = 7;
+    if (daysRaw !== undefined) {
+      const parsed = Number(daysRaw);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 30) {
+        res.status(400).json({ error: 'Invalid days param, expected integer in [1, 30]' });
+        return;
+      }
+      dayCount = parsed;
+    }
+
+    const to = addDays(from, dayCount - 1);
 
     const plants = db.prepare(
       `SELECT id, name, next_water_date, location
@@ -57,7 +68,7 @@ export function createScheduleRouter(db: Database.Database): Router {
     }
 
     const days = [];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < dayCount; i++) {
       const date = addDays(from, i);
       const is_today = date === today;
       const bucket = plants.filter(p => p.next_water_date === date);
