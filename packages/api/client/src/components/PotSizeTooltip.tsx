@@ -1,28 +1,29 @@
 import { useState } from 'react';
 
-export function LightLevelTooltip() {
+/**
+ * Pot-size guidance for AddPlant (#129). Same popover affordance as
+ * LightLevelTooltip — we don't share the implementation today; refactor when a
+ * third surface needs the same pattern.
+ */
+export function PotSizeTooltip() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const lightLevels = [
+  const guides = [
     {
-      level: 'Low',
-      example: 'North-facing window, back of the room, or interior corner',
-      test: 'Cannot read a book comfortably at noon without a lamp',
+      label: 'Small (~8–14 cm)',
+      body: 'A spread hand from fingertip to thumbtip, edge-to-edge across the pot rim.',
     },
     {
-      level: 'Medium',
-      example: 'East or west-facing window, near the glass but not in direct sun',
-      test: 'Can read a book comfortably at noon without artificial light',
+      label: 'Medium (~14–20 cm)',
+      body: 'About one-and-a-half spread hands across.',
     },
     {
-      level: 'Bright indirect',
-      example: 'Sunny room, plant near a window but out of the sun’s direct path',
-      test: 'Very bright but the sun does not actually touch the leaves',
+      label: 'Large (~20–25 cm)',
+      body: 'Two spread hands across.',
     },
     {
-      level: 'Direct',
-      example: 'South or west-facing window with sun landing on the plant',
-      test: 'Sun touches the leaves for 3+ hours a day',
+      label: 'Extra large (25 cm+)',
+      body: 'Wider than two spread hands.',
     },
   ];
 
@@ -31,6 +32,8 @@ export function LightLevelTooltip() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Help: how to estimate pot diameter"
+        title="Pot diameter guide"
         style={{
           background: 'none',
           border: 'none',
@@ -44,8 +47,6 @@ export function LightLevelTooltip() {
           alignItems: 'center',
           justifyContent: 'center',
         }}
-        aria-label="Light level help"
-        title="Light level guide"
       >
         ⓘ
       </button>
@@ -69,6 +70,7 @@ export function LightLevelTooltip() {
           <button
             type="button"
             onClick={() => setIsOpen(false)}
+            aria-label="Close"
             style={{
               position: 'absolute',
               top: 8,
@@ -78,46 +80,37 @@ export function LightLevelTooltip() {
               color: 'var(--text-secondary)',
               fontSize: 20,
               cursor: 'pointer',
+              padding: '4px 8px',
               minHeight: 'auto',
               minWidth: 'auto',
-              padding: '4px 8px',
             }}
-            aria-label="Close"
           >
             ×
           </button>
-
           <div style={{ paddingRight: 24 }}>
-            {lightLevels.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: idx < lightLevels.length - 1 ? 16 : 0 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: 'var(--text-secondary)',
+                marginBottom: 12,
+                fontStyle: 'italic',
+              }}
+            >
+              Measure across the top of the pot, edge to edge.
+            </p>
+            {guides.map((g, i) => (
+              <div key={g.label} style={{ marginBottom: i < guides.length - 1 ? 12 : 0 }}>
                 <p
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
                     color: 'var(--text-primary)',
-                    marginBottom: 6,
-                  }}
-                >
-                  {item.level}
-                </p>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--text-secondary)',
                     marginBottom: 4,
                   }}
                 >
-                  {item.example}
+                  {g.label}
                 </p>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--text-secondary)',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {item.test}
-                </p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{g.body}</p>
               </div>
             ))}
           </div>
