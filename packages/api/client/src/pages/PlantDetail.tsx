@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArchiveDialog } from '../components/ArchiveDialog';
 import { ConditionsPicker } from '../components/ConditionsPicker';
 import { NotesLog } from '../components/NotesLog';
@@ -900,7 +900,7 @@ export function PlantDetail() {
         archivedAt,
       });
       showToast(message);
-      setTimeout(() => navigate('/'), 3000);
+      navigate(`/archive/${id}`, { replace: true });
     } catch {
       showToast('Failed to archive plant');
     }
@@ -926,6 +926,10 @@ export function PlantDetail() {
         </button>
       </div>
     );
+  }
+
+  if (plant.archived === 1) {
+    return <Navigate to={`/archive/${id}`} replace />;
   }
 
   const lightOptions = [
