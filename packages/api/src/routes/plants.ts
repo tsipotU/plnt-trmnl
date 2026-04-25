@@ -330,9 +330,19 @@ export function createPlantsRouter(
   const router = Router();
 
   // GET /api/plants — list active plants ordered by next_water_date ASC
-  router.get('/', (_req: Request, res: Response) => {
+  // Accepts optional ?enrichment=pending to filter to plants awaiting enrichment.
+  router.get('/', (req: Request, res: Response) => {
+    const enrichmentFilter = typeof req.query.enrichment === 'string' ? req.query.enrichment : null;
+    if (enrichmentFilter !== null && enrichmentFilter !== 'pending') {
+      res.status(400).json({ error: "Unsupported enrichment filter: only 'pending' is accepted" });
+      return;
+    }
+    let where = `archived = 0`;
+    if (enrichmentFilter === 'pending') {
+      where += ` AND enrichment_status = 'pending'`;
+    }
     const plants = db.prepare(
-      `SELECT * FROM plants WHERE archived = 0 ORDER BY next_water_date ASC`
+      `SELECT * FROM plants WHERE ${where} ORDER BY next_water_date ASC`
     ).all();
     res.json(plants);
   });
