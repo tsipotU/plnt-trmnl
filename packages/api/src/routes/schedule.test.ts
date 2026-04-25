@@ -67,6 +67,43 @@ describe('GET /api/schedule/week', () => {
     await request(app).get('/api/schedule/week?from=2026-13-45').expect(400);
   });
 
+  it('returns 11 days when ?days=11 is passed', async () => {
+    const res = await request(app).get('/api/schedule/week?from=2026-04-22&days=11').expect(200);
+    expect(res.body.days).toHaveLength(11);
+    expect(res.body.days[0].date).toBe('2026-04-22');
+    expect(res.body.days[10].date).toBe('2026-05-02');
+  });
+
+  it('defaults to 7 days when no ?days param', async () => {
+    const res = await request(app).get('/api/schedule/week?from=2026-04-22').expect(200);
+    expect(res.body.days).toHaveLength(7);
+  });
+
+  it('rejects non-integer ?days param', async () => {
+    await request(app).get('/api/schedule/week?from=2026-04-22&days=banana').expect(400);
+  });
+
+  it('rejects ?days outside [1, 30]', async () => {
+    await request(app).get('/api/schedule/week?from=2026-04-22&days=0').expect(400);
+    await request(app).get('/api/schedule/week?from=2026-04-22&days=31').expect(400);
+  });
+
+  it('still rolls overdue plants into today (the today index can be > 0 now)', async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const fiveDaysAgo = new Date(Date.now() - 5 * 86400_000).toISOString().slice(0, 10);
+    const sixDaysAgo = new Date(Date.now() - 6 * 86400_000).toISOString().slice(0, 10);
+
+    db.prepare(
+      `INSERT INTO plants (name, base_interval, current_interval, next_water_date, location)
+       VALUES ('Overdue', 7, 7, ?, 'Living')`
+    ).run(sixDaysAgo);
+
+    const res = await request(app).get(`/api/schedule/week?from=${fiveDaysAgo}&days=11`).expect(200);
+    const todayCell = res.body.days.find((d: any) => d.date === today);
+    expect(todayCell).toBeDefined();
+    expect(todayCell.overdue_ids).toHaveLength(1);
+  });
+
   it('does not double-count overdue plants when from < today', async () => {
     const today = new Date().toISOString().slice(0, 10);
     const yesterday = new Date(Date.now() - 86400_000).toISOString().slice(0, 10);
