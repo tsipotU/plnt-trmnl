@@ -1,7 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CalendarStrip } from './CalendarStrip';
+
+// jsdom doesn't implement scrollIntoView; stub it so the mount effect doesn't crash.
+beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
 
 const days = [
   { date: '2026-04-22', is_today: true, plant_ids: [1], plant_names: ['Monstera'], count: 1, overdue_ids: [], vacation: false },
@@ -64,6 +69,15 @@ describe('CalendarStrip', () => {
     const dayButtons = container.querySelectorAll('button');
     const todayButton = dayButtons[0];
     expect(todayButton).toHaveStyle('background: var(--accent)');
+  });
+
+  it('scrolls today into center on mount', () => {
+    const scrollIntoViewMock = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
+    render(<CalendarStrip days={days} selectedDate={null} onDaySelect={() => {}} />);
+    expect(scrollIntoViewMock).toHaveBeenCalledWith(
+      expect.objectContaining({ inline: 'center' }),
+    );
   });
 
   it('today gets white text when filled', () => {
