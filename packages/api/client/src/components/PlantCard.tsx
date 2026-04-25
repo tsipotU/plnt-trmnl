@@ -16,6 +16,8 @@ export interface Plant {
   last_watered_at: string | null;
   enrichment_status: 'pending' | 'complete' | 'failed';
   archived: number;
+  is_converged?: number;
+  current_interval?: number;
 }
 
 interface PlantCardProps {
@@ -207,6 +209,28 @@ export function PlantCard({ plant }: PlantCardProps) {
               }}
             >
               ✨ Enrichment pending
+            </span>
+          )}
+
+          {/* #60 — dialed-in badge for converged plants */}
+          {plant.is_converged === 1 && (
+            <span
+              title={
+                plant.current_interval
+                  ? `${plant.current_interval}-day cadence, calibrated to your home.`
+                  : 'Calibrated to your home.'
+              }
+              aria-label="Dialed in"
+              style={{
+                background: 'var(--accent-muted, rgba(0, 168, 107, 0.15))',
+                border: '1px solid var(--accent)',
+                borderRadius: 4,
+                padding: '2px 7px',
+                fontSize: 12,
+                color: 'var(--accent)',
+              }}
+            >
+              🌿 Dialed in
             </span>
           )}
         </div>
