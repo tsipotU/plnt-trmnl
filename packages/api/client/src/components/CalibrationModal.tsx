@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CalibrationExplanation } from './CalibrationExplanation';
 
 // --- Types ---
 
@@ -16,12 +17,15 @@ interface CalibrationPlant {
   name: string;
   identifier: string | null;
   illustration_path: string | null;
+  calibration_cycle: number;
+  is_converged: number;
   question: CalibrationQuestion;
 }
 
 interface CalibrationResult {
   interval_before: number;
   interval_after: number;
+  convergence_event: 'converged' | 'drifted' | null;
 }
 
 interface CalibrationModalProps {
@@ -179,6 +183,21 @@ function PlantCalibrationScreen({
         </div>
       )}
 
+      {/* #60 — calibration progress + explanation */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: 6,
+          fontSize: 13,
+          color: 'var(--text-secondary)',
+        }}
+      >
+        <span>Calibration {(plant.calibration_cycle ?? 0) + 1} of ~5</span>
+        <CalibrationExplanation />
+      </div>
+
       {/* Question */}
       <p
         style={{
@@ -294,6 +313,35 @@ function PlantCalibrationScreen({
                 </div>
               </>
             )}
+            {/* #60 — convergence transition message */}
+            {result?.convergence_event === 'converged' && (
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: '8px 12px',
+                  background: 'var(--accent-muted, rgba(0, 168, 107, 0.15))',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  color: 'var(--accent)',
+                }}
+              >
+                🌿 {plant.name} is dialed in at {result.interval_after} days.
+              </div>
+            )}
+            {result?.convergence_event === 'drifted' && (
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: '8px 12px',
+                  background: 'var(--bg-secondary)',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {plant.name} is drinking differently lately — recalibrating.
+              </div>
+            )}
           </div>
 
           {/* Next / Done */}
@@ -348,8 +396,18 @@ export function CalibrationModal({ onDone }: CalibrationModalProps) {
         body: JSON.stringify({ questionId, answerValue }),
       });
       if (!res.ok) return null;
-      const data = await res.json();
-      return data as CalibrationResult;
+      const data = (await res.json()) as {
+        current_interval: number;
+        is_converged: number;
+        convergence_event: 'converged' | 'drifted' | null;
+        interval_before?: number;
+        interval_after?: number;
+      };
+      return {
+        interval_before: data.interval_before ?? data.current_interval,
+        interval_after: data.interval_after ?? data.current_interval,
+        convergence_event: data.convergence_event,
+      };
     } catch {
       return null;
     }
