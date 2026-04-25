@@ -23,6 +23,7 @@ import { createVacationRouter } from './routes/vacation.js';
 import { createFeedbackRouter } from './routes/feedback.js';
 import { createScheduleRouter } from './routes/schedule.js';
 import { createEnrichmentRouter } from './enrichment/callback.js';
+import { createSystemRouter } from './routes/system.js';
 import { pickDailyFact } from './facts/pick-daily.js';
 import { DAILY_FACT_CRON } from './facts/cron-schedule.js';
 
@@ -80,6 +81,7 @@ app.use('/api/vacation', createVacationRouter(db));
 app.use('/api/feedback', createFeedbackRouter(db, { uploadDir: feedbackUploadDir }));
 app.use('/api', createEnrichmentRouter(db, catalog));
 app.use('/api/schedule', createScheduleRouter(db));
+app.use('/api/system', createSystemRouter(db));
 
 // Catalog illustrations (#132) — static botanical images keyed by bare
 // filename. The catalog loader rejects entries whose `image_path` contains

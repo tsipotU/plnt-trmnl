@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useAiConnection } from '../hooks/useAiConnection';
 
 export interface Plant {
   id: number;
@@ -50,7 +51,11 @@ export function PlantCard({ plant }: PlantCardProps) {
     plant.next_water_date != null && plant.next_water_date < today;
   const overdueDays =
     isOverdue && plant.next_water_date ? Math.abs(daysUntil(plant.next_water_date)) : 0;
-  const isPending = plant.enrichment_status === 'pending';
+  // #131 — only show "✨ Enrichment pending" badge when an AI tool has been
+  // recently active. Otherwise the badge would be permanent for users who
+  // haven't connected one (under pull-based enrichment).
+  const { connected: aiConnected } = useAiConnection();
+  const isPending = plant.enrichment_status === 'pending' && aiConnected;
 
   return (
     <div
