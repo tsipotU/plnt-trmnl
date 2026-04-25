@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Wave 9 — Hardening (2026-04-25)
+
+- **Auth gate (#136):** New bootstrap-token + session-cookie auth on the API. Fresh installs must claim the instance via the `/welcome` page using a one-time setup token printed in the server logs. After bootstrap all `/api/*` routes (except `/api/auth/*` and `/api/feedback`) require a valid session. SPA `/login` page handles return visits. `scripts/reset-password.js` clears credentials offline. INSTALL.md documents the bootstrap flow.
+- **Top-level `ErrorBoundary`** (no GH issue): wraps the app so an uncaught render error shows a friendly fallback with a Reload button instead of blanking the whole page.
+- **Hamburger menu state polish (#124):** suppressed the iOS Safari blue tap-highlight + scoped focus styling to keyboard navigation only via `:focus-visible`.
+- **Plant images on detail page (#132, monstera-only):** new `/api/illustrations/:filename` static endpoint. Catalog entries can now declare an `image_path`; the value is copied to `plants.illustration_path` on POST when a catalog match is found. First catalog image: a botanical illustration of *Monstera deliciosa Albo Variegata*. Plant detail page renders the image when present, falls back to the 🪴 emoji.
+- **Stale "enrichment pending" UI hidden when no AI tool active (#131):** new `GET /api/system/ai-connection` heuristic (recent `enrichment_complete` event ⇒ "connected"). PlantCard hides the badge and PlantDetail swaps the wait banner for a "Connect an AI tool" CTA when no AI tool has been seen in the last 7 days.
+
 ### Changed
 - **Architecture:** All in-process LLM calls removed. plant-trmnl now exposes a pull-based enrichment API; users connect their own AI tool (Claude Desktop scheduled task, ChatGPT scheduled tasks, Cursor, Ollama + cron, n8n, etc.).
 - **Catalog:** Expanded from 30 → 250 species across 12 categories (added `orchids`, `carnivorous`, `herbs`, `terrarium`). 60+ cultivars/variegated forms across major collector genera (Monstera, Pothos, Philodendron, Sansevieria, Ficus, Echeveria, Calathea, Aglaonema). Phalaenopsis migrated from `flowering` to its new `orchids` category.
