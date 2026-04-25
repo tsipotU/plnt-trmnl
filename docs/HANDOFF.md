@@ -2,41 +2,47 @@
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
-**Last updated:** 2026-04-26 (post Wave 12 ship; Wave 11 still deferred to #138)
+**Last updated:** 2026-04-26 (post Wave 13 ship; Wave 14 = TRMNL identity tomorrow)
 
 ---
 
 ## Where we are
 
-- **Waves 1–10 + 12 are shipped and merged to `main`.**
+- **Waves 1–10 + 12 + 13 are shipped and merged to `main`.**
   - Wave 8 (PR #114, squash `fa8289d`) — pull-based architecture
   - Wave 9 — auth gate, ErrorBoundary, hamburger fix, monstera plant image, AI-connection heuristic
   - Wave 10 — empty-state polish, AddPlant tooltips, post-add splash refactor
-  - Wave 12 (this session) — date strip distinct today/selected + 11-day centred scroll (#126); archive-flow nav fix + memorial page redesign (#135)
+  - Wave 12 — date strip distinct today/selected + 11-day centred scroll (#126); archive-flow nav fix + memorial page redesign (#135)
+  - Wave 13 (this session) — plant detail structural rework: passport IA scaffolding (#134, foundation only), ConditionCard cards (#133), calibration UX (#60). Filed 5 child issues (#139–#143) for the deferred reorder / per-section redesigns.
 - **Wave 11 deferred.** Design landed in [#138](https://github.com/tsipotU/plant-trmnl/issues/138); held until generation source is chosen. The original [#54](https://github.com/tsipotU/plant-trmnl/issues/54) was closed as superseded.
 - **Catalog at 250 species** across 12 categories. Strict validator green at boot.
 - **Architecture is pull-based:** zero in-process LLM. External AI tools poll `/api/plants?enrichment=pending` and `/api/conditions?care_update=pending`, then POST back. Connect-your-AI UI in Settings.
 - **Auth gate live.** Self-hosted instances now require a setup token (printed in API logs at first start) → `/welcome` page to claim → `/login` for return visits. `/health`, `/api/auth/*`, and `/api/feedback` are public; everything else requires session. Bootstrap mode (no admin password yet) lets all traffic through.
 - **Repo is still private.** Public flip + v1.0.0 tag scheduled for Wave 14.
-- **Test baseline:** API **575** tests, client **140** tests, renderer **43** tests (758 total). Wave 12 added 12 API + 10 client.
+- **Test baseline:** API **578** tests, client **151** tests, renderer **43** tests (772 total). Wave 13 added 3 API + 11 client.
 
 ## What just happened (last 24h, in case you've been away)
 
-1. **Wave 12 — Polish & feedback** shipped (this session). Two issues, one wave:
+1. **Wave 13 — Plant detail structural rework** shipped (this session). Three issues, one wave, ~10 commits:
+   - `#134` Plant passport IA — `CollapsibleSection` primitive (`packages/api/client/src/components/CollapsibleSection.tsx`), image hero promoted to top of plant detail, History section wrapped as proof-of-concept. Full passport-order reorder deferred to child issue #139. Hero redesign #140, this-plant consolidation #141, sticky nav #142, origin & lore card #143.
+   - `#133` ConditionCard primitive (`packages/api/client/src/components/ConditionCard.tsx`) replaces inline catalog conditions rendering. Identical-height collapsible cards, severity icons (⚠/ℹ), tag chips with min-width, optional `actionSlot` for the Flag-as-active button (sibling to toggle button — no nested-button HTML invalidity).
+   - `#60` Calibration UX — `CalibrationExplanation` tooltip with first-visit pulse, "Calibration N of ~5" progress in modal title, calibration progress pill on plant detail Schedule, 🌿 dialed-in badge on PlantCard. New `convergence_event` field on calibration response (`'converged' | 'drifted' | null`); new event types `calibration_converged` and `calibration_drift_detected`.
+   - **Roadmap reshuffle**: Wave 14 = TRMNL identity (#7 + #138, tomorrow), Wave 15 = PWA + TRMNL-X (#59 + #55), Wave 16 = pre-flip polish (#40) + release. Closed #18 (auto-detect from calibration patterns) as not-planned. #127 + #128 explicitly marked v2.
+2. **Wave 12 — Polish & feedback** shipped (this session, earlier). Two issues, one wave:
    - `#126` Date strip — `?days=N` API param, hook now requests 11-day window centred on today, distinct visual treatments for today (filled green) vs selected (muted + outline), `scrollIntoView` on mount.
    - `#135` Archive flow — `setTimeout(navigate('/'), 3000)` replaced with immediate `navigate('/archive/:id', { replace: true })`. New `MemorialPlant` page at `/archive/:id` shows lifetime stats grid (waterings, offspring, calibration cycles, lifespan), cause line, past-tense location, small Restore action. New `GET /api/plants/:id/memorial` and `POST /api/plants/:id/restore` endpoints. PlantDetail redirects archived plants to memorial page.
-2. **Dog-food triage round** (2026-04-25) — 17 in-app feedback items → 14 GitHub issues (#124–#137). All 17 in-app rows marked `done` with cross-link comments.
-3. **Wave 9 — Hardening** shipped (commits `74b26e7` → `cc902cf`):
+3. **Dog-food triage round** (2026-04-25) — 17 in-app feedback items → 14 GitHub issues (#124–#137). All 17 in-app rows marked `done` with cross-link comments.
+4. **Wave 9 — Hardening** shipped (commits `74b26e7` → `cc902cf`):
    - Top-level `ErrorBoundary` (no GH issue) — wraps `<App />`, friendly fallback + Reload button
    - `#124` Hamburger menu — iOS Safari tap-highlight + focus-visible scoping
    - `#131` Still-enriching banner — `/api/system/ai-connection` heuristic, hides stale "pending" UI when no AI tool active
    - `#132` Plant images (monstera-only) — `/api/illustrations/:filename` static endpoint, catalog `image_path` field, copy through to `plants.illustration_path` on POST
    - `#136` **Auth gate** — bcrypt + cookie sessions, `/welcome` setup, `/login`, `requireAuth` middleware, `scripts/reset-password.js`, INSTALL.md docs
-4. **Wave 10 — Onboarding lite** shipped (commits `f0b0858` and 2 others):
+5. **Wave 10 — Onboarding lite** shipped (commits `f0b0858` and 2 others):
    - `#125` Hide redundant Add button in empty state
    - `#129` AddPlant tooltips — 4-level light + new pot-size rule-of-thumb
    - `#130` Post-add splash — three-way fork (catalog hit / AI active / no-AI fallback)
-5. **Wave 11 designed + deferred** (commit `b5a4b2b`):
+6. **Wave 11 designed + deferred** (commit `b5a4b2b`):
    - Design captured in [#138](https://github.com/tsipotU/plant-trmnl/issues/138) — two committed PNG variants per species (X 1872×1404 16-grey + OG 800×480 4-grey), convention-based catalog wiring, build-time dithering script using `sharp`
    - Generation source decision deferred (paid API vs self-hosted vs LLM-SVG vs hand-commissioned)
    - Style direction: line art / line art + shading
@@ -73,10 +79,13 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 | #55 | TRMNL-X dual-resolution renderer support | Wave 11 (re-evaluate when generator picked) |
 | #59 | PWA: installable home-screen app + offline | Wave 12 |
 | #60 | Calibration UX: explanation, progress, convergence celebration | Wave 13 |
-| #127 | Calendar view (week/month/year) | Wave 15+ (post-v1.0) |
-| #128 | "Identify my plant" walkthrough | Wave 15+ (post-v1.0) |
-| #133 | Common conditions UI redesign | Wave 13 |
-| #134 | **Epic:** Plant passport IA | Wave 13 (design-doc front-half) |
+| #127 | Calendar view (week/month/year) | v2 (post-flip) |
+| #128 | "Identify my plant" walkthrough | v2 (post-flip) |
+| #139 | Plant detail: full section reorder to passport IA | child of #134 — could land any wave |
+| #140 | Plant detail: hero block visual redesign | Wave 16 |
+| #141 | Plant detail: "This plant" section consolidation | child of #134 |
+| #142 | Plant detail: sticky in-page nav | Wave 16 |
+| #143 | Plant detail: origin & lore narrative card | Wave 16 |
 | #138 | **Wave 11 (deferred):** two-variant illustration pipeline | Wave 11+ (deferred) |
 
 (`#137` GH-bridge port from goat-tracker was closed as not-planned — manual triage works for now.)
@@ -92,6 +101,9 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 - **Post-add splash flow** (Wave 10, #130): three-way fork after POST `/api/plants` — catalog hit (species + illustration_path on response) → success immediately; catalog miss + AI connected → 'enriching' poll (10s ceiling); catalog miss + no AI → 'no-match' fallback.
 - **Memorial page** (Wave 12, #135): `GET /api/plants/:id/memorial` returns plant + computed lifetime stats (waterings = `event_log` count, offspring = `mother_plant_id` count, calibration cycles = `plants.calibration_cycle`, lifespan = `archived_at - created_at` in days). `POST /api/plants/:id/restore` un-archives, re-enables species facts that were soft-disabled at archive time, logs a `restored` event. SPA route `/archive/:id` → `MemorialPlant.tsx`. PlantDetail has a `Navigate` guard that bounces archived plants to the memorial page.
 - **Date strip** (Wave 12, #126): `/api/schedule/week` accepts optional `?days=N` (default 7, range 1–30, back-compat). Dashboard hook now requests `from=today-5&days=11` so the strip spans ±5 days centred on today. `CalendarStrip.tsx` distinguishes today (filled green, white text) from selected (muted fill + outline) and scrolls the today tile into the centre on mount via `scrollIntoView({ inline: 'center' })`.
+- **CollapsibleSection primitive** (Wave 13, #134): `packages/api/client/src/components/CollapsibleSection.tsx`. Accepts `title`, `children`, optional `defaultCollapsed`, optional `headerSlot`. Each section gets a button-toggle header with `aria-expanded`, rotating ▶ glyph indicator. Use this for any new collapsible section on plant detail; the deferred passport-order reorder (#139) will wrap the rest of the existing sections.
+- **ConditionCard primitive** (Wave 13, #133): `packages/api/client/src/components/ConditionCard.tsx`. Card-level collapse for a single condition (severity icon + name + tags + optional `actionSlot` on the right, expandable to Symptoms/Remedy/Prevention). Used in PlantDetail's "Common conditions" section — the section-level "show 5 / show all 15" toggle is intact; only per-condition rendering changed. The `actionSlot` prop sits as a sibling div next to the toggle button (not nested) to avoid invalid nested-button HTML.
+- **Calibration convergence transitions** (Wave 13, #60): `POST /api/plants/:id/calibration` now returns `convergence_event: 'converged' | 'drifted' | null` reflecting the `is_converged` 0→1 / 1→0 transition. New event types `calibration_converged` and `calibration_drift_detected` are emitted on transitions. SPA surfaces: `CalibrationModal` shows transition message in result card; `CalibrationSequence` flashes a banner above the next question; `PlantCard` and `PlantDetail` show a 🌿 dialed-in badge/chip when `is_converged === 1`. The underlying `checkConvergence` algorithm (three consecutive 3s) is unchanged — the wave just surfaces existing transitions.
 - **ErrorBoundary** (Wave 9): `packages/api/client/src/components/ErrorBoundary.tsx` wraps `<App />`. Don't remove.
 - **Scheduling (#36):** `effective_interval = round(current_interval × heatingMod × growOrDormancyMult)`.
 - **Facts lifecycle:** seeded from catalog on create (dedup by species), soft-disabled on archive of last plant of species, re-enabled on add. Daily cron picks least-recently-shown.
