@@ -8,7 +8,7 @@ Run against the live Mac Mini instance (port 3900 on the LAN, or `plant.incal.on
 
 ## 0. Pre-flight
 
-- [ ] API running: `curl http://192.168.50.10:3900/health` returns `{"status":"ok","service":"plant-api"}`
+- [ ] API running: `curl http://localhost:3900/health` returns `{"status":"ok","service":"plant-api"}`
 - [ ] Client loads in browser at the app URL
 - [ ] Open DevTools → Network tab (helps spot regressions); keep it open throughout
 - [ ] Have at least one **existing** plant in the DB so regression checks work
@@ -31,9 +31,9 @@ sqlite3 packages/api/plants.db ".schema feedback_images"
 
 ## 1. Catalog foundation (#1a, #100)
 
-- [ ] `curl 'http://192.168.50.10:3900/api/catalog/search?q=monstera'` → returns at least Monstera deliciosa
-- [ ] `curl 'http://192.168.50.10:3900/api/catalog/search?q=vrouwentong'` → matches Sansevieria via Dutch alias
-- [ ] `curl 'http://192.168.50.10:3900/api/catalog/search?q=snake'` → matches Sansevieria via EN common name
+- [ ] `curl 'http://localhost:3900/api/catalog/search?q=monstera'` → returns at least Monstera deliciosa
+- [ ] `curl 'http://localhost:3900/api/catalog/search?q=vrouwentong'` → matches Sansevieria via Dutch alias
+- [ ] `curl 'http://localhost:3900/api/catalog/search?q=snake'` → matches Sansevieria via EN common name
 
 ---
 
@@ -143,7 +143,7 @@ Open the Monstera you added in step 2.
 
 This one is mostly observational — it reshapes scheduling math.
 
-- [ ] Verify config is loaded: `curl http://192.168.50.10:3900/health` → (if the endpoint exposes config, check) — or inspect `.env.example` has `GROWING_SEASON_START`, `GROWING_SEASON_END`, `DRY_DAYS_BASE`, `GROWING_SEASON_MULTIPLIER`, `DORMANCY_MULTIPLIER`
+- [ ] Verify config is loaded: `curl http://localhost:3900/health` → (if the endpoint exposes config, check) — or inspect `.env.example` has `GROWING_SEASON_START`, `GROWING_SEASON_END`, `DRY_DAYS_BASE`, `GROWING_SEASON_MULTIPLIER`, `DORMANCY_MULTIPLIER`
 - [ ] On a plant, trigger a water → check the plant's next_water_date. With today's date in April (growing season), the effective interval should be **shorter** than the base `current_interval` (multiplier 0.8)
 - [ ] Check `plant_events` for a `seasonal_adjustment` event with a `reason` field describing which layer fired (growing / heating / both)
 
