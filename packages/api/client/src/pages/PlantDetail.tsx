@@ -3,6 +3,7 @@ import { Navigate, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArchiveDialog } from '../components/ArchiveDialog';
 import { ConditionsPicker } from '../components/ConditionsPicker';
 import { NotesLog } from '../components/NotesLog';
+import { CollapsibleSection } from '../components/CollapsibleSection';
 import { buildMemorialMessage, type ArchiveReason } from '../utils/memorial';
 import { useDevInfo } from '../hooks/useDevInfo.js';
 import { useAiConnection } from '../hooks/useAiConnection';
@@ -1048,6 +1049,25 @@ export function PlantDetail() {
         )}
       </div>
 
+      {/* #134 — image hero. Promoted to top of page so the plant's identity reads first. */}
+      {plant.illustration_path && (
+        <div
+          className="card"
+          style={{
+            marginBottom: 12,
+            padding: 16,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <img
+            src={`/api/illustrations/${plant.illustration_path}`}
+            alt={plant.species ?? plant.name}
+            style={{ maxWidth: '100%', maxHeight: 280, objectFit: 'contain' }}
+          />
+        </div>
+      )}
+
       {/* Plant name + prominent enriched species — inline editable.
           Species sits directly under the name at a prominent size so users
           can catch misidentification at a glance, with a "Not this? Rename"
@@ -1768,8 +1788,7 @@ export function PlantDetail() {
       })()}
 
       {/* Event timeline */}
-      <div className="card" style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>History</h2>
+      <CollapsibleSection title="History">
         {events.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
             No care history yet — water your plant for the first time to start tracking.
@@ -1829,7 +1848,7 @@ export function PlantDetail() {
             ))}
           </div>
         )}
-      </div>
+      </CollapsibleSection>
 
       {/* Notes log */}
       <NotesLog plantId={Number(id)} showToast={showToast} />
