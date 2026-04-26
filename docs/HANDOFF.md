@@ -2,7 +2,7 @@
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
-**Last updated:** 2026-04-26 (post Wave 13 ship; Wave 14 = TRMNL identity tomorrow)
+**Last updated:** 2026-04-26 (post Wave 13 ship + catalog 250→444 expansion; Wave 14 = TRMNL identity tomorrow)
 
 ---
 
@@ -15,7 +15,7 @@ Single-file briefing so a new session, contributor, or future-you can pick up wo
   - Wave 12 — date strip distinct today/selected + 11-day centred scroll (#126); archive-flow nav fix + memorial page redesign (#135)
   - Wave 13 (this session) — plant detail structural rework: passport IA scaffolding (#134, foundation only), ConditionCard cards (#133), calibration UX (#60). Filed 5 child issues (#139–#143) for the deferred reorder / per-section redesigns.
 - **Wave 11 (illustration pipeline) re-bundled into Wave 14** alongside the TRMNL template (#7). Design landed in [#138](https://github.com/tsipotU/plant-trmnl/issues/138); generation source still needs to be chosen before that part can ship. The original [#54](https://github.com/tsipotU/plant-trmnl/issues/54) was closed as superseded.
-- **Catalog at 250 species** across 12 categories. Strict validator green at boot.
+- **Catalog at 444 species** across 12 categories (expanded from 250 on 2026-04-26). Per-category counts: foliage 108, succulents 57, flowering 47, cacti 32, orchids 26, ferns/herbs/indoor_trees/palms/carnivorous/terrarium 25, air_plants 24. 6,660 unique species facts. Strict validator green at boot.
 - **Architecture is pull-based:** zero in-process LLM. External AI tools poll `/api/plants?enrichment=pending` and `/api/conditions?care_update=pending`, then POST back. Connect-your-AI UI in Settings.
 - **Auth gate live.** Self-hosted instances now require a setup token (printed in API logs at first start) → `/welcome` page to claim → `/login` for return visits. `/health`, `/api/auth/*`, and `/api/feedback` are public; everything else requires session. Bootstrap mode (no admin password yet) lets all traffic through.
 - **Repo is still private.** Public flip + v1.0.0 tag scheduled for Wave 16.
