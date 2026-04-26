@@ -6,6 +6,7 @@ COPY package.json ./
 RUN npm install
 COPY src/ src/
 COPY catalog/ catalog/
+COPY assets/ assets/
 # Write a self-contained tsconfig (no extends needed inside Docker build context)
 RUN printf '{\n\
   "compilerOptions": {\n\
@@ -41,6 +42,7 @@ FROM node:22-slim
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/catalog ./catalog
+COPY --from=builder /app/assets ./assets
 COPY --from=builder /app/node_modules ./node_modules
 COPY package.json ./
 EXPOSE 3900
