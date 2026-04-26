@@ -11,7 +11,7 @@ services:
     volumes:
       - db-data:/data
       - ${BACKUP_PATH:-./backups}:/backups
-      - ./assets:/app/assets:ro
+      - ./packages/api/assets:/app/assets:ro
     healthcheck:
       test:
         - CMD
