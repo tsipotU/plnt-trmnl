@@ -21,6 +21,10 @@ function makeApp(opts: { withAdmin?: boolean } = {}) {
   app.get('/api/plants', (_req, res) => res.json([{ id: 1, name: 'Pothos' }]));
   // Public-prefix route under /api/feedback
   app.get('/api/feedback', (_req, res) => res.json([]));
+  // Stand-in non-/api routes (SPA HTML / static assets) — must always pass
+  app.get('/', (_req, res) => res.send('<html>spa</html>'));
+  app.get('/login', (_req, res) => res.send('<html>login</html>'));
+  app.get('/welcome', (_req, res) => res.send('<html>welcome</html>'));
 
   if (opts.withAdmin) {
     return Promise.resolve()
@@ -74,6 +78,27 @@ describe('requireAuth middleware', () => {
     const { app } = await makeApp({ withAdmin: true });
     const res = await request(app).get('/api/feedback');
     expect(res.status).toBe(200);
+  });
+
+  it('always lets the SPA root through (fresh device must reach login form)', async () => {
+    const { app } = await makeApp({ withAdmin: true });
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('spa');
+  });
+
+  it('always lets /login through (no session yet on a fresh device)', async () => {
+    const { app } = await makeApp({ withAdmin: true });
+    const res = await request(app).get('/login');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('login');
+  });
+
+  it('always lets /welcome through (bootstrap claim flow)', async () => {
+    const { app } = await makeApp({ withAdmin: true });
+    const res = await request(app).get('/welcome');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('welcome');
   });
 
   it('rejects expired session cookie', async () => {

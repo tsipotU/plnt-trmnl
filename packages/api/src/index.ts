@@ -50,6 +50,13 @@ const catalog = loadCatalog();
 
 const app = express();
 
+// Trust the first proxy hop (Cloudflare tunnel, reverse proxies). Without
+// this, req.secure / req.ip / req.protocol see the Docker network instead of
+// the real client. The cookie-secure check has its own x-forwarded-proto
+// fallback, but anything else that depends on req.ip (rate limiting, audit
+// logs) needs trust proxy set.
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
