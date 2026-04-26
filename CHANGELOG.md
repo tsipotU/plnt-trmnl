@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Hotfixes — auth gate + image serving + Cloudflare hygiene (2026-04-26)
+
+- **Auth gate scoped to `/api/*`.** The `requireAuth` middleware was applied at `app.use()` level with no path prefix, so it ran on every request — including the SPA shell, `/login`, and `/welcome`. Fresh devices with no session cookie hit `401 {"error":"Authentication required"}` at the root URL and could never reach the login form. Existing browsers worked only because their cookie from a past login satisfied the gate. The middleware now early-exits for any path that doesn't start with `/api/`; the SPA's own AuthGate handles client-side route protection. Auth test suite extended with three SPA-pass-through cases (`/`, `/login`, `/welcome`).
+- **`app.set('trust proxy', 1)`.** Required behind the Cloudflare tunnel so `req.ip` / `req.secure` / `req.protocol` reflect the real client, not the Docker network. The session-cookie `secure` flag had its own `x-forwarded-proto` workaround already; this is hygiene for everything else (rate limiting, future audit logs).
+- **Catalog images consolidated and Dockerfile-baked.** The monstera image rendered as a broken-image icon because `docker-compose.yml` mounted the legacy project-root `./assets` over `/app/assets`, shadowing the actual `catalog-images/` dir. Three changes: compose now mounts `./packages/api/assets`, the Dockerfile copies `assets/` into both build and runtime stages so production images are self-contained, and the legacy root `./assets/{ornaments,placeholder-plant.svg,seed-facts.json}` were `git mv`'d into `packages/api/assets/` so all assets live in one place. Backfilled `illustration_path` on the two existing Monstera plant rows that pre-dated Wave 9's catalog→plant copy on POST.
+
 ### Catalog expansion — 250 → 444 species (2026-04-26)
 
 - **+194 catalog entries** added across all 12 categories. Per-category counts now: foliage 108, succulents 57, flowering 47, cacti 32, orchids 26, ferns/herbs/indoor_trees/palms/carnivorous/terrarium 25, air_plants 24. Every category meets the ≥25 minimum and the +50% growth target (foliage: 72→108, succulents: 38→57, flowering: 31→47, cacti: 21→32; air_plants/herbs/ferns/indoor_trees/orchids/palms/carnivorous/terrarium each grown to ≥25 from much smaller bases).

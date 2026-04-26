@@ -11,7 +11,7 @@ PLNT shows you which plants need water today on your TRMNL screen, learns each p
 - **TRMNL-native daily display** — your watering plan and a rotating plant fact, dithered for e-ink.
 - **Mobile-first web app** — log waters one-handed, undo with a 15-second window, calibrate with a 1-5 tap.
 - **Adaptive scheduling** — calibration drives interval tweaks; growing-season + heating-season modifiers stack on top.
-- **Curated 250-species catalog across 12 categories** — care, light, conditions, 15 facts per species, including 60+ cultivars and variegated variants. Free-text fallback for anything not in the catalog.
+- **Curated 444-species catalog across 12 categories** — care, light, conditions, 15 facts per species, including 60+ cultivars and variegated variants. Free-text fallback for anything not in the catalog.
 - **Bring-your-own-AI enrichment** — plant-trmnl exposes a pull-based API; connect Claude Desktop, ChatGPT scheduled tasks, Cursor, n8n, Ollama, or anything else. No API keys, no metered billing.
 - **Self-hosted** — Docker Compose, SQLite, two containers, runs on a Pi.
 
