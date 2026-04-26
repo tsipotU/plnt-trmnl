@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Catalog expansion — 250 → 444 species (2026-04-26)
+
+- **+194 catalog entries** added across all 12 categories. Per-category counts now: foliage 108, succulents 57, flowering 47, cacti 32, orchids 26, ferns/herbs/indoor_trees/palms/carnivorous/terrarium 25, air_plants 24. Every category meets the ≥25 minimum and the +50% growth target (foliage: 72→108, succulents: 38→57, flowering: 31→47, cacti: 21→32; air_plants/herbs/ferns/indoor_trees/orchids/palms/carnivorous/terrarium each grown to ≥25 from much smaller bases).
+- **2,910 new unique facts** added (15 per entry, all globally unique against the existing 3,750). Catalog now carries 6,660 unique species facts in total.
+- Notable additions: full Tillandsia diversity (bulbosa, fuchsii, magnusiana, velutina, tectorum, brachycaulos, etc.); collector-grade Philodendron / Monstera / Alocasia / Calathea cultivars (White Princess, Florida Ghost, Black Velvet, Frydek, Dragon Scale, musaica, ornata); long-overdue herb staples (lavender, marjoram, dill, fennel, tarragon, lemon balm, lemongrass, stevia, lemon verbena, hyssop, lovage, sorrel-style perilla, nasturtium); jewel orchids (Ludisia, Macodes), Paphiopedilum / Vanda / Miltoniopsis; Drosera / Sarracenia / Nepenthes / Pinguicula deepening; Lithops, Aeonium, Pachypodium, Euphorbia (obesa, tirucalli), Adenium, Senecio strings; Ficus benjamina/microcarpa/religiosa, citrus, olive, coffee for indoor_trees; Cycas/Zamia, Bismarckia, Bottle/Triangle palms; mosses, Cryptanthus, Bucephalandra, Anubias, Marsilea for terrarium/paludarium use.
+- Implementation: 13 parallel sub-agents (one per category, foliage split into A+B halves) produced JSON entries against the schema; a global cross-batch validator confirmed zero slug/Latin/fact collisions before merge. Loader test (50 cases) and catalog/facts/conditions test suites (91 cases total) all pass against the new file. API rebooted clean against the strict-at-boot loader.
+
 ### Wave 13 — Plant detail structural rework (2026-04-26)
 
 - **#134** Plant passport IA scaffolding: new `CollapsibleSection` primitive, image hero promoted to the top of the plant detail page, History section wrapped as a proof-of-concept. Full passport-order reorder of remaining sections deferred to child issues #139–#143 (reorder, hero redesign, "this plant" consolidation, sticky in-page nav, origin & lore narrative card).
