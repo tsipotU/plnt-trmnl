@@ -1,3 +1,4 @@
+/** @legacy Pre-catalog scaffolding; new components should compose catalog primitives. */
 import { useState } from 'react';
 
 export function LightLevelTooltip() {

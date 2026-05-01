@@ -1,6 +1,8 @@
 /**
  * Post-add enrichment splash (issue #72).
  *
+ * @legacy Pre-catalog scaffolding; new components should compose catalog primitives.
+ *
  * Shown after POST /api/plants succeeds and enrichment completes, BEFORE the
  * user lands on the plant detail page. Surfaces the enriched species +
  * preview illustration + summary care so misidentifications ("Sanseveria" →

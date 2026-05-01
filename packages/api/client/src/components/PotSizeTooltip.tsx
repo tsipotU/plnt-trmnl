@@ -4,6 +4,8 @@ import { useState } from 'react';
  * Pot-size guidance for AddPlant (#129). Same popover affordance as
  * LightLevelTooltip — we don't share the implementation today; refactor when a
  * third surface needs the same pattern.
+ *
+ * @legacy Pre-catalog scaffolding; new components should compose catalog primitives.
  */
 export function PotSizeTooltip() {
   const [isOpen, setIsOpen] = useState(false);

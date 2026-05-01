@@ -1,3 +1,4 @@
+/** @legacy Pre-catalog scaffolding; new components should compose catalog primitives. */
 import { Component, ReactNode, ErrorInfo } from 'react';
 
 interface Props { children: ReactNode }

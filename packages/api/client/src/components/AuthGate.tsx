@@ -1,3 +1,4 @@
+/** @legacy Pre-catalog scaffolding; new components should compose catalog primitives. */
 import { useEffect, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 

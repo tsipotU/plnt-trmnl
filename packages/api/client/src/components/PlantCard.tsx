@@ -1,3 +1,4 @@
+/** @legacy Pre-catalog scaffolding; new components should compose catalog primitives. */
 import { useNavigate } from 'react-router-dom';
 import { useAiConnection } from '../hooks/useAiConnection';
 

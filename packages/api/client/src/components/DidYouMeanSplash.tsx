@@ -5,6 +5,8 @@
  *
  * Kept as a standalone component so the large AddPlant rewrite in #2 can
  * rebase around it without conflict.
+ *
+ * @legacy Pre-catalog scaffolding; new components should compose catalog primitives.
  */
 
 export interface SuggestionOption {
