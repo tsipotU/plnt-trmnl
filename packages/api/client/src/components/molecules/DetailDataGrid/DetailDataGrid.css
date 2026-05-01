@@ -1,0 +1,42 @@
+.p7l-datagrid {
+  display: grid;
+  border-bottom: var(--hairline-thin) solid var(--ink);
+  background: var(--bg);
+}
+
+.p7l-datagrid__cell {
+  padding: 11px 14px;
+  border-right: var(--hairline-thin) solid var(--border-strong);
+  border-bottom: var(--hairline-thin) solid var(--border-strong);
+  min-width: 0;
+}
+
+.p7l-datagrid--cols-2 .p7l-datagrid__cell:nth-child(2n)        { border-right: none; }
+.p7l-datagrid--cols-3 .p7l-datagrid__cell:nth-child(3n)        { border-right: none; }
+.p7l-datagrid--cols-2 .p7l-datagrid__cell:nth-last-child(-n+2) { border-bottom: none; }
+.p7l-datagrid--cols-3 .p7l-datagrid__cell:nth-last-child(-n+3) { border-bottom: none; }
+
+.p7l-datagrid__label {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.p7l-datagrid__value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink);
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+  word-break: break-word;
+}
+
+.p7l-datagrid__value--editable {
+  border-bottom: 1px dashed var(--border-strong);
+  cursor: text;
+  padding-bottom: 1px;
+  display: inline-block;
+}

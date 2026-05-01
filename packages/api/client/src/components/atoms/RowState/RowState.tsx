@@ -6,22 +6,22 @@ export type RowStateTone =
   | 'due'
   | 'overdue'
   | 'healthy'
+  | 'calibrating'
   | 'dormant'
-  | 'dialed-in';
+  | 'just-added'
+  | 'vacation';
 
 export interface RowStateProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: RowStateTone;
-  /** Hide the leading dot. Useful when a row already has an iconified leading column. */
-  dotOff?: boolean;
   children: ReactNode;
 }
 
-/* Compact status pill for dense list rows. Smaller and lighter than Chip:
-   no background fill, microtype mono label, 5×5 dot. Use Chip for richer
-   contexts (card chrome, detail headers). */
+/* Compact bordered pill for plant lifecycle states. Mirrors the prototype's
+   .m-row-state exactly: rectangular (no radius), 0.5px ink-or-tone border,
+   mono uppercase 9.5px tracked, tone-driven fills. Used by PlantRow,
+   FeedbackRow, EnrichmentQueue, and anywhere a list row needs a state. */
 export function RowState({
   tone = 'neutral',
-  dotOff = false,
   children,
   className = '',
   ...rest
@@ -31,8 +31,7 @@ export function RowState({
       className={`p7l-rowstate p7l-rowstate--${tone} ${className}`.trim()}
       {...rest}
     >
-      {!dotOff && <span className="p7l-rowstate__dot" aria-hidden="true" />}
-      <span className="p7l-rowstate__label">{children}</span>
+      {children}
     </span>
   );
 }
