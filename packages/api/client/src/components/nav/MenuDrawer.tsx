@@ -112,6 +112,8 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
       >
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
           <Link to="/add" style={drawerLinkStyle}>Add plant</Link>
+          <Link to="/plants" style={drawerLinkStyle}>Plants</Link>
+          <Link to="/calendar" style={drawerLinkStyle}>Calendar</Link>
           <Link to="/archived" style={drawerLinkStyle}>Archive</Link>
           <Link to="/feedback" style={drawerLinkStyle}>Feedback</Link>
           <Link to="/settings" style={drawerLinkStyle}>Settings</Link>
