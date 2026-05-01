@@ -1,45 +1,63 @@
 .p7l-rowstate {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: inline-block;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 500;
   white-space: nowrap;
+  padding: 3px 6px;
+  border: var(--hairline-thin) solid var(--ink);
+  border-radius: var(--r-0);
+  line-height: 1.1;
 }
-
-.p7l-rowstate__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 9999px;
-  flex-shrink: 0;
-}
-
-.p7l-rowstate__label { line-height: 1; }
 
 /* === TONES === */
-.p7l-rowstate--neutral   { color: var(--ink-2); }
-.p7l-rowstate--neutral .p7l-rowstate__dot { background: var(--ink-3); }
+.p7l-rowstate--neutral {
+  background: var(--bg);
+  color: var(--ink);
+}
 
-.p7l-rowstate--due       { color: var(--copper-500); }
-.p7l-rowstate--due .p7l-rowstate__dot { background: var(--status-due); }
+.p7l-rowstate--just-added {
+  background: var(--bg);
+  color: var(--ink-2);
+}
 
-.p7l-rowstate--overdue   { color: var(--rust-400); }
-.p7l-rowstate--overdue .p7l-rowstate__dot { background: var(--status-overdue); }
+.p7l-rowstate--due {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
 
-.p7l-rowstate--healthy   { color: var(--sage-700); }
-.p7l-rowstate--healthy .p7l-rowstate__dot { background: var(--status-healthy); }
+.p7l-rowstate--overdue {
+  background: var(--status-overdue);
+  color: var(--bg);
+  border-color: var(--status-overdue);
+}
 
-.p7l-rowstate--dormant   { color: var(--copper-500); }
-.p7l-rowstate--dormant .p7l-rowstate__dot { background: var(--status-dormant); }
+.p7l-rowstate--healthy {
+  background: var(--accent-soft);
+  color: var(--sage-700);
+  border-color: var(--accent);
+}
 
-.p7l-rowstate--dialed-in { color: var(--highlight); }
-.p7l-rowstate--dialed-in .p7l-rowstate__dot { background: var(--highlight); }
+.p7l-rowstate--calibrating {
+  background: var(--info-soft);
+  color: var(--info);
+  border-color: var(--info);
+}
 
-[data-theme="dark"] .p7l-rowstate--healthy   { color: var(--sage-200); }
-[data-theme="dark"] .p7l-rowstate--due       { color: var(--copper-300); }
-[data-theme="dark"] .p7l-rowstate--overdue   { color: #d76952; }
-[data-theme="dark"] .p7l-rowstate--dormant   { color: #d9b35d; }
-[data-theme="dark"] .p7l-rowstate--dialed-in { color: var(--copper-300); }
+.p7l-rowstate--dormant {
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border-color: var(--ink);
+}
+
+.p7l-rowstate--vacation {
+  background: var(--info);
+  color: var(--bg);
+  border-color: var(--info);
+}
+
+/* Dark-mode foreground tweaks for tones whose ink isn't a theme-flipping token. */
+[data-theme="dark"] .p7l-rowstate--healthy { color: var(--sage-200); }

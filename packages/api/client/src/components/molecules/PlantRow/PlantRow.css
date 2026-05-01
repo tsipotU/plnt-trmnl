@@ -1,0 +1,73 @@
+.p7l-plantrow {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: var(--hairline-thin) solid var(--border);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--ink);
+  transition: background var(--motion-fast) var(--ease-standard);
+}
+
+.p7l-plantrow:hover, .p7l-plantrow:active { background: var(--surface); }
+
+.p7l-plantrow:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.p7l-plantrow__pic {
+  width: 48px;
+  height: 48px;
+  border: var(--hairline-thin) solid var(--ink);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.p7l-plantrow__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.p7l-plantrow__name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.p7l-plantrow__species {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-2);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.p7l-plantrow__meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.p7l-plantrow__state {
+  flex-shrink: 0;
+}

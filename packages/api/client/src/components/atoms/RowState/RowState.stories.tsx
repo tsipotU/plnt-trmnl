@@ -8,19 +8,18 @@ const meta: Meta<typeof RowState> = {
     docs: {
       description: {
         component:
-          'Compact status pill for dense list rows. Microtype mono label + 5px dot, no background. Six tones: neutral, due, overdue, healthy, dormant, dialed-in. Use **Chip** when you need a filled background or richer contexts.',
+          'Bordered pill for plant lifecycle states — mirrors the prototype `.m-row-state` exactly. Rectangular, 0.5px tone-or-ink border, mono uppercase 9.5px tracked, tone-driven fills. 8 tones cover every state PlantRow / FeedbackRow / EnrichmentQueue need.',
       },
     },
   },
   argTypes: {
     tone: {
       control: { type: 'inline-radio' },
-      options: ['neutral', 'due', 'overdue', 'healthy', 'dormant', 'dialed-in'],
+      options: ['neutral', 'due', 'overdue', 'healthy', 'calibrating', 'dormant', 'just-added', 'vacation'],
     },
-    dotOff: { control: 'boolean' },
   },
   args: {
-    children: 'due today',
+    children: 'Due today',
     tone: 'due',
   },
 };
@@ -33,18 +32,20 @@ export const Default: Story = {};
 export const AllTones: Story = {
   parameters: { controls: { hideNoControlsWarning: true } },
   render: () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-      <RowState tone="due">due today</RowState>
-      <RowState tone="overdue">overdue 3d</RowState>
-      <RowState tone="healthy">healthy</RowState>
-      <RowState tone="dormant">dormant</RowState>
-      <RowState tone="dialed-in">dialed in</RowState>
-      <RowState tone="neutral">archived</RowState>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)', alignItems: 'center' }}>
+      <RowState tone="due">Due today</RowState>
+      <RowState tone="overdue">Overdue 3d</RowState>
+      <RowState tone="healthy">Comfortable</RowState>
+      <RowState tone="calibrating">Calibrating</RowState>
+      <RowState tone="dormant">Dormant</RowState>
+      <RowState tone="just-added">New</RowState>
+      <RowState tone="vacation">Vacation</RowState>
+      <RowState tone="neutral">Archived</RowState>
     </div>
   ),
 };
 
-export const InListRows: Story = {
+export const InListRow: Story = {
   parameters: { controls: { hideNoControlsWarning: true } },
   render: () => {
     const Row = ({
@@ -52,79 +53,43 @@ export const InListRows: Story = {
       latin,
       tone,
       label,
-      interval,
+      meta,
     }: {
       name: string;
       latin: string;
-      tone: 'due' | 'overdue' | 'healthy' | 'dormant' | 'dialed-in';
+      tone: 'due' | 'overdue' | 'healthy' | 'calibrating' | 'dormant' | 'vacation' | 'just-added';
       label: string;
-      interval: string;
+      meta: string;
     }) => (
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr auto auto',
+          gridTemplateColumns: '1fr auto',
           gap: 14,
           alignItems: 'center',
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-elevated)',
+          padding: '14px 18px',
+          borderBottom: '0.5px solid var(--border)',
+          background: 'var(--bg)',
           fontFamily: 'var(--font-sans)',
         }}
       >
         <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 16,
-              fontWeight: 500,
-              color: 'var(--ink)',
-            }}
-          >
-            {name}
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
-              fontSize: 12,
-              color: 'var(--ink-3)',
-            }}
-          >
-            {latin}
-          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 500, color: 'var(--ink)' }}>{name}</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12, color: 'var(--ink-2)', marginTop: 2 }}>{latin}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em', color: 'var(--ink-2)', textTransform: 'uppercase', marginTop: 4 }}>{meta}</div>
         </div>
         <RowState tone={tone}>{label}</RowState>
-        <span
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            color: 'var(--ink-3)',
-            letterSpacing: '0.06em',
-            width: 56,
-            textAlign: 'right',
-          }}
-        >
-          {interval.toUpperCase()}
-        </span>
       </div>
     );
 
     return (
-      <div
-        style={{
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--r-2)',
-          overflow: 'hidden',
-          maxWidth: 540,
-        }}
-      >
-        <Row name="Monstera" latin="Monstera deliciosa" tone="healthy" label="healthy" interval="~14d" />
-        <Row name="Ferdinand" latin="Sansevieria trifasciata" tone="due" label="due today" interval="~21d" />
-        <Row name="Greta" latin="Calathea ornata" tone="overdue" label="overdue 3d" interval="~10d" />
-        <Row name="Cleo" latin="Pilea peperomioides" tone="dialed-in" label="dialed in" interval="~12d" />
-        <Row name="Karoo" latin="Lithops karasmontana" tone="dormant" label="dormant" interval="~90d" />
+      <div style={{ maxWidth: 402, border: '1px solid var(--border)', background: 'var(--bg)' }}>
+        <Row name="Mona" latin="Monstera deliciosa" meta="Living room · 7d cycle · dialed in" tone="due" label="Due today" />
+        <Row name="Big Frank" latin="Ficus lyrata" meta="Studio · 8d cycle" tone="overdue" label="Overdue 1d" />
+        <Row name="Eddie" latin="Sansevieria trifasciata" meta="Bedroom · 14d" tone="healthy" label="Comfortable" />
+        <Row name="Drama Queen" latin="Calathea orbifolia" meta="Bathroom · 5d cycle" tone="calibrating" label="Calibrating" />
+        <Row name="Henry" latin="Echinocactus grusonii" meta="Window sill · 28d" tone="dormant" label="Dormant" />
+        <Row name="Fernie" latin="Nephrolepis exaltata" meta="Bathroom · 3d cycle" tone="just-added" label="New" />
       </div>
     );
   },
