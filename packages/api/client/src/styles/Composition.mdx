@@ -259,6 +259,27 @@ need this?"** — when in doubt, promote.
 
 ---
 
+## Page-level helpers
+
+Slot-over-data leaves a question: *who computes the slot value?* The page does.
+A page-level helper takes raw API data and returns view-ready output (a state
+pill descriptor, a meta string, a Pictogram name) that the page feeds into
+molecule slots.
+
+The canonical example is **`src/utils/plantView.ts`**, which exports
+`plantState`, `plantPictogram`, `plantMeta`, `plantSpeciesLine`, and `isoToday`.
+Today and Plants list both import from it; PlantRow itself stays presentational
+and never sees the `Plant` type. New pages get their own helpers in the same
+shape if they render the same data differently.
+
+The rule:
+**if a transform is shared by 2+ pages, lift it to `src/utils/<domain>View.ts`;
+if it's used by exactly one page, leave it inline**. The first occurrence is
+local. The second is the trigger to promote — same bar as molecule promotion,
+applied to view-shape transforms.
+
+---
+
 ## Cross-references
 
 - [Atoms / RowState](?path=/docs/atoms-rowstate--docs) — used as the state slot in PlantRow
