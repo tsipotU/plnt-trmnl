@@ -1,0 +1,236 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Composition" />
+
+# Composition · slot over data
+
+This is the API contract for every component in the p7l catalog.
+
+When a component has a choice between accepting **structured data** (an object,
+an array of items, a discriminated union of props) or accepting a **slot**
+(`ReactNode`), it accepts the slot. The component is purely presentational;
+the parent owns data shape and rendering.
+
+This is the first thing to read before contributing a component.
+
+---
+
+## The principle
+
+A p7l component takes:
+
+- **What it owns**: layout, spacing, hairlines, focus rings, hover surfaces,
+  the visual rules from the design system.
+- **What the parent owns**: data, state, what to render in each named region.
+
+If a component asks the caller for `plant: Plant`, `tone: ChipTone | undefined`,
+or `items: Array<{ id, label, count }>`, it has glued itself to one specific
+data shape. Tomorrow's caller has different data, and the component sprouts
+optional props until it collapses under its own type signature.
+
+If the component instead asks for `state: ReactNode`, `trailing: ReactNode`,
+or `children: ReactNode` (with the right shape implied by docs and stories),
+it stays decoupled. Different callers feed it different things; the component
+keeps doing one job.
+
+---
+
+## Three concrete examples
+
+### 1 · `PlantRow.state` — render-anything pill slot
+
+A `PlantRow` shows: pictogram + name + species + meta + a state pill on the
+right. The state pill could be "due today", "overdue 3d", "calibrating",
+"new", or anything else the page wants.
+
+#### ❌ Data-driven
+
+```tsx
+<PlantRow plant={plant} />
+// Inside, PlantRow does:
+//   const tone = stateLabel(plant) === 'due-today' ? 'due' : ...
+//   <RowState tone={tone}>{plant.state}</RowState>
+```
+
+PlantRow now knows about `Plant` shape, `state` semantics, the mapping table,
+the `stateLabel` helper, and how to format every variant. Add a new state and
+you're editing PlantRow.
+
+#### ✅ Slot
+
+```tsx
+<PlantRow
+  pictogram={<Pictogram name="leaf" size={28} />}
+  name="Mona"
+  species="Monstera deliciosa"
+  meta="Living room · 7d cycle · dialed in"
+  state={<RowState tone="due">Due today</RowState>}
+  onClick={() => onOpen(plant.id)}
+/>
+```
+
+PlantRow only renders. The parent decides what the state pill is — could be a
+`RowState`, could be a `<Chip>`, could be a custom component. Add a new state,
+parent updates the helper that produces the pill. PlantRow doesn't change.
+
+---
+
+### 2 · `SettingsRow.trailing` — one generic slot beats five specific props
+
+A settings list row shows: label · description · *something on the right*. The
+right side is a Toggle, a mono value, a chevron (›), or some combination.
+
+#### ❌ Discriminated props
+
+```tsx
+type SettingsRowProps =
+  | { trailingType: 'toggle';  toggleValue: boolean; onToggleChange: (v: boolean) => void }
+  | { trailingType: 'value';   value: string }
+  | { trailingType: 'chevron'; href: string }
+  | { trailingType: 'none' };
+
+<SettingsRow trailingType="toggle" toggleValue={on} onToggleChange={setOn} ... />
+```
+
+Every new trailing variant costs a new branch in the type and a new branch in
+the renderer.
+
+#### ✅ Slot
+
+```tsx
+<SettingsRow
+  label="Vacation mode"
+  description="Pause watering reminders for all plants."
+  trailing={<Toggle checked={on} onCheckedChange={setOn} label="Vacation mode" />}
+/>
+
+<SettingsRow
+  label="Serial"
+  trailing="TRMNL-7C2A-4F19"
+/>
+
+<SettingsRow
+  label="About p7l"
+  description="Mission, version, credits"
+  trailing="›"
+  onClick={() => navigate('/about')}
+/>
+```
+
+One prop (`trailing: ReactNode`) covers every shape, with no ceremony. The
+component handles layout (flex, gap, alignment); the caller decides what to
+put there.
+
+---
+
+### 3 · `FilterRail.children` — pass-through container
+
+A filter rail is a horizontally-scrollable row of toggleable chips. It manages
+overflow, hairlines, padding. It does *not* manage which chips exist or which
+is active — that's app state.
+
+#### ❌ Data-driven
+
+```tsx
+type Item = { id: string; label: string; count?: number };
+
+<FilterRail
+  items={[
+    { id: 'all', label: 'All' },
+    { id: 'due', label: 'Due', count: 2 },
+    { id: 'calibrating', label: 'Calibrating' },
+  ]}
+  active="all"
+  onChange={(id) => setFilter(id)}
+/>
+```
+
+`FilterRail` now owns Chip rendering. If you want a Chip with a leading icon,
+or a different active style for one entry, or a chip that's a link instead of
+a button — you're growing `Item` into `Item | LinkItem | IconItem | ...`.
+
+#### ✅ Children slot
+
+```tsx
+<FilterRail>
+  {filters.map((f) => (
+    <Chip
+      key={f.id}
+      toggleable
+      active={active === f.id}
+      onClick={() => setActive(f.id)}
+    >
+      {f.label}
+    </Chip>
+  ))}
+</FilterRail>
+```
+
+The rail handles the rail. The chips handle themselves. If you want a different
+chip variant, swap the JSX — no FilterRail change.
+
+---
+
+## Why this matters
+
+- **Decoupling.** Components don't grow data dependencies. Refactor the data
+  shape; presentational components don't notice.
+- **Testability.** Stories and tests render any state with literal JSX. No
+  fixtures, no factories, no shape ceremony.
+- **Cross-atom composition is free.** `PlantRow` consumes `Pictogram` +
+  `RowState` because it accepts slots, not because it imports them. The page
+  decides.
+- **OSS-friendly API.** A new contributor doesn't need to learn a custom data
+  vocabulary. They learn React; they pass children. That's the whole API.
+- **Smaller type surface.** Fewer optional props, fewer discriminated unions,
+  fewer "what happens if I pass this and not that" edge cases.
+
+---
+
+## When to deviate
+
+Slots aren't free. Use data when:
+
+- **The data shape *is* the API.** `Tabs` takes `items: TabItem[]` because the
+  routing logic, `aria-controls`, and active matching all depend on stable IDs.
+  Slots would force the parent to wire all that itself.
+- **The component owns state machine semantics.** A future `Accordion` molecule
+  manages which sections are open. Slots for headers + bodies are fine, but the
+  open/close state lives inside.
+- **The slot would be a single node 99% of the time and that node is the same
+  every time.** If `Banner` always wraps a `<p>` with the same styles, just
+  take `children: ReactNode` and apply the typography internally — don't ask
+  callers to wrap their text every time.
+
+The default is slot. Use data only when the trade is explicit.
+
+---
+
+## House rules for new components
+
+When adding a molecule (or any new component), ask:
+
+1. **What does this component own visually?** Hairlines, spacing, focus rings,
+   hover state. Make those internal.
+2. **What does the parent own?** Data, decisions, side-effects. Expose those
+   as slots or callbacks.
+3. **If a prop is `tone: 'a' | 'b' | 'c' | 'd' | 'e'`, ask: is this really
+   visual variance, or am I encoding business logic into props?** If it's
+   business logic, it belongs in the parent — pass the rendered result via a slot.
+4. **Pick one thing to be slot-driven.** A row component should have one or
+   two slots, not seven. Too many slots and the component is just a `<div>`
+   in disguise.
+
+If you find yourself growing a discriminated-union prop type, that's the
+signal — back up and look for the slot.
+
+---
+
+## Cross-references
+
+- [Atoms / RowState](?path=/docs/atoms-rowstate--docs) — used as the state slot in PlantRow
+- [Atoms / Toggle](?path=/docs/atoms-toggle--docs) — common trailing slot in SettingsRow
+- [Atoms / Chip](?path=/docs/atoms-chip--docs) — `toggleable` variant lives in FilterRail
+- [Molecules / PlantRow](?path=/docs/molecules-plantrow--docs)
+- [Molecules / SettingsRow](?path=/docs/molecules-settingsrow--docs)
+- [Molecules / FilterRail](?path=/docs/molecules-filterrail--docs)
