@@ -14,14 +14,17 @@ import { EmptyState } from '../components/molecules/EmptyState/EmptyState.js';
 import { Button } from '../components/atoms/Button/Button.js';
 import { Chip } from '../components/atoms/Chip/Chip.js';
 import { RowState } from '../components/atoms/RowState/RowState.js';
-import { Pictogram, type IconName } from '../components/atoms/Pictogram/Pictogram.js';
+import { Pictogram } from '../components/atoms/Pictogram/Pictogram.js';
+import {
+  plantState,
+  plantPictogram,
+  plantMeta,
+  plantSpeciesLine,
+  isoToday,
+} from '../utils/plantView.js';
 import './Dashboard.css';
 
 /* === Helpers ============================================================ */
-
-const DAY_MS = 86_400_000;
-
-const isoToday = (): string => new Date().toISOString().slice(0, 10);
 
 /* Today's date displayed apothecary-style, e.g. "2026·05·04 · Mon". */
 function formatTodayEyebrow(now: Date = new Date()): string {
@@ -35,64 +38,6 @@ function buildSubtitle(dueCount: number, totalCount: number): string {
   if (totalCount === 0) return '';
   if (dueCount === 0) return 'Everyone is comfortable.';
   return `${dueCount} thirsty, ${totalCount} total.`;
-}
-
-/* Map a plant to a RowState pill + label. The mapping is page-level
-   (per the slot-over-data principle) — PlantRow accepts a state node. */
-type PlantStateInfo = {
-  tone: 'due' | 'overdue' | 'healthy' | 'calibrating' | 'just-added' | 'dormant' | 'vacation';
-  label: string;
-};
-
-function plantState(p: Plant, today: string): PlantStateInfo {
-  const wateredToday = p.last_watered_at?.startsWith(today);
-  const isOverdue =
-    p.next_water_date != null &&
-    p.next_water_date < today;
-  const isDueToday =
-    p.next_water_date != null && p.next_water_date === today;
-  const isCalibrating = p.is_converged === 0 && (p.current_interval ?? 0) > 0;
-  const isNew = p.enrichment_status === 'pending';
-
-  if (wateredToday) return { tone: 'healthy', label: 'Watered' };
-  if (isOverdue) {
-    const days = Math.max(
-      1,
-      Math.round(
-        (new Date(today + 'T00:00').getTime() -
-          new Date((p.next_water_date as string) + 'T00:00').getTime()) /
-          DAY_MS,
-      ),
-    );
-    return { tone: 'overdue', label: `Overdue ${days}d` };
-  }
-  if (isDueToday) return { tone: 'due', label: 'Due today' };
-  if (isNew) return { tone: 'just-added', label: 'New' };
-  if (isCalibrating) return { tone: 'calibrating', label: 'Calibrating' };
-  if (p.next_water_date != null) {
-    const days = Math.round(
-      (new Date(p.next_water_date + 'T00:00').getTime() -
-        new Date(today + 'T00:00').getTime()) /
-        DAY_MS,
-    );
-    return { tone: 'healthy', label: `In ${days}d` };
-  }
-  return { tone: 'healthy', label: 'Comfortable' };
-}
-
-/* Map enrichment_status / future category to a Pictogram name. We don't have
-   `category` on Plant yet — fall back to a generic leaf glyph. */
-function plantPictogram(_p: Plant): IconName {
-  return 'leaf';
-}
-
-/* Build the meta line: location · interval cycle · dialed-in suffix. */
-function plantMeta(p: Plant): string {
-  const parts: string[] = [];
-  if (p.location) parts.push(p.location);
-  if (p.current_interval) parts.push(`${p.current_interval}d cycle`);
-  if (p.is_converged === 1) parts.push('dialed in');
-  return parts.join(' · ');
 }
 
 /* Render a single 7-day forecast row. Page-local — only Today uses it. */
@@ -206,7 +151,7 @@ export function Dashboard() {
         key={p.id}
         pictogram={<Pictogram name={plantPictogram(p)} size={28} />}
         name={p.name}
-        species={p.species ?? p.common_name ?? undefined}
+        species={plantSpeciesLine(p)}
         meta={plantMeta(p)}
         state={<RowState tone={state.tone}>{state.label}</RowState>}
         onClick={() => navigate(`/plants/${p.id}`)}

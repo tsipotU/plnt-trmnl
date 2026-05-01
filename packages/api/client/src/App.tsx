@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Dashboard } from './pages/Dashboard.js';
+import { PlantsList } from './pages/PlantsList.js';
 import { AddPlant } from './pages/AddPlant.js';
 import { PlantDetail } from './pages/PlantDetail.js';
 import { TrmnlPreview } from './pages/TrmnlPreview.js';
@@ -36,6 +37,7 @@ export function App() {
                   <main style={{ flex: 1, padding: 16 }}>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
+                      <Route path="/plants" element={<PlantsList />} />
                       <Route path="/plants/:id" element={<PlantDetail />} />
                       <Route path="/add" element={<AddPlant />} />
                       <Route path="/preview" element={<TrmnlPreview />} />
