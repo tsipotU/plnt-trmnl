@@ -138,6 +138,27 @@ Schedule the workflow hourly. Same pattern for `/api/conditions?care_update=pend
 - To override: set `BACKUP_PATH=/your/path` in `.env`.
 - The directory must exist and be writable by the Docker user.
 
+### Forgot the admin password / locked out
+
+```bash
+docker compose exec plant-api npm run reset-auth
+```
+
+Prompts for a new password (≥12 characters), updates the stored hash, and
+clears every active session — so you'll be asked to log in again on every
+device. Non-interactive form for scripts:
+
+```bash
+docker compose exec plant-api npm run reset-auth -- --password 'mynewpassword'
+```
+
+If the API container won't start (e.g. corrupted DB), run the same script
+from the host against the SQLite file directly:
+
+```bash
+DATABASE_PATH=/path/to/plants.db npm --prefix packages/api run reset-auth
+```
+
 ## Limitations
 
 - **Single-user only.** The auth gate (#136) protects the dashboard and API with a single admin password. Multi-user accounts, OAuth, and 2FA are not supported. The enrichment callback endpoints (`POST /api/plants/:id/enrichment`, `POST /api/conditions/:id/care-update`) currently inherit the same gate; if your AI tool runs from a different machine, it'll need to authenticate as the admin (cookie-based) — API-key auth for the callback is planned for v1.1.
