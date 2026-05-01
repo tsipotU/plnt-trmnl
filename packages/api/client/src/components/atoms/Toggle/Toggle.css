@@ -1,0 +1,47 @@
+.p7l-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.p7l-toggle:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.p7l-toggle__thumb {
+  display: block;
+  border-radius: 9999px;
+  background: var(--ink-3);
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard);
+}
+
+/* === SIZES === */
+.p7l-toggle--sm { width: 32px; height: 18px; }
+.p7l-toggle--sm .p7l-toggle__thumb { width: 12px; height: 12px; transform: translateX(0); }
+.p7l-toggle--sm.p7l-toggle--on .p7l-toggle__thumb { transform: translateX(14px); }
+
+.p7l-toggle--md { width: 44px; height: 24px; }
+.p7l-toggle--md .p7l-toggle__thumb { width: 18px; height: 18px; transform: translateX(0); }
+.p7l-toggle--md.p7l-toggle--on .p7l-toggle__thumb { transform: translateX(20px); }
+
+/* === ON STATE === */
+.p7l-toggle--on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.p7l-toggle--on .p7l-toggle__thumb { background: var(--accent-ink); }
+
+/* Focus is keyboard-only; matches the global rule in index.css. */
+.p7l-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

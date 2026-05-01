@@ -1,0 +1,11 @@
+.p7l-eyebrow {
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  display: inline-block;
+}
+
+.p7l-eyebrow--sm { font-size: 10px; letter-spacing: 0.1em; }
+.p7l-eyebrow--md { font-size: var(--text-eyebrow); }
