@@ -1,0 +1,39 @@
+/* Page-local styles for the Plants list. Same edge-to-edge negative-margin
+   trick as Dashboard.css until App.tsx loses its inner padding at end of
+   Phase 3. */
+
+.p7l-plants {
+  margin: -16px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: calc(100dvh - 80px);
+  font-family: var(--font-sans);
+}
+
+/* Reuses the same FAB-as-link styling as Today; duplicated here so the page
+   is self-contained. Will collapse into a shared p7l-fab-link util in
+   Phase 3 cleanup once more pages need it. */
+.p7l-plants__fab {
+  position: fixed;
+  right: 16px;
+  bottom: 34px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 300;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: var(--shadow-3);
+  z-index: 30;
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.p7l-plants__fab:hover { transform: translateY(-1px); color: var(--bg); }
+.p7l-plants__fab:active { transform: translateY(0); }
