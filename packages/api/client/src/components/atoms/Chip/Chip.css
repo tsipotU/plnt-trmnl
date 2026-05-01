@@ -1,0 +1,62 @@
+.p7l-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.p7l-chip__icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: -2px;
+}
+
+.p7l-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.p7l-chip__label { line-height: 1; }
+
+/* === TONES === */
+.p7l-chip--neutral  { background: var(--surface); color: var(--ink); }
+.p7l-chip--neutral .p7l-chip__dot { background: var(--ink-3); }
+
+.p7l-chip--due {
+  background: var(--highlight-soft);
+  color: var(--copper-500);
+}
+.p7l-chip--due .p7l-chip__dot { background: var(--status-due); }
+
+.p7l-chip--overdue {
+  background: rgba(176, 74, 53, 0.10);
+  color: var(--rust-400);
+}
+.p7l-chip--overdue .p7l-chip__dot { background: var(--status-overdue); }
+
+.p7l-chip--healthy {
+  background: var(--accent-soft);
+  color: var(--sage-700);
+}
+.p7l-chip--healthy .p7l-chip__dot { background: var(--status-healthy); }
+
+.p7l-chip--dormant {
+  background: rgba(198, 154, 59, 0.12);
+  color: var(--copper-500);
+}
+.p7l-chip--dormant .p7l-chip__dot { background: var(--status-dormant); }
+
+/* Dark-mode tweaks for the rgba() tints that don't theme-flip via tokens. */
+[data-theme="dark"] .p7l-chip--overdue { color: #d76952; background: rgba(215, 105, 82, 0.14); }
+[data-theme="dark"] .p7l-chip--dormant { color: #d9b35d; background: rgba(217, 179, 93, 0.14); }
+[data-theme="dark"] .p7l-chip--due     { color: var(--copper-300); }
+[data-theme="dark"] .p7l-chip--healthy { color: var(--sage-200); }

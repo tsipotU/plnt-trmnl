@@ -1,0 +1,6 @@
+.p7l-pictogram {
+  color: currentColor;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}

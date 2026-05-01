@@ -1,0 +1,45 @@
+.p7l-rowstate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.p7l-rowstate__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.p7l-rowstate__label { line-height: 1; }
+
+/* === TONES === */
+.p7l-rowstate--neutral   { color: var(--ink-2); }
+.p7l-rowstate--neutral .p7l-rowstate__dot { background: var(--ink-3); }
+
+.p7l-rowstate--due       { color: var(--copper-500); }
+.p7l-rowstate--due .p7l-rowstate__dot { background: var(--status-due); }
+
+.p7l-rowstate--overdue   { color: var(--rust-400); }
+.p7l-rowstate--overdue .p7l-rowstate__dot { background: var(--status-overdue); }
+
+.p7l-rowstate--healthy   { color: var(--sage-700); }
+.p7l-rowstate--healthy .p7l-rowstate__dot { background: var(--status-healthy); }
+
+.p7l-rowstate--dormant   { color: var(--copper-500); }
+.p7l-rowstate--dormant .p7l-rowstate__dot { background: var(--status-dormant); }
+
+.p7l-rowstate--dialed-in { color: var(--highlight); }
+.p7l-rowstate--dialed-in .p7l-rowstate__dot { background: var(--highlight); }
+
+[data-theme="dark"] .p7l-rowstate--healthy   { color: var(--sage-200); }
+[data-theme="dark"] .p7l-rowstate--due       { color: var(--copper-300); }
+[data-theme="dark"] .p7l-rowstate--overdue   { color: #d76952; }
+[data-theme="dark"] .p7l-rowstate--dormant   { color: #d9b35d; }
+[data-theme="dark"] .p7l-rowstate--dialed-in { color: var(--copper-300); }
