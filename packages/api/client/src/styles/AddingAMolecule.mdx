@@ -1,0 +1,291 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Adding a molecule" />
+
+# Adding a new molecule
+
+A cookbook for promoting an idea into the catalog. Read this when
+you've built something twice in two different pages and you're
+about to copy it a third time.
+
+This is the *recipe*; the *principles* (slot over data, prefix
+convention, color usage, accessibility, theming) live on the other
+Foundations pages. Read those first if you haven't.
+
+## Should it be a molecule?
+
+Three questions, in order:
+
+1. **Is it visual structure?** Components in the catalog are
+   presentational primitives — layout, spacing, hairlines, focus
+   rings. If the thing you're building owns business logic
+   (calibration scoring, schedule recalculation), it's a page-local
+   component, not a molecule.
+
+2. **Will at least two pages consume it?** If only one page needs
+   it, leave it next to the page or inside the page. Promoting a
+   one-consumer helper into the catalog adds reading load for every
+   contributor and freezes the API before you understand the right
+   shape.
+
+3. **Is it stable enough to commit to an API?** A page-local
+   component can change shape every day. A molecule with three
+   consumers needs a coordinated migration on every change. If
+   you're still iterating on what the thing *is*, keep it
+   page-local.
+
+If yes to all three: ship it as a molecule.
+
+## File layout
+
+A new molecule lives in
+`packages/api/client/src/components/molecules/<Name>/`:
+
+```
+ComponentName/
+  ComponentName.tsx           the component
+  ComponentName.css           the styles
+  ComponentName.stories.tsx   at least one story (required)
+```
+
+No `index.ts` re-export. Pages import directly:
+
+```ts
+import { ComponentName } from '../components/molecules/ComponentName/ComponentName';
+```
+
+The longer path is the price of greppability. Importing
+`<ComponentName>` finds every consumer with one ripgrep, including
+this very story file.
+
+## The component shape
+
+```tsx
+import type { HTMLAttributes, ReactNode } from 'react';
+import './ComponentName.css';
+
+export interface ComponentNameProps extends HTMLAttributes<HTMLDivElement> {
+  /** What this prop means. Document every public prop. */
+  label: ReactNode;
+  /** Optional description. Mention defaults. */
+  variant?: 'a' | 'b';
+}
+
+/* One sentence describing what this is and where it's used.
+   Use the existing FeedbackRow, PageHead, BackBar comments as
+   references — they all open with the same shape. */
+export function ComponentName({
+  label,
+  variant = 'a',
+  className = '',
+  ...rest
+}: ComponentNameProps) {
+  return (
+    <div className={`p7l-componentname p7l-componentname--${variant} ${className}`.trim()} {...rest}>
+      {label}
+    </div>
+  );
+}
+```
+
+Conventions to copy:
+
+- **Extend an HTML attributes interface** so consumers can pass
+  `aria-*`, `data-*`, `style`, `onClick` etc. without you enumerating
+  them. Use `Omit<..., 'title'>` if your prop named `title` collides
+  with the HTML `title` global.
+- **`className = ''`** is a default, then concatenate the catalog
+  class first, the consumer's className last. Trim to handle the
+  empty case.
+- **`...rest`** spreads remaining HTML attributes onto the root.
+- **Doc-comment every public prop.** Storybook's autodocs pulls
+  these into the props table.
+- **Block-level comment above the function** describing the
+  component's role. One paragraph max.
+
+## Slot over data
+
+When a prop has a choice between accepting structured data or
+accepting a `ReactNode` slot, accept the slot.
+
+```tsx
+// ❌ over-engineered
+interface BadProps {
+  items: Array<{ icon: string; label: string; href: string }>;
+}
+
+// ✅ slot
+interface GoodProps {
+  children: ReactNode;
+}
+```
+
+The Composition page covers the why in detail. Tldr: data shape
+belongs to the page, presentation belongs to the component.
+
+There are two cases where data wins over slots:
+
+1. **Variant enums** — `tone`, `size`, `variant`. These are closed
+   sets, owned by the component, drive CSS classes.
+2. **Identity props** — `htmlFor`, `id`, `role`. These need exact
+   strings, not nodes.
+
+Anything else: prefer the slot.
+
+## The CSS
+
+```css
+.p7l-componentname {
+  display: flex;
+  /* layout, spacing, hairlines */
+  background: var(--surface);
+  color: var(--ink);
+  border-bottom: var(--hairline-thin) solid var(--border);
+  padding: 12px 18px;
+}
+
+.p7l-componentname--a { /* ... */ }
+.p7l-componentname--b { /* ... */ }
+
+.p7l-componentname:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+```
+
+Conventions:
+
+- **Semantic tokens only.** No hardcoded colors, no raw scale
+  references (`--sage-500`).
+- **No `width`** on the root. Components stretch to fit their
+  container.
+- **No external margin** by default. Whitespace between siblings is
+  the parent's responsibility (use a flex/grid gap on the parent).
+- **18px horizontal gutters** for row-style components inside pages
+  that span the screen edge. Cards inside a centered layout pick
+  the gutter from the layout.
+- **`--hairline-thin`** for separators in dense layouts;
+  `--hairline` (default 1px) for emphasis.
+- **`:focus-visible`** outline (not `:focus`). 2px sage, inset by
+  -2px so it traces the inside of the component.
+
+## The story
+
+Storybook coverage is **100%** in the catalog and we keep it that
+way. Every new molecule ships with a story or it doesn't merge.
+
+```tsx
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { ComponentName } from './ComponentName';
+
+const meta: Meta<typeof ComponentName> = {
+  title: 'Molecules/ComponentName',
+  component: ComponentName,
+  parameters: {
+    layout: 'fullscreen', // or 'padded' for inline components
+    docs: {
+      description: {
+        component:
+          'One paragraph describing the component, its variants, and where it lives in the app. This shows up in the autodocs page above the props table.',
+      },
+    },
+  },
+  argTypes: {
+    variant: { control: { type: 'inline-radio' }, options: ['a', 'b'] },
+  },
+  args: {
+    label: 'Default label text',
+    variant: 'a',
+  },
+};
+export default meta;
+
+type Story = StoryObj<typeof ComponentName>;
+
+export const Default: Story = {};
+
+export const VariantB: Story = {
+  args: { variant: 'b' },
+};
+
+/* A composition story — show the molecule next to its real-world
+   neighbours. This is what reviewers actually look at. */
+export const InContext: Story = {
+  parameters: { controls: { hideNoControlsWarning: true } },
+  render: () => (
+    <div style={{ maxWidth: 402, margin: '0 auto', border: '1px solid var(--border)' }}>
+      <ComponentName label="First row" />
+      <ComponentName label="Second row" />
+      <ComponentName label="Third row" variant="b" />
+    </div>
+  ),
+};
+```
+
+At minimum, ship a `Default` story. Add per-variant stories for
+each meaningful state, and an `InContext` composition story
+showing the molecule next to its real neighbours — that's the
+story reviewers and future-you will look at.
+
+## The test
+
+Tests are co-located: `ComponentName.test.tsx`. Use vitest +
+`@testing-library/react`. The catalog's "testing through molecules"
+principle (see Composition page) is: **test pages by querying for
+the molecule's accessible names**, not the molecule itself. So a
+molecule's own tests focus narrowly on:
+
+- Does it render the children/slots in the right places?
+- Do interactive variants emit the right events / aria attributes?
+- Do prop combinations that affect ARIA emit the right attributes
+  (e.g. `toggleable + active` → `aria-pressed="true"`)?
+
+Don't test CSS. Don't test classnames except when classnames carry
+semantic meaning the test cares about (e.g. `--bug` vs `--idea`).
+
+## Promotion from page-local
+
+If you've built a component inside `pages/SomePage.tsx` (e.g. as
+an inline function) or alongside it (e.g.
+`pages/SomePagePart.tsx`) and a second page now wants the same
+shape:
+
+1. **Extract to molecules/.** Copy the component into
+   `components/molecules/<Name>/<Name>.tsx`. Co-locate CSS + story
+   + test.
+2. **Generalize the API.** A page-local component often hardcodes
+   the data shape it cooked. The catalog version takes slots. Look
+   at FeedbackRow's API generalization (the rebuild dropped a fixed
+   3-tone enum and added `tone` + `typeLabel` slots) for a worked
+   example.
+3. **Update the original page** to import the new molecule. Run the
+   page's tests; usually they pass without modification because the
+   accessible names didn't change. If they did change, that's
+   meaningful — the page tests are protecting screen-reader output,
+   not just the rendered DOM.
+4. **Update the second page** to import the new molecule too.
+5. **Add a story** that exercises every variant the two pages
+   need.
+6. **Open the PR.** A typical promotion is 1 new molecule folder +
+   2 page imports updated + maybe a few classname changes in the
+   page CSS.
+
+## Catalog count discipline
+
+Composition.mdx opens with the count: "9 atoms · 26 molecules". When
+your PR adds a new molecule, **bump that number** in the same
+commit. The count is a friction signal — it makes growth visible.
+The reviewer should be able to see "we just went from 26 to 27"
+and ask "is this one earning its slot?"
+
+## Common mistakes
+
+| Mistake | Fix |
+|---|---|
+| Adding a molecule "in case we need it" | Wait for the second consumer. |
+| Promoting a component before its API is stable | Iterate as page-local; promote once it's been rebuilt twice the same way. |
+| Re-exporting from an `index.ts` to shorten imports | Don't. The longer import path makes consumers greppable. |
+| Skipping the story "for now" | The CI for Storybook deployment will succeed without one, but the catalog rule is 100% coverage. PR review catches this. |
+| Adding theme-specific styles inside the component CSS | The token layer handles the theme. Use `--surface`/`--ink`/etc. |
+| Inlining colors that "match the design" | If a designer's mockup shows a color, find the token. If no token matches, the design wants you to add one — talk to the maintainer first. |
+| Adding `title` as a `ReactNode` prop | The HTML `title` attribute is `string \| undefined`. Either name your prop differently (e.g. `headline`) or `Omit<…, 'title'>` from the base interface. |

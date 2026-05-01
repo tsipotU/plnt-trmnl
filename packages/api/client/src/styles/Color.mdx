@@ -1,0 +1,121 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Color" />
+
+# Color · in practice
+
+The token grid in [Tokens](?path=/docs/foundations-tokens--docs) lists
+every variable. This page covers the *usage rules* — when to reach
+for `--ink-2` vs `--ink-3`, `--bg` vs `--surface`, and so on.
+
+Components consume **only the semantic layer**
+(`--bg`, `--ink`, `--accent`, ...). Raw scales
+(`--bone-100`, `--sage-500`, etc.) are wired into the semantic layer
+in `tokens.css` and should not be referenced directly from
+components.
+
+## Backgrounds
+
+| Token | Use for | Example |
+|---|---|---|
+| `--bg` | The page itself. The widest expanse of color in the app. | The Dashboard page wrapper |
+| `--bg-elevated` | Modals, dropdowns, things that visually float above the page. | Sheet body, Drawer panel |
+| `--bg-sunken` | The opposite of elevated — recessed surfaces, often inputs at rest. | n/a in current pages |
+| `--surface` | Inline cards and rows that need to stand apart from `--bg` without being modal. | InfoCard, CommentCard, the FeedbackButton attach-image affordance |
+| `--surface-2` | A slightly stronger card — used inside a `--surface` to nest. | rare; PhotoStripCell |
+| `--surface-hover` | The hover/pressed state of any interactive surface. | Row hover on PlantsList |
+
+**Rule of thumb.** Most pages live in `--bg` with `--surface` blocks
+inside. Reach for `--bg-elevated` only when the surface is genuinely
+above the rest of the UI (overlays, sheets). Don't use `--surface-2`
+unless you've already used `--surface` and need a third layer.
+
+## Foregrounds — the `ink` family
+
+| Token | Use for |
+|---|---|
+| `--ink` | The default body text. Headings, primary copy, anything the reader is meant to focus on. |
+| `--ink-2` | Secondary text — descriptions under a label, snippets, "Created Jun 4". One step quieter than `--ink`. |
+| `--ink-3` | Tertiary metadata — eyebrows, mono-tracked microcaps, last-edited timestamps. The quietest readable text. |
+| `--ink-inverse` | Text on a dark surface (e.g. a primary Button label, the Toast body). |
+
+**The test.** If you find yourself reaching for `--ink-2` to make
+copy "less prominent" — ask first whether the copy is actually less
+important. If yes, `--ink-2`. If no, use `--ink` and reduce the
+font size or weight instead.
+
+`--ink-3` is for content that is almost-noise: dates next to
+already-known facts, the eyebrow over a section heading, the
+"3 entries" count below a page title. If a screen reader user
+*needs* to hear it to understand the page, it's not `--ink-3`
+material.
+
+## Borders & rules
+
+| Token | Use for |
+|---|---|
+| `--border` | The default hairline between rows, around inputs, separating sections. |
+| `--border-strong` | A thicker line for emphasis — rare. |
+| `--rule` | A horizontal divider in display contexts (between SectionHead label and its content). |
+
+Pair with `--hairline-thin` (0.5px) for dense layouts where 1px
+feels heavy:
+
+```css
+border-bottom: var(--hairline-thin) solid var(--border);
+```
+
+## The accent + highlight pair
+
+`--accent` (sage green) is the **default action color** — primary
+buttons, focus rings, the active state of toggleable chips, the
+brand mark. Used most often.
+
+`--highlight` (copper) is the **ceremonial color** — used sparingly
+for moments that should feel celebratory or special. The "Water now"
+button on Dashboard. The active-watering ornament on the
+Apothecary stamp. Don't reach for it as a generic secondary action;
+that's what `--ink-2` outline buttons are for.
+
+`--accent-soft` and `--highlight-soft` are the tinted backgrounds
+for badges (e.g. the Praise tone on FeedbackRow, the Repot pictogram
+chip).
+
+## Status family
+
+Four functional colors, used only for state — never decoration.
+
+| Token | Means |
+|---|---|
+| `--status-overdue` (rust) | A plant is past its watering date; a destructive action; an error banner. |
+| `--status-due` (copper, same as `--highlight`) | A plant is due today; a ceremonial moment. |
+| `--status-dormant` (mustard) | Off-season, low-energy, paused. |
+| `--status-healthy` (sage, same as `--accent`) | Everything is fine. The "Dialed in" badge. |
+
+Pair foregrounds with the `-soft` variant for backgrounds:
+`--overdue-soft`, `--dormant-soft`. The other two (`due`, `healthy`)
+share their soft variants with `--accent-soft` and `--highlight-soft`.
+
+`--info` (slate) and `--info-soft` are the calibrating /
+informational tone — used by RowState calibrating, info Banner, info
+condition severity. `--crit` is the deeper red reserved for severity
+= critical (no soft variant; solid background only).
+
+## Common mistakes
+
+| Mistake | Fix |
+|---|---|
+| Using `#fff` directly because "the design is light" | Use `--bg-elevated` so dark mode flips correctly. |
+| `color: gray` for "less important" | Use `--ink-2` or `--ink-3` based on importance, not appearance. |
+| Putting `--accent` on every interactive element | Most rows shouldn't carry the brand color. Use `--ink` + `--surface-hover` for default rows; reserve `--accent` for primary actions. |
+| Picking a raw scale (`--sage-500`) "because the semantic token is wrong" | The semantic token is right by definition. If `--accent` looks wrong in your context, you're using the wrong semantic token, not the wrong shade. |
+
+## Dark mode
+
+Dark mode is a re-mapping, not a re-paint. Every semantic token has a
+dark-theme value in `tokens.css` under `[data-theme="dark"]`. Components
+that consume only semantic tokens flip automatically.
+
+Toggle the theme in the Storybook toolbar (top right) to verify your
+component looks right in both. See
+[Theming](?path=/docs/foundations-theming--docs) for the full setup.

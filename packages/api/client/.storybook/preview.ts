@@ -1,6 +1,13 @@
 import type { Preview } from '@storybook/react-vite';
+import { withThemeByDataAttribute } from '@storybook/addon-themes';
 import '../src/styles/tokens.css';
 import './storybook.css';
+
+/* The light/dark toggle in the toolbar is provided by @storybook/addon-themes.
+   It sets data-theme="light" or data-theme="dark" on <html>, which the token
+   layer in tokens.css responds to. Components never read the theme directly;
+   they consume semantic tokens (--bg, --ink, --accent, ...) and the right
+   value falls out for the active theme. See Foundations/Theming. */
 
 const preview: Preview = {
   parameters: {
@@ -24,27 +31,12 @@ const preview: Preview = {
       test: 'todo',
     },
   },
-  globalTypes: {
-    theme: {
-      name: 'Theme',
-      description: 'Light or dark token mapping',
-      defaultValue: 'light',
-      toolbar: {
-        icon: 'circlehollow',
-        items: [
-          { value: 'light', title: 'Light' },
-          { value: 'dark', title: 'Dark' },
-        ],
-        dynamicTitle: true,
-      },
-    },
-  },
   decorators: [
-    (Story, context) => {
-      const theme = context.globals.theme ?? 'light';
-      document.documentElement.setAttribute('data-theme', theme);
-      return Story();
-    },
+    withThemeByDataAttribute({
+      themes: { light: 'light', dark: 'dark' },
+      defaultTheme: 'light',
+      attributeName: 'data-theme',
+    }),
   ],
 };
 

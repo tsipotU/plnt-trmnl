@@ -1,0 +1,98 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Naming" />
+
+# Naming · the `p7l-` prefix
+
+Every CSS class in this codebase begins with `p7l-`. It's not a typo —
+it's the project's namespace.
+
+## What it stands for
+
+`p7l` is a numeronym: **p** + (seven letters) + **l**. The seven
+letters are the consonants and vowels in `lant-trmn`. It abbreviates
+the codename `plant-trmnl` the same way `i18n` abbreviates
+`internationalization` or `k8s` abbreviates `kubernetes`.
+
+You'll see the brand spelled three ways across the project:
+
+| Token | Where it shows up |
+|---|---|
+| `plant-trmnl` | Repo name, package scopes, the long-form codename |
+| `PLNT` | The user-facing product name (Header, Welcome, About) |
+| `p7l-` | Every CSS class in the design system |
+
+The three are interchangeable in conversation. In code, **CSS classes
+always use `p7l-`**.
+
+## Why a global prefix
+
+Two reasons.
+
+1. **No collisions with browser defaults or third-party CSS.** A class
+   called `.button` would compete with anything else on the page; a
+   class called `.p7l-button` won't.
+2. **Greppability.** `grep -rn "p7l-button"` finds every consumer of
+   the Button component across the codebase in one shot — including
+   Storybook stories, page-local CSS, and tests that assert on
+   classnames. A non-namespaced selector buries those results in
+   noise.
+
+## The convention
+
+```
+p7l-<component>__<element>--<modifier>
+```
+
+This is BEM with the project namespace stitched onto the front. Three
+levels:
+
+- **Block** — the component name. `p7l-button`, `p7l-feedbackrow`,
+  `p7l-pagehead`.
+- **Element** — a child region of the block, joined by `__`.
+  `p7l-feedbackrow__title`, `p7l-pagehead__eyebrow`.
+- **Modifier** — a state or variant, joined by `--`.
+  `p7l-button--primary`, `p7l-feedbackrow__type--bug`.
+
+Combine block and modifier on the same node:
+
+```html
+<button class="p7l-button p7l-button--primary p7l-button--lg">
+```
+
+Combine element and modifier the same way:
+
+```html
+<span class="p7l-feedbackrow__type p7l-feedbackrow__type--bug">
+```
+
+## What goes where
+
+- The **block class** is set by the React component itself. Pages
+  never write `<button className="p7l-button">` directly — they
+  import `<Button>` from the catalog.
+- **Modifier classes** are derived from props (`variant="primary"` →
+  `p7l-button--primary`). Pages don't pass classnames; they pass
+  semantic props.
+- The `className` prop on every catalog component **appends to** the
+  built-in classes. Use it for spacing or layout overrides at the
+  call site, never to restyle the component.
+
+## When to break the convention
+
+- **Page-local CSS.** A page like FeedbackList owns its own wrapper
+  class (`p7l-feedbacklist`) and inner regions (`p7l-feedbacklist__counts`).
+  These follow the same prefix; they're not catalog primitives but
+  they share the namespace.
+- **Pre-catalog legacy components** in `src/components/` (the 17
+  components tagged `@legacy` in JSDoc) often use inline styles or
+  `card`-style classes. Don't extend that pattern in new code; do
+  not refactor them in flight unless that's the work.
+
+## Adjacent conventions
+
+- File names use kebab-case: `FeedbackRow.tsx`, `FeedbackRow.css`.
+- Token names use kebab-case with a semantic prefix: `--bg`, `--ink`,
+  `--accent`, `--status-overdue`. See [Color in practice](?path=/docs/foundations-color--docs).
+- Test files mirror the source: `FeedbackRow.test.tsx` next to
+  `FeedbackRow.tsx`; story files mirror too: `FeedbackRow.stories.tsx`.

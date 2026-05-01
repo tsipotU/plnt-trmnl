@@ -1,0 +1,187 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Accessibility" />
+
+# Accessibility patterns
+
+The catalog ships accessibility primitives so most of the work is
+done before you compose them. This page documents the patterns that
+recur — copy these when you build something new.
+
+## Focus rings
+
+Every interactive element shows a 2px sage outline on `:focus-visible`,
+inset by 2px so it traces the inside of the component:
+
+```css
+.p7l-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+```
+
+`:focus-visible` (not `:focus`) means the ring shows for keyboard
+users but not for mouse clicks — which is what you want. Don't
+swap to `:focus`.
+
+For elements that are *outside* the bounds of an interactive control
+(rare — typically the FAB), use a positive offset:
+
+```css
+.p7l-fab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+```
+
+## Toggleable chips
+
+Filter chips on PlantsList, ArchivedPlants, FeedbackList and the
+status chip row on FeedbackDetail use the same pattern: a button
+with `aria-pressed`.
+
+```tsx
+<Chip
+  toggleable
+  active={statusFilter === 'open'}
+  onClick={() => setStatusFilter(statusFilter === 'open' ? null : 'open')}
+>
+  Open
+</Chip>
+```
+
+The Chip atom emits `aria-pressed={active}`. Screen readers announce
+"Open, toggle button, pressed" or "not pressed" — there's no need
+for visually-hidden state copy.
+
+**Don't use `role="tab"`** for filter chips. Tabs imply a panel
+disclosure (one panel visible at a time, the others hidden); filter
+chips don't have that semantic. Pre-catalog code that used `role="tab"`
+broke `getByRole('button', ...)` queries in tests; that mistake is
+documented in the conventions doc.
+
+## Radio groups
+
+When a chip row is single-select (only one chip is "active" at a
+time, like the category picker in the FeedbackButton sheet), wrap
+it in `role="radiogroup"` with an `aria-label`:
+
+```tsx
+<div role="radiogroup" aria-label="Category">
+  {CATEGORIES.map((c) => (
+    <Chip key={c} toggleable active={category === c} onClick={() => setCategory(c)}>
+      {CATEGORY_LABELS[c]}
+    </Chip>
+  ))}
+</div>
+```
+
+This still uses `Chip toggleable` (which carries `aria-pressed`) —
+the radiogroup wrapper just gives the chip set a name and tells
+assistive tech "this is a single-select".
+
+## Form labels
+
+Every input, textarea, and select must have a label associated by
+`htmlFor` / `id`. The catalog's `<FieldLabel>` atom is the standard
+way:
+
+```tsx
+<FieldLabel htmlFor="feedback-title" required hint="Up to 200 characters.">
+  Title
+</FieldLabel>
+<input id="feedback-title" ... />
+```
+
+`required` adds a visual marker (`·`) and is `aria-hidden="true"` so
+screen readers don't double-announce — you should make required-ness
+explicit in the form's submit-time validation copy too.
+
+`hint` renders below the label and serves as inline guidance. For
+runtime validation errors, render an alert separately rather than
+swapping the hint:
+
+```tsx
+{error && <div role="alert" className="...">{error}</div>}
+```
+
+`role="alert"` makes the error announce as soon as it appears, even
+without focus.
+
+## Sheets, dialogs, drawers
+
+The Sheet and Drawer molecules emit:
+
+- `role="dialog"` (or `role="presentation"` for the backdrop)
+- `aria-modal="true"`
+- `aria-label={title}` (or `aria-labelledby` if the title is
+  multi-part)
+
+They handle:
+
+- Backdrop click → close
+- Escape → close (when `closeOnEscape` is true, the default)
+- Body scroll lock while open (Drawer)
+- Focus trap on Tab / Shift+Tab (Drawer)
+- Initial focus to the first focusable child (Drawer)
+- Focus restoration to the trigger when closed (Drawer, when you
+  pass `triggerRef`)
+
+When you compose a Sheet, give it a `title` prop — it becomes the
+accessible name of the dialog. If the Sheet is title-less (rare —
+typically a confirmation Sheet), pass an `aria-label` directly.
+
+## Keyboard interactivity on non-button elements
+
+If you make a `<div>` clickable, give it the affordances of a
+button:
+
+```tsx
+<div
+  role="button"
+  tabIndex={0}
+  onClick={onClick}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  }}
+>
+```
+
+The catalog's `SettingsRow` does this when given an `onClick`.
+Better still: use a real `<button>` if you can.
+
+## Image alt text
+
+Every `<img>` needs an `alt` attribute:
+
+- Decorative images (ornament SVGs, the apothecary stamp): `alt=""`
+- Functional images (the plant illustration in PlantsList rows, an
+  attached feedback screenshot): the plant name, the attachment
+  description, etc. — meaningful copy.
+- Icons in buttons: prefer `aria-label` on the button and
+  `aria-hidden` on the icon span, so the label takes precedence.
+
+## Mono-tracked uppercase microcaps
+
+The eyebrow + status row labels are visually formatted as
+`text-transform: uppercase; letter-spacing: 0.14em`. Screen readers
+ignore the visual transform — they read the underlying text. So
+write the underlying text in normal sentence case
+(`"3 entries"`, not `"3 ENTRIES"`); the CSS handles the rest.
+
+## scrollIntoView and jsdom
+
+A Wave-12 trap: `jsdom` doesn't implement `scrollIntoView`. If your
+component calls `el.scrollIntoView(...)` on mount, every test in the
+file crashes. Stub it in `beforeEach`:
+
+```ts
+beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
+```
+
+CalendarStrip does this; copy the pattern when you add scroll-on-mount.

@@ -1,0 +1,113 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Theming" />
+
+# Theming · light + dark
+
+The app supports a light theme (default) and a dark theme. Toggle
+between them in the Storybook toolbar (top right) — every component
+in the catalog flips automatically. Try it on any catalog story.
+
+## How the theme system works
+
+Theming is a single CSS attribute on the `<html>` element:
+
+```html
+<html data-theme="light">  <!-- or "dark" -->
+```
+
+`tokens.css` defines two blocks:
+
+```css
+:root {
+  --bg:     #fbfaf6;  /* paper */
+  --ink:    #1a1a17;  /* charcoal */
+  --accent: #5e7349;  /* sage */
+  /* ... */
+}
+
+[data-theme="dark"] {
+  --bg:     #14171a;
+  --ink:    #ececea;  /* inverted */
+  --accent: #7e9265; /* lighter sage for contrast on dark */
+  /* ... */
+}
+```
+
+When `data-theme` flips, the cascade re-resolves and every component
+that consumes `--bg`, `--ink`, `--accent` etc. gets the new values.
+**No component code reads the theme directly.** That's the whole
+contract: components consume semantic tokens, the token layer
+handles the theme.
+
+## Setting the theme in the app
+
+The app exposes a "developer info" toggle in Settings (#142 will
+graduate this to a proper theme picker). For now, theme switching
+happens by setting `data-theme` on the document element — see the
+SPA's preference loader at `src/lib/theme.ts`.
+
+## Setting the theme in Storybook
+
+Storybook uses
+[`@storybook/addon-themes`](https://storybook.js.org/addons/@storybook/addon-themes)
+with the `withThemeByDataAttribute` decorator. The configuration
+lives in `.storybook/preview.ts`:
+
+```ts
+import { withThemeByDataAttribute } from '@storybook/addon-themes';
+import '../src/styles/tokens.css';
+
+const preview: Preview = {
+  decorators: [
+    withThemeByDataAttribute({
+      themes: { light: 'light', dark: 'dark' },
+      defaultTheme: 'light',
+      attributeName: 'data-theme',
+    }),
+  ],
+  // ...
+};
+```
+
+The decorator wraps every story and sets `data-theme` based on the
+toolbar selection.
+
+## Verifying a new component in both themes
+
+When you add a component or change one, **always check both
+themes** before opening a PR. The fastest way:
+
+1. Open the story page.
+2. Click the theme toggle in the toolbar.
+3. Look at the component. Then look at it again.
+
+Common things to check:
+
+- Is the focus ring visible in both? (Sage on dark mode is brighter
+  than sage on light — but if you used `--accent` you don't need to
+  worry; if you hardcoded a color, you do.)
+- Are hairlines visible in dark mode? `--border` is paler in dark;
+  if your component depends on a strong line, use `--border-strong`.
+- Does the `--surface` actually look elevated against `--bg`? In
+  dark mode the contrast between `--bg` and `--surface` is subtler;
+  this is intentional, but it means thin/empty cards can look
+  identical to the page in dark mode. Add a hairline border, or
+  switch to `--surface-2` for a slightly stronger lift.
+- Are status colors readable on dark backgrounds? `--status-overdue`
+  on `--overdue-soft` works in both themes; verify if you composed
+  them differently.
+
+## Common mistakes
+
+| Mistake | Fix |
+|---|---|
+| Hardcoding `color: #1a1a17` | Use `--ink` so dark mode inverts. |
+| `background: white` | Use `--bg-elevated`. White only exists in light mode. |
+| Adding a `[data-theme="dark"]` override inside a component | Almost always means a wrong semantic token. Pick a token that already does the right thing in both modes; it's there. |
+| Forgetting to check dark mode in Storybook | The toolbar toggle is one click. Use it. |
+
+## Tokens reference
+
+The full token grid (light and dark side-by-side) lives at
+[Foundations/Tokens](?path=/docs/foundations-tokens--docs).
