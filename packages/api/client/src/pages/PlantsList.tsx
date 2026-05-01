@@ -20,27 +20,25 @@ import {
 } from '../utils/plantView.js';
 import './PlantsList.css';
 
-/* === Filter spec ======================================================== */
+/* === Filter spec ========================================================
+ *
+ * v1.0 ships only "All" and "Due". The full prototype filter set
+ * (Calibrating, Dialed-in, Vacation, plus a category rail) is parked
+ * for v1.1 — see issue #148. Showing those chips with no data behind
+ * them looked broken; two chips look intentional.
+ */
 
-type StateFilter = 'all' | 'due' | 'calibrating' | 'dialed';
+type StateFilter = 'all' | 'due';
 
 const STATE_FILTERS: ReadonlyArray<{ id: StateFilter; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'due', label: 'Due' },
-  { id: 'calibrating', label: 'Calibrating' },
-  { id: 'dialed', label: 'Dialed in' },
 ];
 
 function matchesState(p: Plant, today: string, filter: StateFilter): boolean {
   if (filter === 'all') return true;
   if (filter === 'due') {
     return p.next_water_date != null && p.next_water_date <= today;
-  }
-  if (filter === 'calibrating') {
-    return p.is_converged === 0 && (p.current_interval ?? 0) > 0;
-  }
-  if (filter === 'dialed') {
-    return p.is_converged === 1;
   }
   return true;
 }

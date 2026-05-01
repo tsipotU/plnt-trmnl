@@ -101,12 +101,8 @@ describe('PlantsList — populated', () => {
     expect(screen.queryByText('Eddie')).toBeNull();
   });
 
-  it('filters by state (Dialed in)', async () => {
-    const user = userEvent.setup();
-    mockPlants([
-      plantFixture({ id: 1, name: 'Mona', is_converged: 1 }),
-      plantFixture({ id: 2, name: 'Frank', is_converged: 0, current_interval: 8 }),
-    ]);
+  it('only renders the v1.0 filter chips (All, Due) — see #148 for the parked filters', async () => {
+    mockPlants([plantFixture({ id: 1, name: 'Mona' })]);
     render(
       <MemoryRouter>
         <PlantsList />
@@ -115,12 +111,10 @@ describe('PlantsList — populated', () => {
     await waitFor(() => {
       expect(screen.getByText('Mona')).toBeInTheDocument();
     });
-    expect(screen.getByText('Frank')).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /^Dialed in$/i }));
-
-    expect(screen.getByText('Mona')).toBeInTheDocument();
-    expect(screen.queryByText('Frank')).toBeNull();
+    expect(screen.getByRole('button', { name: /^All$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Due$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Calibrating$/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Dialed in$/i })).toBeNull();
   });
 
   it('shows a "no match" empty state when filters exclude everything', async () => {
