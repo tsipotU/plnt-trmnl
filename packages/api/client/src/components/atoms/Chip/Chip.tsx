@@ -39,6 +39,7 @@ export function Chip(props: ChipProps) {
     const {
       tone, // ignored for toggleable
       dot, // ignored for toggleable
+      toggleable: _toggleable, // strip from DOM-bound rest
       iconLeading,
       active = false,
       children,
@@ -49,6 +50,7 @@ export function Chip(props: ChipProps) {
     } = props;
     void tone;
     void dot;
+    void _toggleable;
 
     return (
       <button
@@ -71,7 +73,16 @@ export function Chip(props: ChipProps) {
     );
   }
 
-  const { tone = 'neutral', dot, iconLeading, children, className = '', ...rest } = props;
+  const {
+    tone = 'neutral',
+    dot,
+    toggleable: _toggleable,
+    iconLeading,
+    children,
+    className = '',
+    ...rest
+  } = props;
+  void _toggleable;
   const showDot = dot ?? (tone !== 'neutral' && !iconLeading);
 
   return (
