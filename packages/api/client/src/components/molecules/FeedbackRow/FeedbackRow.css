@@ -60,6 +60,12 @@
 
 [data-theme="dark"] .p7l-feedbackrow__type--praise { color: var(--sage-200); }
 
+.p7l-feedbackrow__type--neutral {
+  background: var(--surface);
+  color: var(--ink-2);
+  border-color: var(--border);
+}
+
 .p7l-feedbackrow__status {
   font-family: var(--font-mono);
   font-size: 9px;

@@ -1,0 +1,7 @@
+.p7l-feedbacklist {
+  margin: -16px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: calc(100dvh - 80px);
+  font-family: var(--font-sans);
+}

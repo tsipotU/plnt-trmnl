@@ -1,11 +1,13 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import './FeedbackRow.css';
 
-export type FeedbackType = 'bug' | 'idea' | 'praise';
+export type FeedbackTone = 'bug' | 'idea' | 'praise' | 'neutral';
 
 export interface FeedbackRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
-  /** Feedback category — drives the type pill color. */
-  feedbackType: FeedbackType;
+  /** Visual tone of the type pill. Maps to existing CSS variants. */
+  tone?: FeedbackTone;
+  /** Type chip label (free-form). Examples: "bug", "feature", "improvement". */
+  typeLabel: ReactNode;
   /** Status string — "open", "fixed", "planned", "next", etc. Mono microcaps. */
   status?: ReactNode;
   /** ISO date or formatted date. Mono microcaps. */
@@ -17,11 +19,13 @@ export interface FeedbackRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonEl
 }
 
 /* Feedback list entry — type pill + status + date + title + snippet.
-   Renders as a button (whole card tappable). The type pill is a small
-   bordered+filled tag in one of three tones (bug→warn, idea→info,
-   praise→accent). */
+   Renders as a button (whole card tappable). The type pill carries a
+   visual tone (bug→warn, idea→info, praise→accent, neutral→surface)
+   independent of its label, so callers with their own categorisation
+   (feature, improvement, etc.) can map to the closest tone. */
 export function FeedbackRow({
-  feedbackType,
+  tone = 'neutral',
+  typeLabel,
   status,
   date,
   title,
@@ -36,8 +40,8 @@ export function FeedbackRow({
       {...rest}
     >
       <span className="p7l-feedbackrow__meta">
-        <span className={`p7l-feedbackrow__type p7l-feedbackrow__type--${feedbackType}`}>
-          {feedbackType}
+        <span className={`p7l-feedbackrow__type p7l-feedbackrow__type--${tone}`}>
+          {typeLabel}
         </span>
         {status && <span className="p7l-feedbackrow__status">{status}</span>}
         {date && <span className="p7l-feedbackrow__status">· {date}</span>}
