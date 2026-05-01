@@ -58,7 +58,9 @@ describe('MemorialPlant', () => {
     expect(screen.getByText('47')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText(/Lived in: Living room/i)).toBeInTheDocument();
+    // Location now lives in a DataCell — label + value split across nodes.
+    expect(screen.getByText(/^Lived in$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Living room$/i)).toBeInTheDocument();
     expect(screen.getByText(/root rot during winter/i)).toBeInTheDocument();
   });
 
@@ -69,8 +71,11 @@ describe('MemorialPlant', () => {
     } as Response);
     renderAt('/archive/7');
     await waitFor(() => {
-      expect(screen.getByText(/Cause:/i)).toBeInTheDocument();
-      expect(screen.getByText(/It died/i)).toBeInTheDocument();
+      // "Cause" is a SectionHead label; "It died" appears in BackBar eyebrow
+      // AND as InfoCard title (intentional duplication — see Composition.mdx
+      // "uniqueness as contract" rule).
+      expect(screen.getByText(/^Cause$/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/It died/i).length).toBeGreaterThan(0);
     });
   });
 
