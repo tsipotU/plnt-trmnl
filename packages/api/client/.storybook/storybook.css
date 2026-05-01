@@ -1,0 +1,18 @@
+/* Storybook canvas chrome — paper background, hairline rules,
+   typography that mirrors the p7l design system. Story content
+   itself sits on top of this and consumes the same tokens. */
+
+#storybook-root {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  padding: var(--sp-6);
+}
+
+.sb-show-main.sb-main-padded {
+  padding: 0;
+}
+
+.sb-show-main {
+  background: var(--bg) !important;
+}
