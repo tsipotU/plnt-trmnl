@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { BackBar } from '../components/molecules/BackBar/BackBar';
+import { PageHead } from '../components/molecules/PageHead/PageHead';
+import { SectionHead } from '../components/molecules/SectionHead/SectionHead';
+import { FilterRail } from '../components/molecules/FilterRail/FilterRail';
+import { Sheet } from '../components/molecules/Sheet/Sheet';
+import { FormStep } from '../components/molecules/FormStep/FormStep';
+import { EmptyState } from '../components/molecules/EmptyState/EmptyState';
+import { Chip } from '../components/atoms/Chip/Chip';
+import { Button } from '../components/atoms/Button/Button';
+import { FieldLabel } from '../components/atoms/FieldLabel/FieldLabel';
+import './FeedbackDetail.css';
 
 type Category = 'bug' | 'feature' | 'improvement' | 'other';
 type Status = 'open' | 'in_progress' | 'done' | 'wont_fix';
@@ -33,9 +44,9 @@ interface Feedback {
 }
 
 const CATEGORY_LABELS: Record<Category, string> = {
-  improvement: 'Improvement',
-  feature: 'Feature',
   bug: 'Bug',
+  feature: 'Feature',
+  improvement: 'Improvement',
   other: 'Other',
 };
 
@@ -46,12 +57,8 @@ const STATUS_LABELS: Record<Status, string> = {
   wont_fix: "Won't fix",
 };
 
-const CATEGORY_COLORS: Record<Category, string> = {
-  bug: 'var(--danger)',
-  feature: 'var(--accent)',
-  improvement: 'var(--warning)',
-  other: 'var(--text-secondary)',
-};
+const CATEGORIES: Category[] = ['bug', 'feature', 'improvement', 'other'];
+const STATUSES: Status[] = ['open', 'in_progress', 'done', 'wont_fix'];
 
 export function FeedbackDetail() {
   const { id } = useParams<{ id: string }>();
@@ -94,7 +101,7 @@ export function FeedbackDetail() {
     load();
   }, [load]);
 
-  async function updateFeedback(patch: Partial<Pick<Feedback, 'title' | 'description' | 'category' | 'status'>>) {
+  async function patchFeedback(patch: Partial<Pick<Feedback, 'title' | 'description' | 'category' | 'status'>>) {
     if (!item) return;
     const res = await fetch(`/api/feedback/${item.id}`, {
       method: 'PUT',
@@ -110,7 +117,8 @@ export function FeedbackDetail() {
   }
 
   async function handleStatusChange(next: Status) {
-    await updateFeedback({ status: next });
+    if (!item || item.status === next) return;
+    await patchFeedback({ status: next });
   }
 
   async function handleSaveEdit() {
@@ -118,12 +126,21 @@ export function FeedbackDetail() {
       setError('Title is required');
       return;
     }
-    await updateFeedback({
+    await patchFeedback({
       title: editTitle.trim(),
       description: editDescription.trim() || null,
       category: editCategory,
     });
     setEditing(false);
+  }
+
+  function handleCancelEdit() {
+    if (!item) return;
+    setEditing(false);
+    setEditTitle(item.title);
+    setEditDescription(item.description ?? '');
+    setEditCategory(item.category);
+    setError(null);
   }
 
   async function handleDelete() {
@@ -160,19 +177,18 @@ export function FeedbackDetail() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>
-        Loading…
+      <div className="p7l-feedbackdetail">
+        <BackBar onBack={() => navigate('/feedback')} backLabel="← Feedback" />
+        <EmptyState>Loading…</EmptyState>
       </div>
     );
   }
 
   if (error && !item) {
     return (
-      <div>
-        <BackLink />
-        <div className="card" style={{ color: 'var(--danger)', textAlign: 'center' }}>
-          {error}
-        </div>
+      <div className="p7l-feedbackdetail">
+        <BackBar onBack={() => navigate('/feedback')} backLabel="← Feedback" />
+        <EmptyState>{error}</EmptyState>
       </div>
     );
   }
@@ -180,303 +196,164 @@ export function FeedbackDetail() {
   if (!item) return null;
 
   return (
-    <div>
-      <BackLink />
+    <div className="p7l-feedbackdetail">
+      <BackBar
+        onBack={() => navigate('/feedback')}
+        backLabel="← Feedback"
+        eyebrow={CATEGORY_LABELS[item.category]}
+      />
+      <PageHead
+        size="sm"
+        eyebrow={`Created ${formatDateTime(item.created_at)}`}
+        title={item.title}
+      />
 
       {error && (
-        <div
-          className="card"
-          role="alert"
-          style={{ color: 'var(--danger)', marginBottom: 12 }}
-        >
+        <div className="p7l-feedbackdetail__error" role="alert">
           {error}
         </div>
       )}
 
-      {/* Header: title, category, status */}
-      <div
-        style={{
-          background: 'var(--bg-card)',
-          borderRadius: 'var(--radius)',
-          padding: 16,
-          marginBottom: 16,
-        }}
-      >
-        {editing ? (
-          <>
-            <label style={labelStyle}>Title</label>
-            <input
-              type="text"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              maxLength={200}
-              style={{ marginBottom: 12 }}
-            />
-            <label style={labelStyle}>Category</label>
-            <select
-              value={editCategory}
-              onChange={(e) => setEditCategory(e.target.value as Category)}
-              style={{ marginBottom: 12 }}
+      {item.description && (
+        <p className="p7l-feedbackdetail__body">{item.description}</p>
+      )}
+
+      {item.images && item.images.length > 0 && (
+        <div className="p7l-feedbackdetail__images" data-testid="feedback-image-grid">
+          {item.images.map((img, i) => (
+            <button
+              key={img.id}
+              type="button"
+              className="p7l-feedbackdetail__image"
+              onClick={() => setEnlargedImage(img)}
+              aria-label={`Enlarge image ${i + 1}`}
             >
-              {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
-                <option key={c} value={c}>
-                  {CATEGORY_LABELS[c]}
-                </option>
-              ))}
-            </select>
-            <label style={labelStyle}>Description</label>
-            <textarea
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              rows={4}
-              style={textareaStyle}
-            />
-            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-              <button onClick={handleSaveEdit} style={{ flex: 1 }}>
-                Save
-              </button>
-              <button
-                onClick={() => {
-                  setEditing(false);
-                  setEditTitle(item.title);
-                  setEditDescription(item.description ?? '');
-                  setEditCategory(item.category);
-                  setError(null);
-                }}
-                style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-              >
-                Cancel
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 8,
-                flexWrap: 'wrap',
-              }}
-            >
-              <Badge color={CATEGORY_COLORS[item.category]}>
-                {CATEGORY_LABELS[item.category]}
-              </Badge>
-              <span style={{ marginLeft: 'auto' }}>
-                <label
-                  htmlFor="status-select"
-                  style={{ fontSize: 12, color: 'var(--text-secondary)', marginRight: 6 }}
-                >
-                  Status
-                </label>
-                <select
-                  id="status-select"
-                  value={item.status}
-                  onChange={(e) => handleStatusChange(e.target.value as Status)}
-                  style={{ width: 'auto', display: 'inline-block', padding: '6px 10px' }}
-                >
-                  {(Object.keys(STATUS_LABELS) as Status[]).map((s) => (
-                    <option key={s} value={s}>
-                      {STATUS_LABELS[s]}
-                    </option>
-                  ))}
-                </select>
-              </span>
-            </div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, lineHeight: 1.3 }}>
-              {item.title}
-            </h1>
-            {item.description && (
-              <p
-                style={{
-                  fontSize: 15,
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.5,
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {item.description}
-              </p>
-            )}
-            {item.images && item.images.length > 0 && (
-              <div
-                data-testid="feedback-image-grid"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: 8,
-                  marginTop: 12,
-                }}
-              >
-                {item.images.map((img, i) => (
-                  <button
-                    key={img.id}
-                    type="button"
-                    onClick={() => setEnlargedImage(img)}
-                    aria-label={`Enlarge image ${i + 1}`}
-                    style={{
-                      padding: 0,
-                      border: 0,
-                      background: 'var(--bg-secondary)',
-                      aspectRatio: '1 / 1',
-                      borderRadius: 'var(--radius)',
-                      overflow: 'hidden',
-                      cursor: 'zoom-in',
-                    }}
-                  >
-                    <img
-                      src={img.url}
-                      alt={`Attachment ${i + 1}`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
-                      }}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-            <div
-              style={{
-                fontSize: 12,
-                color: 'var(--text-secondary)',
-                marginTop: 12,
-                display: 'flex',
-                gap: 10,
-                flexWrap: 'wrap',
-              }}
-            >
-              <span>Created {formatDateTime(item.created_at)}</span>
-              {item.page_path && (
-                <span>
-                  on <code>{item.page_path}</code>
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-              <button
-                onClick={() => setEditing(true)}
-                style={{
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  fontSize: 14,
-                  padding: '8px 14px',
-                }}
-              >
-                Edit
-              </button>
-              <button
-                onClick={handleDelete}
-                style={{
-                  background: 'transparent',
-                  color: 'var(--danger)',
-                  border: '1px solid var(--danger)',
-                  fontSize: 14,
-                  padding: '8px 14px',
-                  marginLeft: 'auto',
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </>
-        )}
+              <img src={img.url} alt={`Attachment ${i + 1}`} />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {item.page_path && (
+        <div className="p7l-feedbackdetail__on-page">
+          On page <code>{item.page_path}</code>
+        </div>
+      )}
+
+      <SectionHead as="h2" label="Status" />
+      <FilterRail aria-label="Status">
+        {STATUSES.map((s) => (
+          <Chip
+            key={s}
+            toggleable
+            active={item.status === s}
+            onClick={() => handleStatusChange(s)}
+          >
+            {STATUS_LABELS[s]}
+          </Chip>
+        ))}
+      </FilterRail>
+
+      <div className="p7l-feedbackdetail__actions">
+        <Button variant="ghost" onClick={() => setEditing(true)}>
+          Edit details
+        </Button>
+        <Button variant="destructive" onClick={handleDelete} style={{ marginLeft: 'auto' }}>
+          Delete
+        </Button>
       </div>
 
-      {/* Comments */}
-      <h2
-        style={{
-          fontSize: 16,
-          fontWeight: 600,
-          marginBottom: 10,
-          color: 'var(--text-secondary)',
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-        }}
-      >
-        Comments ({item.comments.length})
-      </h2>
-
-      <div style={{ marginBottom: 16 }}>
+      <SectionHead as="h2" label={`Comments · ${item.comments.length}`} />
+      <div className="p7l-feedbackdetail__comments">
         {item.comments.map((c) => (
           <CommentCard key={c.id} comment={c} onChange={load} onError={setError} />
         ))}
       </div>
 
-      {/* Add comment */}
-      <form onSubmit={handleAddComment}>
+      <form className="p7l-feedbackdetail__form" onSubmit={handleAddComment}>
+        <FieldLabel htmlFor="new-comment">Add a comment</FieldLabel>
         <textarea
+          id="new-comment"
+          className="p7l-feedbackdetail__textarea"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           rows={3}
-          placeholder="Add a comment…"
-          style={textareaStyle}
+          placeholder="Add context, follow-up, a fix idea…"
         />
-        <button
-          type="submit"
-          disabled={posting || !newComment.trim()}
-          style={{
-            marginTop: 10,
-            width: '100%',
-            fontSize: 15,
-            fontWeight: 600,
-            padding: '12px 20px',
-            opacity: posting || !newComment.trim() ? 0.6 : 1,
-          }}
-        >
+        <Button type="submit" disabled={posting || !newComment.trim()} fullWidth>
           {posting ? 'Posting…' : 'Post comment'}
-        </button>
+        </Button>
       </form>
 
-      <div style={{ height: 80 }} />
+      <div style={{ height: 120 }} />
+
+      <Sheet
+        open={editing}
+        onClose={handleCancelEdit}
+        title="Edit feedback"
+        footer={
+          <>
+            <Button variant="ghost" onClick={handleCancelEdit}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} style={{ marginLeft: 'auto' }}>
+              Save
+            </Button>
+          </>
+        }
+      >
+        <div className="p7l-feedbackdetail__edit">
+          <FormStep num="01 · Title" title="What's the headline?">
+            <FieldLabel htmlFor="edit-title">Title</FieldLabel>
+            <input
+              id="edit-title"
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              maxLength={200}
+            />
+          </FormStep>
+          <FormStep num="02 · Category" title="What kind of feedback?">
+            <div className="p7l-feedbackdetail__edit-chips" role="radiogroup" aria-label="Category">
+              {CATEGORIES.map((c) => (
+                <Chip
+                  key={c}
+                  toggleable
+                  active={editCategory === c}
+                  onClick={() => setEditCategory(c)}
+                  aria-label={CATEGORY_LABELS[c]}
+                >
+                  {CATEGORY_LABELS[c]}
+                </Chip>
+              ))}
+            </div>
+          </FormStep>
+          <FormStep num="03 · Details" title="More context (optional)">
+            <FieldLabel htmlFor="edit-desc">Description</FieldLabel>
+            <textarea
+              id="edit-desc"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              rows={4}
+            />
+          </FormStep>
+        </div>
+      </Sheet>
 
       {enlargedImage && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Enlarged image"
+          className="p7l-feedbackdetail__lightbox"
           onClick={() => setEnlargedImage(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.9)',
-            zIndex: 200,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
         >
-          <img
-            src={enlargedImage.url}
-            alt="Enlarged attachment"
-            style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
-              objectFit: 'contain',
-            }}
-          />
+          <img src={enlargedImage.url} alt="Enlarged attachment" />
           <button
             type="button"
+            className="p7l-feedbackdetail__lightbox-close"
             onClick={() => setEnlargedImage(null)}
             aria-label="Close image"
-            style={{
-              position: 'fixed',
-              top: 16,
-              right: 16,
-              background: 'rgba(0, 0, 0, 0.6)',
-              color: 'white',
-              borderRadius: '50%',
-              width: 40,
-              height: 40,
-              padding: 0,
-              minWidth: 0,
-              minHeight: 0,
-              fontSize: 20,
-            }}
           >
             ✕
           </button>
@@ -529,161 +406,53 @@ function CommentCard({
     }
   }
 
+  if (editing) {
+    return (
+      <div className="p7l-feedbackdetail__comment">
+        <textarea
+          className="p7l-feedbackdetail__textarea"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          rows={3}
+          aria-label="Edit comment"
+        />
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <Button size="sm" onClick={handleSave} disabled={saving || !body.trim()}>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setEditing(false);
+              setBody(comment.body);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      style={{
-        background: 'var(--bg-card)',
-        borderRadius: 'var(--radius)',
-        padding: 12,
-        marginBottom: 8,
-      }}
-    >
-      {editing ? (
-        <>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={3}
-            style={textareaStyle}
-          />
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button
-              onClick={handleSave}
-              disabled={saving || !body.trim()}
-              style={{
-                fontSize: 14,
-                padding: '8px 14px',
-                opacity: saving || !body.trim() ? 0.6 : 1,
-              }}
-            >
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-            <button
-              onClick={() => {
-                setEditing(false);
-                setBody(comment.body);
-              }}
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                fontSize: 14,
-                padding: '8px 14px',
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div
-            style={{
-              fontSize: 14,
-              lineHeight: 1.5,
-              whiteSpace: 'pre-wrap',
-              marginBottom: 6,
-            }}
-          >
-            {comment.body}
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              fontSize: 12,
-              color: 'var(--text-secondary)',
-            }}
-          >
-            <span>{formatDateTime(comment.created_at)}</span>
-            {comment.updated_at && comment.updated_at !== comment.created_at && (
-              <span style={{ opacity: 0.7 }}>edited</span>
-            )}
-            <button
-              onClick={() => setEditing(true)}
-              style={{
-                marginLeft: 'auto',
-                background: 'transparent',
-                color: 'var(--text-secondary)',
-                fontSize: 12,
-                padding: '4px 8px',
-                minHeight: 0,
-              }}
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              style={{
-                background: 'transparent',
-                color: 'var(--danger)',
-                fontSize: 12,
-                padding: '4px 8px',
-                minHeight: 0,
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        </>
-      )}
+    <div className="p7l-feedbackdetail__comment">
+      <p className="p7l-feedbackdetail__comment-body">{comment.body}</p>
+      <div className="p7l-feedbackdetail__comment-meta">
+        <span>{formatDateTime(comment.created_at)}</span>
+        {comment.updated_at && comment.updated_at !== comment.created_at && (
+          <span style={{ opacity: 0.7 }}>edited</span>
+        )}
+        <button type="button" onClick={() => setEditing(true)}>
+          Edit
+        </button>
+        <button type="button" onClick={handleDelete}>
+          Delete
+        </button>
+      </div>
     </div>
   );
 }
-
-function BackLink() {
-  return (
-    <Link
-      to="/feedback"
-      style={{
-        display: 'inline-block',
-        marginBottom: 12,
-        fontSize: 14,
-        color: 'var(--text-secondary)',
-      }}
-    >
-      ← All feedback
-    </Link>
-  );
-}
-
-function Badge({ children, color }: { children: React.ReactNode; color: string }) {
-  return (
-    <span
-      style={{
-        fontSize: 11,
-        fontWeight: 600,
-        padding: '2px 8px',
-        borderRadius: 10,
-        background: color,
-        color: 'white',
-        textTransform: 'uppercase',
-        letterSpacing: 0.3,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: 13,
-  color: 'var(--text-secondary)',
-  marginBottom: 6,
-};
-
-const textareaStyle: React.CSSProperties = {
-  background: 'var(--bg-secondary)',
-  color: 'var(--text-primary)',
-  border: '1px solid var(--border)',
-  padding: 12,
-  borderRadius: 'var(--radius)',
-  fontSize: 15,
-  width: '100%',
-  fontFamily: 'inherit',
-  resize: 'vertical',
-};
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
