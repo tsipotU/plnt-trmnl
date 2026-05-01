@@ -110,6 +110,12 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
           paddingTop: 24,
         }}
       >
+        {/* Routes intentionally not listed here:
+              - "/" Today           — Header logo links to / (also acts as fallback)
+              - "/plants/:id"       — reached from Today + Plants list rows
+              - "/archive/:id"      — reached from Archive rows
+              - "/feedback/:id"     — reached from Feedback rows
+              - "/welcome", "/login" — auth bootstrap, outside the chrome by design */}
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
           <Link to="/add" style={drawerLinkStyle}>Add plant</Link>
           <Link to="/plants" style={drawerLinkStyle}>Plants</Link>
@@ -117,7 +123,8 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
           <Link to="/archived" style={drawerLinkStyle}>Archive</Link>
           <Link to="/feedback" style={drawerLinkStyle}>Feedback</Link>
           <Link to="/settings" style={drawerLinkStyle}>Settings</Link>
-          <Link to="/setup" style={drawerLinkStyle}>Setup</Link>
+          <Link to="/setup" style={drawerLinkStyle}>TRMNL setup</Link>
+          <Link to="/preview" style={drawerLinkStyle}>TRMNL preview</Link>
           <Link to="/about" style={drawerLinkStyle}>About</Link>
         </nav>
         <button

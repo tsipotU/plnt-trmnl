@@ -34,14 +34,21 @@ describe('MenuDrawer — skeleton', () => {
     expect(dialog).toHaveAttribute('aria-hidden', 'false');
   });
 
-  it('renders all six navigation links when open', () => {
+  it('renders every drawer-visible route as a link when open', () => {
     renderDrawer(true);
-    expect(screen.getByRole('link', { name: /add plant/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /archive/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /feedback/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /settings/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /setup/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /about/i })).toBeInTheDocument();
+    // Top-level routes the operator reaches from the drawer. Auth bootstrap
+    // routes (/welcome, /login) and detail routes (/plants/:id, /archive/:id,
+    // /feedback/:id) are intentionally absent — see MenuDrawer.tsx comment.
+    expect(screen.getByRole('link', { name: /^Add plant$/i })).toHaveAttribute('href', '/add');
+    expect(screen.getByRole('link', { name: /^Plants$/i })).toHaveAttribute('href', '/plants');
+    expect(screen.getByRole('link', { name: /^Calendar$/i })).toHaveAttribute('href', '/calendar');
+    expect(screen.getByRole('link', { name: /^Archive$/i })).toHaveAttribute('href', '/archived');
+    expect(screen.getByRole('link', { name: /^Feedback$/i })).toHaveAttribute('href', '/feedback');
+    expect(screen.getByRole('link', { name: /^Settings$/i })).toHaveAttribute('href', '/settings');
+    expect(screen.getByRole('link', { name: /^TRMNL setup$/i })).toHaveAttribute('href', '/setup');
+    expect(screen.getByRole('link', { name: /^TRMNL preview$/i })).toHaveAttribute('href', '/preview');
+    expect(screen.getByRole('link', { name: /^About$/i })).toHaveAttribute('href', '/about');
+    expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument();
   });
 
   it('renders a backdrop only when open', () => {
