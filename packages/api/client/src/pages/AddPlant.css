@@ -1,0 +1,170 @@
+/* Page-local styles for Add plant. Edge-to-edge wrapper, sticky footer
+   (m-submit pattern from prototype), catalog autocomplete dropdown, room
+   chips. Same margin: -16 transitional trick as Today/Plants/Plant detail. */
+
+.p7l-addplant {
+  margin: -16px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: calc(100dvh - 80px);
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+}
+
+.p7l-addplant__form {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 80px;
+}
+
+/* === Catalog autocomplete (page-local; one-screen pattern, prototype
+       doesn't have it but the existing app needs it) === */
+.p7l-addplant__combobox {
+  position: relative;
+}
+
+.p7l-addplant__combobox input {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: var(--hairline-thin) solid var(--ink);
+  border-radius: var(--r-0);
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--ink);
+}
+.p7l-addplant__combobox input:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.p7l-addplant__suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--bg-elevated);
+  border: var(--hairline-thin) solid var(--ink);
+  border-radius: var(--r-0);
+  box-shadow: var(--shadow-2);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.p7l-addplant__suggestion {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  border-bottom: var(--hairline-thin) solid var(--border);
+}
+.p7l-addplant__suggestion:last-child { border-bottom: none; }
+.p7l-addplant__suggestion:hover,
+.p7l-addplant__suggestion[aria-selected="true"] { background: var(--surface); }
+
+.p7l-addplant__suggestion-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.p7l-addplant__suggestion-common {
+  font-size: 12px;
+  color: var(--ink-2);
+  margin-top: 2px;
+}
+
+/* === Field hints (italic-serif lede under inputs) === */
+.p7l-addplant__hint {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-3);
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+/* === Segmented control for "When watered" === */
+.p7l-addplant__seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: var(--hairline-thin) solid var(--ink);
+  background: var(--bg);
+}
+
+.p7l-addplant__seg button {
+  background: transparent;
+  border: none;
+  border-right: var(--hairline-thin) solid var(--border);
+  padding: 10px 4px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-weight: 500;
+  min-height: 44px;
+}
+
+.p7l-addplant__seg button:last-child { border-right: none; }
+.p7l-addplant__seg button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* === Room chips === */
+.p7l-addplant__rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* === Standard input/select styling (consistent with the prototype) === */
+.p7l-addplant input[type="text"],
+.p7l-addplant input[type="date"],
+.p7l-addplant select {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: var(--hairline-thin) solid var(--ink);
+  border-radius: var(--r-0);
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  min-height: 44px;
+}
+.p7l-addplant input:focus,
+.p7l-addplant select:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.p7l-addplant select { cursor: pointer; }
+
+/* === Sticky submit footer (m-submit pattern) === */
+.p7l-addplant__submit {
+  position: sticky;
+  bottom: 0;
+  padding: 14px 18px;
+  border-top: var(--hairline-thin) solid var(--ink);
+  display: flex;
+  gap: 10px;
+  background: var(--bg);
+  z-index: 20;
+}
+
+/* Field-label-with-tooltip row */
+.p7l-addplant__label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
