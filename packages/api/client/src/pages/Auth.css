@@ -1,0 +1,52 @@
+/* Shared layout for /welcome and /login (auth bootstrap pages outside the
+   AuthGate chrome — no Header, no global FAB). */
+.p7l-auth {
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 24px 18px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.p7l-auth__lockup {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.p7l-auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.p7l-auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.p7l-auth__input {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--bg);
+  border: var(--hairline-thin) solid var(--border);
+  border-radius: var(--r-0);
+  padding: 12px 14px;
+}
+
+.p7l-auth__input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.p7l-auth__error {
+  padding: 10px 12px;
+  border: var(--hairline-thin) solid var(--status-overdue);
+  background: var(--overdue-soft);
+  color: var(--status-overdue);
+  font-size: 13px;
+}

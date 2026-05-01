@@ -1,11 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Lockup } from '../components/atoms/Logo/Lockup';
+import { PageHead } from '../components/molecules/PageHead/PageHead';
+import { FieldLabel } from '../components/atoms/FieldLabel/FieldLabel';
+import { Button } from '../components/atoms/Button/Button';
+import './Auth.css';
 
-/**
- * Single-field password login (#136). On success a session cookie is issued
- * by the server; we redirect to the original destination if `?next=` was set,
- * otherwise to the dashboard.
- */
+/* Single-field password login (#136). On success a session cookie is issued
+   by the server; we redirect to the original destination if `?next=` was set,
+   otherwise to the dashboard. */
 export function Login() {
   const [pw, setPw] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -39,44 +42,41 @@ export function Login() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 420, margin: '40px auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{ fontSize: 56, marginBottom: 8 }}>🪴</div>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>Welcome back</h1>
+    <div className="p7l-auth">
+      <div className="p7l-auth__lockup">
+        <Lockup stampSize={64} />
       </div>
-      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <input
-          aria-label="Password"
-          type="password"
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          placeholder="Password"
-          autoFocus
-          required
-          style={{ fontSize: 16, padding: '12px 14px' }}
-        />
+      <PageHead size="sm" title="Welcome back" />
+      <form onSubmit={submit} className="p7l-auth__form">
+        <div className="p7l-auth__field">
+          <FieldLabel htmlFor="login-pw" required>
+            Password
+          </FieldLabel>
+          <input
+            id="login-pw"
+            aria-label="Password"
+            type="password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            autoFocus
+            required
+            className="p7l-auth__input"
+          />
+        </div>
         {error && (
-          <div role="alert" style={{ color: 'var(--danger)' }}>
+          <div role="alert" className="p7l-auth__error">
             {error}
           </div>
         )}
-        <button
+        <Button
           type="submit"
+          size="lg"
+          fullWidth
           disabled={submitting}
-          style={{
-            background: 'var(--accent)',
-            color: 'white',
-            border: 'none',
-            borderRadius: 12,
-            padding: '14px 0',
-            fontSize: 17,
-            fontWeight: 600,
-            cursor: submitting ? 'not-allowed' : 'pointer',
-            opacity: submitting ? 0.6 : 1,
-          }}
+          loading={submitting}
         >
           {submitting ? 'Signing in…' : 'Sign in'}
-        </button>
+        </Button>
       </form>
     </div>
   );

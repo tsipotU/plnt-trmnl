@@ -1,15 +1,14 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Lockup } from '../components/atoms/Logo/Lockup';
+import { PageHead } from '../components/molecules/PageHead/PageHead';
+import { FieldLabel } from '../components/atoms/FieldLabel/FieldLabel';
+import { Button } from '../components/atoms/Button/Button';
+import './Auth.css';
 
-/**
- * One-time auth bootstrap (#136). The API generates a setup token in its
- * startup logs when no admin password is set; this page lets the operator
- * paste the token and choose a password. After success a session cookie is
- * issued and we redirect to the dashboard.
- *
- * Route: `/welcome`. We don't reuse `/setup` because that's the TRMNL device
- * setup page (different feature, established earlier).
- */
+/* One-time auth bootstrap (#136). The API generates a setup token in its
+   startup logs when no admin password is set; this page lets the operator
+   paste the token and choose a password. */
 export function Welcome() {
   const [token, setToken] = useState('');
   const [pw1, setPw1] = useState('');
@@ -18,7 +17,6 @@ export function Welcome() {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // If admin already set up, this page shouldn't be reachable — bounce home.
   useEffect(() => {
     fetch('/api/auth/setup-token').then((r) => {
       if (r.status === 404) navigate('/login', { replace: true });
@@ -57,64 +55,74 @@ export function Welcome() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 420, margin: '40px auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{ fontSize: 56, marginBottom: 8 }}>🪴</div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Welcome to PLNT</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          Enter the setup token from your server logs to claim this instance.
-        </p>
+    <div className="p7l-auth">
+      <div className="p7l-auth__lockup">
+        <Lockup stampSize={64} />
       </div>
-      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <input
-          aria-label="Setup token"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="Setup token (e.g. ABCD-1234-EFGH)"
-          autoFocus
-          required
-          style={{ fontSize: 16, padding: '12px 14px' }}
-        />
-        <input
-          aria-label="Password"
-          type="password"
-          value={pw1}
-          onChange={(e) => setPw1(e.target.value)}
-          placeholder="Choose a password (min 12 chars)"
-          required
-          style={{ fontSize: 16, padding: '12px 14px' }}
-        />
-        <input
-          aria-label="Confirm password"
-          type="password"
-          value={pw2}
-          onChange={(e) => setPw2(e.target.value)}
-          placeholder="Confirm password"
-          required
-          style={{ fontSize: 16, padding: '12px 14px' }}
-        />
+      <PageHead
+        size="sm"
+        eyebrow="First-time setup"
+        title="Claim this instance"
+        subtitle="Paste the setup token from your server logs and pick a password."
+      />
+      <form onSubmit={submit} className="p7l-auth__form">
+        <div className="p7l-auth__field">
+          <FieldLabel htmlFor="setup-token" required>
+            Setup token
+          </FieldLabel>
+          <input
+            id="setup-token"
+            aria-label="Setup token"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder="ABCD-1234-EFGH"
+            autoFocus
+            required
+            className="p7l-auth__input"
+          />
+        </div>
+        <div className="p7l-auth__field">
+          <FieldLabel htmlFor="setup-pw1" required hint="Minimum 12 characters.">
+            Password
+          </FieldLabel>
+          <input
+            id="setup-pw1"
+            aria-label="Password"
+            type="password"
+            value={pw1}
+            onChange={(e) => setPw1(e.target.value)}
+            required
+            className="p7l-auth__input"
+          />
+        </div>
+        <div className="p7l-auth__field">
+          <FieldLabel htmlFor="setup-pw2" required>
+            Confirm password
+          </FieldLabel>
+          <input
+            id="setup-pw2"
+            aria-label="Confirm password"
+            type="password"
+            value={pw2}
+            onChange={(e) => setPw2(e.target.value)}
+            required
+            className="p7l-auth__input"
+          />
+        </div>
         {error && (
-          <div role="alert" style={{ color: 'var(--danger)' }}>
+          <div role="alert" className="p7l-auth__error">
             {error}
           </div>
         )}
-        <button
+        <Button
           type="submit"
+          size="lg"
+          fullWidth
           disabled={submitting}
-          style={{
-            background: 'var(--accent)',
-            color: 'white',
-            border: 'none',
-            borderRadius: 12,
-            padding: '14px 0',
-            fontSize: 17,
-            fontWeight: 600,
-            cursor: submitting ? 'not-allowed' : 'pointer',
-            opacity: submitting ? 0.6 : 1,
-          }}
+          loading={submitting}
         >
           {submitting ? 'Setting up…' : 'Claim instance'}
-        </button>
+        </Button>
       </form>
     </div>
   );
