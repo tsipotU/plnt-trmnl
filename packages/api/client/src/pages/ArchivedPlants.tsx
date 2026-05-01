@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { BackBar } from '../components/molecules/BackBar/BackBar.js';
+import { PageHead } from '../components/molecules/PageHead/PageHead.js';
+import { FilterRail } from '../components/molecules/FilterRail/FilterRail.js';
+import { ArchiveCard, type ArchiveStamp } from '../components/molecules/ArchiveCard/ArchiveCard.js';
+import { EmptyState } from '../components/molecules/EmptyState/EmptyState.js';
+import { Chip } from '../components/atoms/Chip/Chip.js';
+import './ArchivedPlants.css';
 
 interface ArchivedPlant {
   id: number;
@@ -34,7 +41,19 @@ function formatArchivedAt(ts: string | null): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function buildStamps(p: ArchivedPlant): ArchiveStamp[] {
+  const stamps: ArchiveStamp[] = [];
+  if (p.archive_reason) {
+    stamps.push({ label: REASON_LABELS[p.archive_reason], memorial: p.archive_reason === 'died' });
+  }
+  if (p.archived_at) {
+    stamps.push({ label: formatArchivedAt(p.archived_at) });
+  }
+  return stamps;
+}
+
 export function ArchivedPlants() {
+  const navigate = useNavigate();
   const [plants, setPlants] = useState<ArchivedPlant[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ReasonFilter>('all');
@@ -57,126 +76,82 @@ export function ArchivedPlants() {
   }, {});
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <Link
-          to="/"
-          style={{
-            color: 'var(--text-secondary)',
-            fontSize: 24,
-            lineHeight: 1,
-            minWidth: 44,
-            minHeight: 44,
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          aria-label="Back"
-        >
-          ‹
-        </Link>
-        <h1 style={{ fontSize: 22, fontWeight: 700 }}>Archived</h1>
-      </div>
+    <div className="p7l-archived">
+      <BackBar onBack={() => navigate('/')} backLabel="← Today" />
 
-      {loading ? (
-        <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Loading…</p>
-      ) : plants.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-secondary)' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🌱</div>
-          <p style={{ fontSize: 15 }}>No archived plants yet.</p>
-          <p style={{ fontSize: 13, marginTop: 4 }}>
-            When you archive a plant, it shows up here.
-          </p>
-        </div>
-      ) : (
+      {loading && (
+        <EmptyState>Loading…</EmptyState>
+      )}
+
+      {!loading && plants.length === 0 && (
+        <EmptyState>
+          🌱 No archived plants yet.
+          <br />
+          When you archive a plant, it shows up here.
+        </EmptyState>
+      )}
+
+      {!loading && plants.length > 0 && (
         <>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-            <FilterChip active={filter === 'all'} onClick={() => setFilter('all')}>
+          <PageHead
+            eyebrow={`${plants.length} ${plants.length === 1 ? 'entry' : 'entries'}`}
+            title="Archive"
+            subtitle="Plants that left, were given away, or didn't make it."
+          />
+
+          <FilterRail>
+            <Chip
+              toggleable
+              active={filter === 'all'}
+              onClick={() => setFilter('all')}
+            >
               All ({plants.length})
-            </FilterChip>
+            </Chip>
             {(['died', 'gave_away', 'moved', 'other'] as const).map((r) =>
               reasonCounts[r] ? (
-                <FilterChip key={r} active={filter === r} onClick={() => setFilter(r)}>
+                <Chip
+                  key={r}
+                  toggleable
+                  active={filter === r}
+                  onClick={() => setFilter(r)}
+                >
                   {REASON_EMOJI[r]} {REASON_LABELS[r]} ({reasonCounts[r]})
-                </FilterChip>
+                </Chip>
               ) : null,
             )}
-          </div>
+          </FilterRail>
 
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, listStyle: 'none' }}>
-            {visible.map((p) => (
-              <li key={p.id}>
-                <Link
-                  to={`/archive/${p.id}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 14px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius)',
-                    textDecoration: 'none',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  <div style={{ fontSize: 28, flexShrink: 0 }}>
-                    {p.archive_reason ? REASON_EMOJI[p.archive_reason] : '📦'}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600 }}>
-                      {p.name}
-                      {p.identifier && (
-                        <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>
-                          {' '}
-                          · {p.identifier}
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        color: 'var(--text-secondary)',
-                        marginTop: 2,
-                      }}
-                    >
-                      {p.archive_reason ? REASON_LABELS[p.archive_reason] : 'Archived'} ·{' '}
-                      {formatArchivedAt(p.archived_at)}
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {visible.length === 0 ? (
+            <EmptyState align="left">No entries in this category.</EmptyState>
+          ) : (
+            visible.map((p) => (
+              <ArchiveCard
+                key={p.id}
+                leadingIcon={p.archive_reason ? REASON_EMOJI[p.archive_reason] : '📦'}
+                name={
+                  p.identifier ? (
+                    <>
+                      {p.name}{' '}
+                      <span style={{ fontWeight: 400, color: 'var(--ink-2)' }}>
+                        · {p.identifier}
+                      </span>
+                    </>
+                  ) : (
+                    p.name
+                  )
+                }
+                species={p.species ?? undefined}
+                stamps={buildStamps(p)}
+                note={p.archive_note ?? undefined}
+                onClick={() => navigate(`/archive/${p.id}`)}
+                aria-label={`Open memorial for ${p.name}`}
+              />
+            ))
+          )}
+
+          <div style={{ height: 96 }} />
         </>
       )}
     </div>
-  );
-}
-
-function FilterChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: '6px 12px',
-        borderRadius: 999,
-        border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-        background: active ? 'var(--accent)' : 'transparent',
-        color: active ? 'white' : 'var(--text-secondary)',
-        fontSize: 13,
-        cursor: 'pointer',
-      }}
-    >
-      {children}
-    </button>
   );
 }
