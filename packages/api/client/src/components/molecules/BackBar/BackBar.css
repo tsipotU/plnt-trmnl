@@ -1,0 +1,54 @@
+.p7l-backbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px 10px;
+  background: var(--bg);
+  border-bottom: var(--hairline-thin) solid var(--ink);
+  position: relative;
+  z-index: 5;
+}
+
+.p7l-backbar__back {
+  background: transparent;
+  border: var(--hairline-thin) solid var(--ink);
+  border-radius: var(--r-0);
+  padding: 6px 10px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--motion-fast) var(--ease-standard);
+}
+
+.p7l-backbar__back:hover { background: var(--surface); }
+
+.p7l-backbar__back:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.p7l-backbar__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.p7l-backbar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-left: auto;
+}

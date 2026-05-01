@@ -1,0 +1,97 @@
+.p7l-drawer__bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 90;
+  animation: p7l-drawer-fade var(--motion-base) var(--ease-standard);
+}
+
+.p7l-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 78%;
+  max-width: 300px;
+  background: var(--bg);
+  border-left: var(--hairline-thin) solid var(--ink);
+  z-index: 91;
+  display: flex;
+  flex-direction: column;
+  animation: p7l-drawer-slide var(--motion-slow) var(--ease-standard);
+  padding-top: 14px;
+}
+
+@keyframes p7l-drawer-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes p7l-drawer-slide {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.p7l-drawer__title {
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: var(--hairline-thin) solid var(--ink);
+}
+
+.p7l-drawer__nav {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.p7l-drawer__footer {
+  margin-top: auto;
+  padding: 14px 18px;
+  border-top: var(--hairline-thin) solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+
+/* === DrawerLink === */
+.p7l-drawer__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  border-bottom: var(--hairline-thin) solid var(--border);
+  transition: background var(--motion-fast) var(--ease-standard);
+}
+
+.p7l-drawer__link:hover, .p7l-drawer__link:active { background: var(--surface); }
+
+.p7l-drawer__link--active {
+  background: var(--surface);
+  border-left: 3px solid var(--ink);
+  padding-left: 15px;
+}
+
+.p7l-drawer__link-meta {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}

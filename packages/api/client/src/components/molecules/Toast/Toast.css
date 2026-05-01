@@ -1,0 +1,49 @@
+.p7l-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 54px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  padding: 10px 16px;
+  z-index: 80;
+  max-width: 340px;
+  text-align: center;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  animation: p7l-toast-in var(--motion-slow) var(--ease-standard);
+}
+
+@keyframes p7l-toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.p7l-toast__msg { white-space: nowrap; }
+
+.p7l-toast__action button,
+.p7l-toast__action {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bg);
+}
+
+/* Default styling for a button passed directly without wrapper */
+.p7l-toast__action > button {
+  background: transparent;
+  color: var(--bg);
+  border: var(--hairline-thin) solid var(--bg);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+.p7l-toast__action > button:hover { background: rgba(255,255,255,0.08); }

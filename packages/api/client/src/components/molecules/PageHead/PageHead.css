@@ -1,0 +1,31 @@
+.p7l-pagehead {
+  padding: 16px 18px 14px;
+  border-bottom: var(--hairline-thin) solid var(--ink);
+}
+
+.p7l-pagehead--solo { padding-top: 64px; }
+
+.p7l-pagehead__eyebrow {
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+}
+
+.p7l-pagehead__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin: 6px 0 4px;
+  color: var(--ink);
+}
+
+.p7l-pagehead--lg .p7l-pagehead__title { font-size: 30px; }
+.p7l-pagehead--sm .p7l-pagehead__title { font-size: 24px; }
+
+.p7l-pagehead__subtitle {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 0;
+}
