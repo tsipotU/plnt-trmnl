@@ -6,6 +6,11 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 This is the API contract for every component in the p7l catalog.
 
+> **Catalog at a glance.** 9 atoms · 26 molecules — all consume only the
+> semantic token layer, all ship with a `.stories.tsx` next to their `.tsx`.
+> When this number changes, that's a new component for someone to learn.
+> Bump it deliberately.
+
 When a component has a choice between accepting **structured data** (an object,
 an array of items, a discriminated union of props) or accepting a **slot**
 (`ReactNode`), it accepts the slot. The component is purely presentational;
@@ -226,6 +231,34 @@ signal — back up and look for the slot.
 
 ---
 
+## Molecules discovered during page rebuilds
+
+When a Phase-3 page rebuild surfaces a recurring pattern that the catalog
+doesn't yet cover, **add the molecule to the catalog with its story in the
+same PR**. Don't inline-build it; don't defer it as "we'll extract later".
+
+The canonical example is **`SectionHead`** — a small mono-eyebrow + optional
+right-side action divider used between row groups. It wasn't on the original
+24-molecule list because no one foresaw how often it would recur. The Today
+rebuild surfaced it (4 instances on one screen alone), so it joined the
+catalog in the same PR with a full story (Default, WithAction, WithButtonAction,
+WithCountTrail, InContext) and a doc page entry.
+
+Two reasons this rule matters:
+
+- **Catalog drift.** If three pages each grow their own slightly-different
+  inline section divider, you now have three patterns where there should be
+  one. Pull it up the first time it repeats.
+- **Story coverage.** Every catalog component ships with a story. Inline
+  page components don't — they're invisible to the contributor browsing
+  Storybook. The catalog is the contract; let it grow.
+
+If a pattern only appears on one page (e.g. Today's `ScheduleLine` forecast
+row), it stays page-local. The bar for promotion is **"will another page
+need this?"** — when in doubt, promote.
+
+---
+
 ## Cross-references
 
 - [Atoms / RowState](?path=/docs/atoms-rowstate--docs) — used as the state slot in PlantRow
@@ -234,3 +267,4 @@ signal — back up and look for the slot.
 - [Molecules / PlantRow](?path=/docs/molecules-plantrow--docs)
 - [Molecules / SettingsRow](?path=/docs/molecules-settingsrow--docs)
 - [Molecules / FilterRail](?path=/docs/molecules-filterrail--docs)
+- [Molecules / SectionHead](?path=/docs/molecules-sectionhead--docs) — canonical "discovered during rebuild" example
