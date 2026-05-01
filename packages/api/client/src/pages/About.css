@@ -1,5 +1,4 @@
 .p7l-about {
-  margin: -16px;
   background: var(--bg);
   color: var(--ink);
   min-height: calc(100dvh - 80px);

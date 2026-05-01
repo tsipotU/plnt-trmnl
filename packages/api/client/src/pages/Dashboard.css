@@ -4,7 +4,6 @@
    are rebuilt, App.tsx loses the padding and this margin comes out. */
 
 .p7l-today {
-  margin: -16px;
   background: var(--bg);
   color: var(--ink);
   min-height: calc(100dvh - 80px);

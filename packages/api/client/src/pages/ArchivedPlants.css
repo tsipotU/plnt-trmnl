@@ -2,7 +2,6 @@
    as the other rebuilt pages. */
 
 .p7l-archived {
-  margin: -16px;
   background: var(--bg);
   color: var(--ink);
   min-height: calc(100dvh - 80px);

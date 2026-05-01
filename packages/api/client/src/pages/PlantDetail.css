@@ -1,9 +1,7 @@
-/* Page-local styles for Plant detail. Shares the transitional margin: -16
-   trick with Today + Plants list. Adds a few page-only blocks: action
-   button row, photo strip wrapper, log container, dev info grid. */
+/* Page-local styles for Plant detail. Action button row, photo strip
+   wrapper, log container, dev info grid. */
 
 .p7l-plant-detail {
-  margin: -16px;
   background: var(--bg);
   color: var(--ink);
   min-height: calc(100dvh - 80px);

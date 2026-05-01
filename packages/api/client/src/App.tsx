@@ -35,7 +35,7 @@ export function App() {
               <AuthGate>
                 <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
                   <Header />
-                  <main style={{ flex: 1, padding: 16 }}>
+                  <main style={{ flex: 1 }}>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/plants" element={<PlantsList />} />

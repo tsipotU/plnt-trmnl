@@ -1,9 +1,8 @@
 /* Page-local styles for Add plant. Edge-to-edge wrapper, sticky footer
    (m-submit pattern from prototype), catalog autocomplete dropdown, room
-   chips. Same margin: -16 transitional trick as Today/Plants/Plant detail. */
+   chips. */
 
 .p7l-addplant {
-  margin: -16px;
   background: var(--bg);
   color: var(--ink);
   min-height: calc(100dvh - 80px);

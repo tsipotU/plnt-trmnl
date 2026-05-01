@@ -3,7 +3,6 @@
    Phase 3. */
 
 .p7l-plants {
-  margin: -16px;
   background: var(--bg);
   color: var(--ink);
   min-height: calc(100dvh - 80px);
