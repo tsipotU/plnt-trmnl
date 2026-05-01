@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { BackBar } from '../components/molecules/BackBar/BackBar.js';
+import { SectionHead } from '../components/molecules/SectionHead/SectionHead.js';
+import { DetailDataGrid, DataCell } from '../components/molecules/DetailDataGrid/DetailDataGrid.js';
+import { InfoCard } from '../components/molecules/InfoCard/InfoCard.js';
+import { EmptyState } from '../components/molecules/EmptyState/EmptyState.js';
+import { Button } from '../components/atoms/Button/Button.js';
+import './MemorialPlant.css';
 
 interface MemorialPlantData {
   id: number;
@@ -29,10 +36,17 @@ interface MemorialResponse {
 }
 
 const REASON_LABEL: Record<NonNullable<MemorialPlantData['archive_reason']>, string> = {
-  died: 'It died 😢',
+  died: 'It died',
   gave_away: 'Gave it away',
   moved: 'Moved away',
   other: 'Other',
+};
+
+const REASON_EMOJI: Record<NonNullable<MemorialPlantData['archive_reason']>, string> = {
+  died: '🕊️',
+  gave_away: '🎁',
+  moved: '📦',
+  other: '📝',
 };
 
 function formatDate(ts: string | null): string {
@@ -95,145 +109,91 @@ export function MemorialPlant() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)' }}>
-        Loading…
+      <div className="p7l-memorial">
+        <BackBar onBack={() => navigate('/archived')} backLabel="← Archive" />
+        <EmptyState>Loading…</EmptyState>
       </div>
     );
   }
+
   if (notFound || !data) {
     return (
-      <div style={{ textAlign: 'center', padding: 48 }}>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Plant not found.</p>
-        <button
-          onClick={() => navigate('/archived')}
-          style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-        >
-          ← Back to archive
-        </button>
+      <div className="p7l-memorial">
+        <BackBar onBack={() => navigate('/archived')} backLabel="← Archive" />
+        <EmptyState>Plant not found.</EmptyState>
       </div>
     );
   }
 
   const { plant, stats } = data;
   const lifespan = formatLifespan(stats.lifespan_days);
+  const reasonLabel = plant.archive_reason ? REASON_LABEL[plant.archive_reason] : null;
+  const reasonEmoji = plant.archive_reason ? REASON_EMOJI[plant.archive_reason] : null;
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        {plant.illustration_path ? (
-          <img
-            src={`/api/illustrations/${plant.illustration_path}`}
-            alt={plant.species ?? plant.name}
-            style={{
-              maxWidth: 200,
-              maxHeight: 200,
-              filter: 'grayscale(0.7)',
-              opacity: 0.85,
-              marginBottom: 16,
-            }}
-          />
-        ) : (
-          <div
-            style={{ fontSize: 80, marginBottom: 16, filter: 'grayscale(0.5)', opacity: 0.7 }}
-          >
-            🪴
-          </div>
-        )}
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
-          In memoriam — {plant.name}
-        </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-          lived in your home for {lifespan}
-        </p>
-      </div>
+    <div className="p7l-memorial">
+      <BackBar
+        onBack={() => navigate('/archived')}
+        backLabel="← Archive"
+        eyebrow={reasonLabel ?? undefined}
+      />
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
-        <StatTile emoji="🌊" value={stats.waterings} label="waterings" />
-        <StatTile emoji="🌿" value={stats.offspring} label="offspring" />
-        <StatTile emoji="📈" value={stats.calibration_cycles} label="calibration cycles" />
-        <StatTile
-          emoji="📅"
-          value=""
-          label={`Joined ${formatDate(stats.joined_at)} · Archived ${formatDate(
-            stats.archived_at,
-          )}`}
-        />
-      </div>
-
-      {plant.archive_reason && (
-        <div
-          style={{
-            padding: 16,
-            marginBottom: 16,
-            background: 'var(--bg-card)',
-            borderRadius: 8,
-            border: '1px solid var(--border)',
-          }}
-        >
-          <div style={{ fontSize: 14 }}>
-            <strong>Cause:</strong> {REASON_LABEL[plant.archive_reason]}
-            {plant.archive_note ? ` — ${plant.archive_note}` : ''}
-          </div>
+      <header className="p7l-memorial__hero">
+        <div className="p7l-memorial__pic" aria-hidden="true">
+          {plant.illustration_path ? (
+            <img
+              src={`/api/illustrations/${encodeURIComponent(plant.illustration_path)}`}
+              alt={plant.species ?? plant.name}
+            />
+          ) : (
+            <span className="p7l-memorial__pic-fallback">{reasonEmoji ?? '🪴'}</span>
+          )}
         </div>
+        <span className="p7l-memorial__eyebrow">In memoriam</span>
+        <h1 className="p7l-memorial__name">{plant.name}</h1>
+        <p className="p7l-memorial__lifespan">lived in your home for {lifespan}</p>
+      </header>
+
+      <DetailDataGrid cols={2}>
+        <DataCell label="Joined" value={formatDate(stats.joined_at)} />
+        <DataCell label="Archived" value={formatDate(stats.archived_at)} />
+        <DataCell label="Waterings" value={String(stats.waterings)} />
+        <DataCell label="Offspring" value={String(stats.offspring)} />
+        <DataCell label="Calibration cyc" value={String(stats.calibration_cycles)} />
+        <DataCell label="Lived in" value={plant.location ?? '—'} />
+      </DetailDataGrid>
+
+      {(plant.archive_reason || plant.archive_note) && (
+        <>
+          <SectionHead label="Cause" />
+          <div style={{ padding: '0 18px 12px' }}>
+            <InfoCard title={reasonLabel ?? undefined}>
+              {plant.archive_note ?? (
+                <span style={{ fontStyle: 'italic', color: 'var(--ink-3)' }}>
+                  No note recorded.
+                </span>
+              )}
+            </InfoCard>
+          </div>
+        </>
       )}
 
-      {plant.location && (
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
-          Lived in: {plant.location}
-        </p>
-      )}
-
-      <div style={{ textAlign: 'center', marginTop: 32 }}>
-        <button
+      <SectionHead label="Restore" />
+      <div className="p7l-memorial__danger">
+        <Button
           type="button"
+          variant="ghost"
+          size="lg"
+          fullWidth
           onClick={handleRestore}
           disabled={restoring}
-          style={{
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-secondary)',
-            padding: '8px 16px',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            cursor: restoring ? 'wait' : 'pointer',
-            fontSize: 13,
-          }}
+          loading={restoring}
         >
           {restoring ? 'Restoring…' : 'Restore plant'}
-        </button>
+        </Button>
       </div>
-    </div>
-  );
-}
 
-function StatTile({
-  emoji,
-  value,
-  label,
-}: {
-  emoji: string;
-  value: number | string;
-  label: string;
-}) {
-  return (
-    <div
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 8,
-        padding: 12,
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontSize: 24, marginBottom: 4 }}>{emoji}</div>
-      {value !== '' && <div style={{ fontSize: 20, fontWeight: 700 }}>{value}</div>}
-      <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{label}</div>
+      <div style={{ height: 96 }} />
     </div>
   );
 }
