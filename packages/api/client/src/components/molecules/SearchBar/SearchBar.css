@@ -1,0 +1,53 @@
+.p7l-searchbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: var(--hairline-thin) solid var(--border-strong);
+  background: var(--bg);
+  position: relative;
+}
+
+.p7l-searchbar__icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+
+.p7l-searchbar__input {
+  flex: 1;
+  background: var(--bg-elevated);
+  border: var(--hairline-thin) solid var(--ink);
+  border-radius: var(--r-0);
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.p7l-searchbar__input::placeholder { color: var(--ink-3); }
+
+.p7l-searchbar__input:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.p7l-searchbar__clear {
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: var(--r-1);
+}
+.p7l-searchbar__clear:hover { color: var(--ink); background: var(--surface); }
+
+/* Hide native search clear button (we render our own) */
+.p7l-searchbar__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}

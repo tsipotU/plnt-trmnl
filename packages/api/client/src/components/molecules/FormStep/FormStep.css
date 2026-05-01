@@ -1,0 +1,30 @@
+.p7l-formstep {
+  padding: 16px 18px;
+  border-bottom: var(--hairline-thin) solid var(--border-strong);
+  background: var(--bg);
+}
+
+.p7l-formstep__num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.p7l-formstep__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 4px 0 10px;
+}
+
+.p7l-formstep__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.p7l-formstep:last-child { border-bottom: none; }
