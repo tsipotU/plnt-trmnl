@@ -1,0 +1,109 @@
+/* Page-local styles for Today (Dashboard.tsx). The chrome <main> wrapper
+   in App.tsx still adds 16px padding for not-yet-rebuilt pages; we negate
+   it here so Today renders edge-to-edge per the prototype. Once all pages
+   are rebuilt, App.tsx loses the padding and this margin comes out. */
+
+.p7l-today {
+  margin: -16px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: calc(100dvh - 80px);
+  font-family: var(--font-sans);
+}
+
+/* Schedule line (page-local — only used on Today). day · count · names. */
+.p7l-today__sched {
+  display: flex;
+  gap: 8px;
+  padding: 8px 18px;
+  border-bottom: var(--hairline-thin) solid var(--border);
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.p7l-today__sched-day {
+  color: var(--ink-3);
+  width: 48px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.p7l-today__sched-count {
+  font-weight: 600;
+  color: var(--ink);
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.p7l-today__sched-count--zero { color: var(--ink-3); font-weight: 400; }
+
+.p7l-today__sched-names {
+  color: var(--ink-2);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Welcome (empty state) — kept distinct from EmptyState molecule because it
+   carries the first-plant-CTA hero treatment per the existing #125 fix. */
+.p7l-today__welcome {
+  text-align: center;
+  padding: 60px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.p7l-today__welcome-emoji { font-size: 72px; line-height: 1; }
+
+.p7l-today__welcome-title {
+  font-family: var(--font-display);
+  font-size: var(--text-headline);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.p7l-today__welcome-body {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-body-lg);
+  color: var(--ink-2);
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+/* FAB anchor — uses react-router Link styled as the FAB molecule.
+   Keeps right-click "open in new tab" semantics that a button-onClick loses. */
+.p7l-today__fab {
+  position: fixed;
+  right: 16px;
+  bottom: 34px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 300;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: var(--shadow-3);
+  z-index: 30;
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.p7l-today__fab:hover { transform: translateY(-1px); color: var(--bg); }
+.p7l-today__fab:active { transform: translateY(0); }

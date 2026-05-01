@@ -1,12 +1,128 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlantCard } from '../components/PlantCard.js';
 import { CalibrationModal } from '../components/CalibrationModal.js';
 import { CalibrationSequence } from '../components/CalibrationSequence.js';
 import { BatchUndoToast } from '../components/BatchUndoToast.js';
-import { CalendarStrip } from '../components/CalendarStrip.js';
 import { useWeekSchedule } from '../hooks/useWeekSchedule.js';
 import type { Plant } from '../components/PlantCard.js';
+import { PageHead } from '../components/molecules/PageHead/PageHead.js';
+import { StatRow, Stat } from '../components/molecules/StatRow/StatRow.js';
+import { SectionHead } from '../components/molecules/SectionHead/SectionHead.js';
+import { PlantRow } from '../components/molecules/PlantRow/PlantRow.js';
+import { Banner } from '../components/atoms/Banner/Banner.js';
+import { EmptyState } from '../components/molecules/EmptyState/EmptyState.js';
+import { Button } from '../components/atoms/Button/Button.js';
+import { Chip } from '../components/atoms/Chip/Chip.js';
+import { RowState } from '../components/atoms/RowState/RowState.js';
+import { Pictogram, type IconName } from '../components/atoms/Pictogram/Pictogram.js';
+import './Dashboard.css';
+
+/* === Helpers ============================================================ */
+
+const DAY_MS = 86_400_000;
+
+const isoToday = (): string => new Date().toISOString().slice(0, 10);
+
+/* Today's date displayed apothecary-style, e.g. "2026·05·04 · Mon". */
+function formatTodayEyebrow(now: Date = new Date()): string {
+  const iso = now.toISOString().slice(0, 10).replaceAll('-', '·');
+  const dow = now.toLocaleDateString('en-US', { weekday: 'short' });
+  return `${iso} · ${dow}`;
+}
+
+/* "X thirsty, Y total." — or "Everyone is comfortable." when nothing's due. */
+function buildSubtitle(dueCount: number, totalCount: number): string {
+  if (totalCount === 0) return '';
+  if (dueCount === 0) return 'Everyone is comfortable.';
+  return `${dueCount} thirsty, ${totalCount} total.`;
+}
+
+/* Map a plant to a RowState pill + label. The mapping is page-level
+   (per the slot-over-data principle) — PlantRow accepts a state node. */
+type PlantStateInfo = {
+  tone: 'due' | 'overdue' | 'healthy' | 'calibrating' | 'just-added' | 'dormant' | 'vacation';
+  label: string;
+};
+
+function plantState(p: Plant, today: string): PlantStateInfo {
+  const wateredToday = p.last_watered_at?.startsWith(today);
+  const isOverdue =
+    p.next_water_date != null &&
+    p.next_water_date < today;
+  const isDueToday =
+    p.next_water_date != null && p.next_water_date === today;
+  const isCalibrating = p.is_converged === 0 && (p.current_interval ?? 0) > 0;
+  const isNew = p.enrichment_status === 'pending';
+
+  if (wateredToday) return { tone: 'healthy', label: 'Watered' };
+  if (isOverdue) {
+    const days = Math.max(
+      1,
+      Math.round(
+        (new Date(today + 'T00:00').getTime() -
+          new Date((p.next_water_date as string) + 'T00:00').getTime()) /
+          DAY_MS,
+      ),
+    );
+    return { tone: 'overdue', label: `Overdue ${days}d` };
+  }
+  if (isDueToday) return { tone: 'due', label: 'Due today' };
+  if (isNew) return { tone: 'just-added', label: 'New' };
+  if (isCalibrating) return { tone: 'calibrating', label: 'Calibrating' };
+  if (p.next_water_date != null) {
+    const days = Math.round(
+      (new Date(p.next_water_date + 'T00:00').getTime() -
+        new Date(today + 'T00:00').getTime()) /
+        DAY_MS,
+    );
+    return { tone: 'healthy', label: `In ${days}d` };
+  }
+  return { tone: 'healthy', label: 'Comfortable' };
+}
+
+/* Map enrichment_status / future category to a Pictogram name. We don't have
+   `category` on Plant yet — fall back to a generic leaf glyph. */
+function plantPictogram(_p: Plant): IconName {
+  return 'leaf';
+}
+
+/* Build the meta line: location · interval cycle · dialed-in suffix. */
+function plantMeta(p: Plant): string {
+  const parts: string[] = [];
+  if (p.location) parts.push(p.location);
+  if (p.current_interval) parts.push(`${p.current_interval}d cycle`);
+  if (p.is_converged === 1) parts.push('dialed in');
+  return parts.join(' · ');
+}
+
+/* Render a single 7-day forecast row. Page-local — only Today uses it. */
+function ScheduleLine({
+  day,
+  count,
+  names,
+}: {
+  day: string;
+  count: number;
+  names: string[];
+}) {
+  return (
+    <div className="p7l-today__sched">
+      <span className="p7l-today__sched-day">{day}</span>
+      <span
+        className={`p7l-today__sched-count ${
+          count === 0 ? 'p7l-today__sched-count--zero' : ''
+        }`}
+      >
+        {count === 0 ? '·' : count}
+      </span>
+      <span className="p7l-today__sched-names">
+        {names.length === 0 ? '—' : names.join(', ')}
+      </span>
+    </div>
+  );
+}
+
+/* === Page =============================================================== */
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -16,7 +132,6 @@ export function Dashboard() {
   const [calibQueue, setCalibQueue] = useState<number[] | null>(null);
   const [batchToast, setBatchToast] = useState<{ batchId: string; count: number } | null>(null);
   const [batching, setBatching] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { days: scheduleDays, refresh: refreshSchedule } = useWeekSchedule();
 
   const loadPlants = useCallback(() => {
@@ -26,24 +141,40 @@ export function Dashboard() {
         return r.json();
       })
       .then((data: Plant[]) => setPlants(data))
-      .catch((err) => setError(err.message));
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
 
   useEffect(() => {
     loadPlants().finally(() => setLoading(false));
   }, [loadPlants]);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const dueToday = plants.filter(
-    (p) => p.next_water_date != null && p.next_water_date <= today,
+  const today = isoToday();
+  const active = plants.filter((p) => p.archived === 0);
+  const dueToday = active.filter(
+    (p) =>
+      p.next_water_date != null &&
+      p.next_water_date <= today &&
+      !p.last_watered_at?.startsWith(today),
   );
+  const wateredToday = active.filter((p) => p.last_watered_at?.startsWith(today));
+  const dialedInCount = active.filter((p) => p.is_converged === 1).length;
+  const dueIds = new Set(dueToday.map((p) => p.id));
+  const wateredIds = new Set(wateredToday.map((p) => p.id));
+  const resting = active.filter((p) => !dueIds.has(p.id) && !wateredIds.has(p.id));
 
-  // Filter plants by selected date if a date is selected
-  const filteredPlants = selectedDate
-    ? plants.filter((p) => p.next_water_date === selectedDate)
-    : plants;
+  // Vacation count: prototype tracks per-day; surface as a banner if any day in the strip has vacation flag.
+  const onVacation = scheduleDays.filter((d) => d.vacation).length;
 
-  const plantNames = Object.fromEntries(plants.map((p) => [p.id, p.name] as const));
+  // 7-day forecast — slice from today forward.
+  const forecast = scheduleDays
+    .filter((d) => d.date >= today)
+    .slice(0, 7)
+    .map((d) => ({
+      key: d.date,
+      day: new Date(d.date + 'T00:00').toLocaleDateString('en-US', { weekday: 'short' }),
+      count: d.count,
+      names: d.plant_names,
+    }));
 
   async function handleWaterAll() {
     if (batching) return;
@@ -66,60 +197,122 @@ export function Dashboard() {
     }
   }
 
+  const plantNames = Object.fromEntries(plants.map((p) => [p.id, p.name] as const));
+
+  function renderPlantRow(p: Plant) {
+    const state = plantState(p, today);
+    return (
+      <PlantRow
+        key={p.id}
+        pictogram={<Pictogram name={plantPictogram(p)} size={28} />}
+        name={p.name}
+        species={p.species ?? p.common_name ?? undefined}
+        meta={plantMeta(p)}
+        state={<RowState tone={state.tone}>{state.label}</RowState>}
+        onClick={() => navigate(`/plants/${p.id}`)}
+      />
+    );
+  }
+
   return (
-    <div>
+    <div className="p7l-today">
       {/* Calibration modal — shown if plants are due for calibration today */}
       <CalibrationModal onDone={() => {}} />
 
-      {/* Page header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 20,
-          flexWrap: 'wrap',
-          gap: 8,
-        }}
-      >
-        <h1
-          style={{
-            fontSize: 24,
-            fontWeight: 700,
-            color: 'var(--text-primary)',
-          }}
-        >
-          My Plants
-        </h1>
-      </div>
+      {/* Loading state */}
+      {loading && <EmptyState>Loading plants…</EmptyState>}
 
-      {/* 7-day upcoming watering calendar */}
-      {scheduleDays.length > 0 && (
-        <CalendarStrip days={scheduleDays} selectedDate={selectedDate} onDaySelect={setSelectedDate} />
+      {/* Error state */}
+      {error && !loading && (
+        <Banner tone="error" title="Couldn't load plants">
+          {error}
+        </Banner>
       )}
 
-      {/* Water all — only when 2+ plants are due today */}
-      {!loading && dueToday.length >= 2 && (
-        <button
-          onClick={handleWaterAll}
-          disabled={batching}
-          style={{
-            minHeight: 44,
-            padding: '0.6rem 1rem',
-            marginBottom: 16,
-            background: 'var(--accent)',
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: batching ? 'not-allowed' : 'pointer',
-            opacity: batching ? 0.7 : 1,
-            width: '100%',
-          }}
-        >
-          {batching ? 'Watering…' : `Water all (${dueToday.length})`}
-        </button>
+      {/* Empty state — first plant */}
+      {!loading && !error && plants.length === 0 && (
+        <div className="p7l-today__welcome">
+          <span className="p7l-today__welcome-emoji" aria-hidden="true">🪴</span>
+          <h2 className="p7l-today__welcome-title">Welcome to PLNT</h2>
+          <p className="p7l-today__welcome-body">
+            Add your first plant to get started.
+          </p>
+          <Button variant="primary" size="lg" onClick={() => navigate('/add')}>
+            + Add Your First Plant
+          </Button>
+        </div>
+      )}
+
+      {/* Populated states */}
+      {!loading && !error && active.length > 0 && (
+        <>
+          <PageHead
+            eyebrow={formatTodayEyebrow()}
+            title="Today"
+            subtitle={buildSubtitle(dueToday.length, active.length)}
+          />
+
+          <StatRow>
+            <Stat num={dueToday.length} label="Due" />
+            <Stat num={dialedInCount} label="Dialed in" />
+            <Stat num={wateredToday.length} label="Watered" />
+          </StatRow>
+
+          {onVacation > 0 && (
+            <Banner tone="info">
+              ✈️ {onVacation} {onVacation === 1 ? 'day' : 'days'} on vacation in the next week
+            </Banner>
+          )}
+
+          {dueToday.length > 0 && (
+            <>
+              <SectionHead
+                label="Today's water"
+                action={
+                  dueToday.length >= 2 ? (
+                    <Chip toggleable onClick={handleWaterAll} disabled={batching}>
+                      {batching ? 'Watering…' : `Water all (${dueToday.length})`}
+                    </Chip>
+                  ) : undefined
+                }
+              />
+              {dueToday.map(renderPlantRow)}
+            </>
+          )}
+
+          {wateredToday.length > 0 && (
+            <>
+              <SectionHead label="Watered today" />
+              {wateredToday.map(renderPlantRow)}
+            </>
+          )}
+
+          {forecast.length > 0 && (
+            <>
+              <SectionHead label="Next 7 days" />
+              {forecast.map((s) => (
+                <ScheduleLine key={s.key} day={s.day} count={s.count} names={s.names} />
+              ))}
+            </>
+          )}
+
+          {resting.length > 0 && (
+            <>
+              <SectionHead label="Resting" />
+              {resting.map(renderPlantRow)}
+            </>
+          )}
+
+          {/* Spacer so the FAB doesn't overlap the last list row */}
+          <div style={{ height: 96 }} />
+        </>
+      )}
+
+      {/* Floating Add — preserved Link semantics so right-click-open-new-tab still works */}
+      {plants.length > 0 && (
+        <Link to="/add" aria-label="Add plant" className="p7l-today__fab">
+          +
+        </Link>
       )}
 
       {/* Post-batch calibration walkthrough */}
@@ -130,131 +323,6 @@ export function Dashboard() {
           onComplete={() => setCalibQueue(null)}
         />
       )}
-
-      {/* Loading state */}
-      {loading && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: 40,
-            color: 'var(--text-secondary)',
-          }}
-        >
-          Loading plants...
-        </div>
-      )}
-
-      {/* Error state */}
-      {error && !loading && (
-        <div
-          className="card"
-          style={{
-            color: 'var(--danger)',
-            textAlign: 'center',
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!loading && !error && plants.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px 16px',
-          }}
-        >
-          <div style={{ fontSize: 72, marginBottom: 20 }}>🪴</div>
-          <h2
-            style={{
-              fontSize: 22,
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              marginBottom: 8,
-            }}
-          >
-            Welcome to PLNT
-          </h2>
-          <p
-            style={{
-              fontSize: 15,
-              color: 'var(--text-secondary)',
-              marginBottom: 28,
-            }}
-          >
-            Add your first plant to get started
-          </p>
-          <button
-            onClick={() => navigate('/add')}
-            style={{
-              background: 'var(--accent)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 12,
-              padding: '14px 32px',
-              fontSize: 17,
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(0, 168, 107, 0.35)',
-            }}
-          >
-            + Add Your First Plant
-          </button>
-        </div>
-      )}
-
-      {/* Empty state for filter */}
-      {!loading && !error && plants.length > 0 && selectedDate && filteredPlants.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '40px 16px',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          No plants scheduled for this day
-        </div>
-      )}
-
-      {/* Plant list */}
-      {!loading && !error && plants.length > 0 && filteredPlants.length > 0 && (
-        <div>
-          {filteredPlants.map((plant) => (
-            <PlantCard key={plant.id} plant={plant} />
-          ))}
-        </div>
-      )}
-
-      {/* Floating Add button — hidden in empty state where the welcome card
-          already has its own large CTA (#125). */}
-      {plants.length > 0 && (
-        <Link
-          to="/add"
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            right: 16,
-            left: 16,
-            maxWidth: 398,
-            margin: '0 auto',
-            display: 'block',
-            background: 'var(--accent)',
-            color: 'white',
-            textAlign: 'center',
-            padding: '14px 0',
-            borderRadius: 12,
-            fontWeight: 600,
-            fontSize: 17,
-            boxShadow: '0 4px 20px rgba(0, 168, 107, 0.35)',
-          }}
-        >
-          + Add Plant
-        </Link>
-      )}
-
-      {/* Bottom padding to clear the floating button (only when it renders) */}
-      {plants.length > 0 && <div style={{ height: 80 }} />}
 
       {/* Batch undo toast */}
       {batchToast && (
