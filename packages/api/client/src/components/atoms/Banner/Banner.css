@@ -82,21 +82,18 @@
 
 .p7l-banner--warning {
   border-left-color: var(--status-dormant);
-  background: rgba(198, 154, 59, 0.08);
+  background: var(--dormant-soft);
 }
 .p7l-banner--warning .p7l-banner__icon { color: var(--mustard-400); }
 .p7l-banner--warning .p7l-banner__title { color: var(--copper-500); }
 
 .p7l-banner--error {
   border-left-color: var(--status-overdue);
-  background: rgba(176, 74, 53, 0.08);
+  background: var(--overdue-soft);
 }
 .p7l-banner--error .p7l-banner__icon { color: var(--rust-400); }
-.p7l-banner--error .p7l-banner__title { color: var(--rust-400); }
+.p7l-banner--error .p7l-banner__title { color: var(--status-overdue); }
 
 [data-theme="dark"] .p7l-banner--success { background: rgba(126, 146, 101, 0.10); }
-[data-theme="dark"] .p7l-banner--warning { background: rgba(217, 179, 93, 0.10); }
-[data-theme="dark"] .p7l-banner--error   { background: rgba(215, 105, 82, 0.10); }
 [data-theme="dark"] .p7l-banner--success .p7l-banner__title { color: var(--sage-200); }
 [data-theme="dark"] .p7l-banner--warning .p7l-banner__title { color: #d9b35d; }
-[data-theme="dark"] .p7l-banner--error   .p7l-banner__title { color: #d76952; }
