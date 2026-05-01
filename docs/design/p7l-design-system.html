@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>p7l · design system</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* p7l design system — Scandinavian apothecary
+   Light + dark from the start. All semantic tokens mapped to scales.
+   Pristine: no grain, no texture, flat modern rendering. */
+
+:root {
+  /* === RAW SCALES (hand-tuned) === */
+
+  /* Bone — paper whites & off-creams */
+  --bone-50:  #fbfaf6;
+  --bone-100: #f5f3ec;
+  --bone-200: #ebe8de;
+  --bone-300: #ddd9ca;
+  --bone-400: #c8c2af;
+  --bone-500: #a9a28a;
+
+  /* Sage — muted garden green */
+  --sage-50:  #f0f3ed;
+  --sage-100: #dee5d4;
+  --sage-200: #c4d0b3;
+  --sage-300: #a3b58a;
+  --sage-400: #7e9265;
+  --sage-500: #5e7349;
+  --sage-600: #475838;
+  --sage-700: #36432b;
+  --sage-800: #28321f;
+  --sage-900: #1a2113;
+
+  /* Slate — Scandinavian blue-grey */
+  --slate-50:  #eef1f3;
+  --slate-100: #d8dee2;
+  --slate-200: #b8c2c9;
+  --slate-300: #8e9da7;
+  --slate-400: #6b7d88;
+  --slate-500: #4f626d;
+  --slate-600: #3c4c55;
+  --slate-700: #2c383f;
+  --slate-800: #1d262b;
+  --slate-900: #11171b;
+
+  /* Copper — oxidized accent (the surprising move) */
+  --copper-50:  #f5ece5;
+  --copper-100: #e6d2c0;
+  --copper-200: #d2ac8a;
+  --copper-300: #b88660;
+  --copper-400: #9a6843;
+  --copper-500: #7d5132;
+  --copper-600: #5e3c25;
+  --copper-700: #422a1a;
+
+  /* Charcoal — for ink */
+  --charcoal-50:  #ececea;
+  --charcoal-100: #c8c8c4;
+  --charcoal-200: #8d8d87;
+  --charcoal-300: #555550;
+  --charcoal-400: #2e2e2a;
+  --charcoal-500: #1a1a17;
+  --charcoal-600: #0e0e0c;
+
+  /* Status (functional only — used sparingly, sit alongside palette) */
+  --rust-400:   #b04a35;   /* needs-attention / overdue */
+  --mustard-400:#c69a3b;   /* warning / dormant */
+
+  /* === LIGHT MODE SEMANTIC TOKENS === */
+  --bg:           var(--bone-50);
+  --bg-elevated: #ffffff;
+  --bg-sunken:    var(--bone-100);
+  --bg-inverse:   var(--charcoal-500);
+
+  --surface:      var(--bone-100);
+  --surface-2:    var(--bone-200);
+  --surface-hover:var(--bone-200);
+
+  --border:       var(--bone-300);
+  --border-strong:var(--charcoal-300);
+  --rule:         var(--charcoal-400);    /* hairline horizontal rules */
+
+  --ink:          var(--charcoal-500);    /* primary text */
+  --ink-2:        var(--charcoal-300);    /* secondary text */
+  --ink-3:        var(--charcoal-200);    /* tertiary / disabled */
+  --ink-inverse:  var(--bone-50);
+
+  --accent:       var(--sage-500);        /* primary brand action */
+  --accent-hover: var(--sage-600);
+  --accent-ink:   var(--bone-50);
+  --accent-soft:  var(--sage-100);
+
+  --link:         var(--slate-500);
+  --link-hover:   var(--slate-700);
+
+  --highlight:    var(--copper-400);      /* the rare ceremonial accent */
+  --highlight-soft: var(--copper-50);
+
+  --status-due:   var(--copper-400);
+  --status-overdue:var(--rust-400);
+  --status-dormant:var(--mustard-400);
+  --status-healthy:var(--sage-500);
+
+  /* === SPACING (4-step) === */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+
+  /* === RADIUS — restrained, mid-century. Big radii feel wrong here. === */
+  --r-0:   0;
+  --r-1:   2px;
+  --r-2:   4px;
+  --r-3:   8px;
+  --r-pill:9999px;
+
+  /* === SHADOW — pristine, soft, never blurry-bloom === */
+  --shadow-1: 0 1px 0 rgba(20,20,18,0.04), 0 1px 2px rgba(20,20,18,0.06);
+  --shadow-2: 0 1px 0 rgba(20,20,18,0.05), 0 4px 10px rgba(20,20,18,0.06);
+  --shadow-3: 0 2px 0 rgba(20,20,18,0.06), 0 12px 24px rgba(20,20,18,0.08);
+
+  /* === TYPE === */
+  --font-display: "Fraunces", "Source Serif 4", Georgia, serif;
+  --font-serif:   "Source Serif 4", Georgia, serif;
+  --font-sans:    "Inter Tight", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+}
+
+[data-theme="dark"] {
+  --bg:           #14171a;
+  --bg-elevated:  #1c2024;
+  --bg-sunken:    #0e1113;
+  --bg-inverse:   var(--bone-100);
+
+  --surface:      #1c2024;
+  --surface-2:    #232830;
+  --surface-hover:#262c34;
+
+  --border:       #2c333a;
+  --border-strong:#475058;
+  --rule:         var(--bone-300);
+
+  --ink:          var(--bone-100);
+  --ink-2:        #aab1b8;
+  --ink-3:        #6b737b;
+  --ink-inverse:  var(--charcoal-500);
+
+  --accent:       var(--sage-300);
+  --accent-hover: var(--sage-200);
+  --accent-ink:   var(--charcoal-500);
+  --accent-soft:  rgba(126,146,101,0.15);
+
+  --link:         var(--slate-200);
+  --link-hover:   #d8dee2;
+
+  --highlight:    var(--copper-300);
+  --highlight-soft: rgba(184,134,96,0.12);
+
+  --status-due:   var(--copper-300);
+  --status-overdue:#d76952;
+  --status-dormant:#d9b35d;
+  --status-healthy:var(--sage-300);
+
+  --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-2: 0 1px 0 rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.5);
+  --shadow-3: 0 2px 0 rgba(0,0,0,0.5), 0 12px 24px rgba(0,0,0,0.6);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* p7l design system — storybook chrome */
+
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-sunken);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-6) 0 var(--sp-8);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  padding: 0 var(--sp-6) var(--sp-6);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-brand-mark {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.sidebar-brand-name {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.sidebar-brand-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: var(--sp-4) 0 var(--sp-4);
+}
+.sidebar-section {
+  padding: var(--sp-4) var(--sp-6) var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.sidebar-link {
+  display: block;
+  padding: 6px var(--sp-6);
+  font-size: 14px;
+  color: var(--ink-2);
+  text-decoration: none;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.sidebar-link:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+.sidebar-link.active {
+  color: var(--ink);
+  background: var(--surface);
+  border-left-color: var(--accent);
+  font-weight: 500;
+}
+
+.sidebar-foot {
+  padding: var(--sp-4) var(--sp-6);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.theme-toggle {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: var(--r-1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.theme-toggle:hover { background: var(--surface); }
+
+/* === MAIN === */
+.main {
+  padding: var(--sp-12) var(--sp-12) var(--sp-20);
+  max-width: 1100px;
+}
+
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: var(--sp-3);
+}
+.page-title {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin: 0 0 var(--sp-5);
+  color: var(--ink);
+}
+.page-lede {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 680px;
+  margin-bottom: var(--sp-12);
+}
+
+.section {
+  margin-bottom: var(--sp-16);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--sp-2);
+  color: var(--ink);
+}
+.section-sub {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin-bottom: var(--sp-6);
+  max-width: 640px;
+}
+
+.subhead {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: var(--sp-8) 0 var(--sp-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.subhead::before, .subhead::after {
+  content: '';
+  flex: 0 0 12px;
+  height: 1px;
+  background: var(--rule);
+}
+.subhead::after { flex: 1; }
+
+/* === SPECIMEN BLOCK — the canonical "thing on display" === */
+.specimen {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  padding: var(--sp-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  position: relative;
+}
+.specimen-tag {
+  position: absolute;
+  top: var(--sp-3);
+  left: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.specimen-grid {
+  display: grid;
+  gap: var(--sp-4);
+}
+.specimen-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.specimen-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.specimen-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.specimen-grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
+
+/* token rows */
+.token-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.token-table th, .token-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.token-table th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.token-table code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.swatch-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(0,0,0,0.06);
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: var(--sp-2);
+}
+
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+(() => {
+// Storybook shell — sidebar nav + hash routing + theme toggle.
+// Pages register themselves on window.P7L_DS_PAGES.
+
+const { useState, useEffect, useMemo } = React;
+
+const NAV = [
+  { section: 'Foundations', items: [
+    { id: 'intro',       title: 'Introduction' },
+    { id: 'logo',        title: 'Logo system' },
+    { id: 'color',       title: 'Color' },
+    { id: 'type',        title: 'Type' },
+    { id: 'spacing',     title: 'Spacing & radius' },
+    { id: 'shadow',      title: 'Shadow & elevation' },
+  ]},
+  { section: 'Marks', items: [
+    { id: 'icons',       title: 'Iconography' },
+    { id: 'category-seals', title: 'Category seals' },
+    { id: 'state-badges',title: 'State badges' },
+  ]},
+  { section: 'Illustration', items: [
+    { id: 'illustration',title: 'Illustration directions' },
+  ]},
+  { section: 'Components', items: [
+    { id: 'plant-card',  title: 'Plant card' },
+    { id: 'plant-detail',title: 'Plant detail' },
+  ]},
+];
+
+const FlatNav = NAV.flatMap(s => s.items);
+
+function useHashRoute() {
+  const [route, setRoute] = useState(() => (window.location.hash.replace('#/', '') || 'intro'));
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash.replace('#/', '') || 'intro');
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  const go = (id) => { window.location.hash = '#/' + id; };
+  return [route, go];
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('p7l-ds-theme') || 'light';
+  });
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('p7l-ds-theme', theme);
+  }, [theme]);
+  return [theme, setTheme];
+}
+
+const Brandmark = () => (
+  // Tiny apothecary stamp, used in the sidebar
+  <svg viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+    <circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+    <circle cx="32" cy="32" r="25" fill="none" stroke="currentColor" strokeWidth="0.75"/>
+    <text x="32" y="38" textAnchor="middle" fontFamily='"Source Serif 4", Georgia, serif'
+          fontWeight="600" fontSize="20" letterSpacing="-1" fill="currentColor">p7l</text>
+  </svg>
+);
+
+const Sidebar = ({ route, go, theme, setTheme }) => (
+  <aside className="sidebar">
+    <div className="sidebar-brand">
+      <span className="sidebar-brand-mark" style={{ color: 'var(--ink)' }}>
+        <Brandmark />
+      </span>
+      <span className="sidebar-brand-text">
+        <span className="sidebar-brand-name">p7l</span>
+        <span className="sidebar-brand-sub">design system</span>
+      </span>
+    </div>
+    <nav className="sidebar-nav">
+      {NAV.map(sec => (
+        <div key={sec.section}>
+          <div className="sidebar-section">{sec.section}</div>
+          {sec.items.map(item => (
+            <a key={item.id}
+               href={'#/' + item.id}
+               className={'sidebar-link ' + (route === item.id ? 'active' : '')}
+               onClick={(e) => { e.preventDefault(); go(item.id); }}>
+              {item.title}
+            </a>
+          ))}
+        </div>
+      ))}
+    </nav>
+    <div className="sidebar-foot">
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10,
+                       letterSpacing: '0.08em', textTransform: 'uppercase',
+                       color: 'var(--ink-3)' }}>v0.1</span>
+      <button className="theme-toggle" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+        {theme === 'light' ? '☾ dark' : '☀ light'}
+      </button>
+    </div>
+  </aside>
+);
+
+const PageHeader = ({ eyebrow, title, lede }) => (
+  <header style={{ marginBottom: 'var(--sp-12)' }}>
+    {eyebrow && <div className="page-eyebrow">{eyebrow}</div>}
+    <h1 className="page-title">{title}</h1>
+    {lede && <p className="page-lede">{lede}</p>}
+  </header>
+);
+
+const Section = ({ title, sub, children }) => (
+  <section className="section">
+    {title && <h2 className="section-title">{title}</h2>}
+    {sub && <p className="section-sub">{sub}</p>}
+    {children}
+  </section>
+);
+
+const Subhead = ({ children }) => <div className="subhead">{children}</div>;
+
+const Specimen = ({ tag, children, style, padded = true }) => (
+  <div className="specimen" style={{ padding: padded ? undefined : 0, ...style }}>
+    {tag && <span className="specimen-tag">{tag}</span>}
+    {children}
+  </div>
+);
+
+window.P7L_DS_SHELL = { useHashRoute, useTheme, Sidebar, PageHeader, Section, Subhead, Specimen, FlatNav, Brandmark };
+
+})();
+</script>
+<script type="text/babel" data-presets="react">
+(() => {
+// Foundations pages: intro, logo, color, type, spacing, shadow
+// Logo1..Logo8 from logo-concepts.js are NOT loaded here — this is a fresh system.
+
+const { Section, Subhead, Specimen, PageHeader } = window.P7L_DS_SHELL;
+
+// === REFINED APOTHECARY STAMP ===
+// This is the upgraded version of Logo7. Bigger ring, kerned wordmark,
+// proper microtext, hairline inner ring, dignified leaf.
+const ApothecaryStamp = ({ size = 220, color = 'currentColor', accent = 'var(--highlight)' }) => (
+  <svg viewBox="0 0 240 240" width={size} height={size} aria-hidden="true">
+    <defs>
+      <path id="ap-circ-top" d="M 120,120 m -94,0 a 94,94 0 1,1 188,0"/>
+      <path id="ap-circ-bot" d="M 120,120 m -94,0 a 94,94 0 1,0 188,0" transform="rotate(0 120 120)"/>
+    </defs>
+    {/* outer ring */}
+    <circle cx="120" cy="120" r="110" fill="none" stroke={color} strokeWidth="1.75"/>
+    {/* inner hairline */}
+    <circle cx="120" cy="120" r="100" fill="none" stroke={color} strokeWidth="0.6"/>
+    {/* microtext arc top */}
+    <text fontFamily='"Source Serif 4", Georgia, serif' fontStyle="italic"
+          fontSize="11" letterSpacing="3.5" fill={color}>
+      <textPath href="#ap-circ-top" startOffset="50%" textAnchor="middle">
+        plnt · trmnl · houseplant care
+      </textPath>
+    </text>
+    {/* dot separators in the ring band */}
+    <circle cx="20" cy="120" r="1.6" fill={color}/>
+    <circle cx="220" cy="120" r="1.6" fill={color}/>
+    {/* microtext arc bottom */}
+    <text fontFamily='"Source Serif 4", Georgia, serif' fontStyle="italic"
+          fontSize="11" letterSpacing="3.5" fill={color}>
+      <textPath href="#ap-circ-bot" startOffset="50%" textAnchor="middle">
+        · est · MMXXV ·
+      </textPath>
+    </text>
+
+    {/* central wordmark */}
+    <text x="120" y="138" textAnchor="middle"
+          fontFamily='"Source Serif 4", Georgia, serif' fontWeight="600"
+          fontSize="64" letterSpacing="-2" fill={color}>p7l</text>
+
+    {/* decorative leaf above */}
+    <g transform="translate(120 75)" fill={accent}>
+      <path d="M0 0 C -10 -14, 8 -22, 14 -12 C 18 -4, 6 6, 0 0 Z"/>
+      <path d="M0 0 L 10 -10" stroke={accent} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+    </g>
+    {/* tiny tick marks at the cardinal points */}
+    {[[120,16],[120,224],[16,120],[224,120]].map(([cx,cy], i) => (
+      <circle key={i} cx={cx} cy={cy} r="2" fill={color}/>
+    ))}
+  </svg>
+);
+
+// Wordmark — daily-driver mark
+const Wordmark = ({ size = 48, color = 'currentColor' }) => (
+  <span style={{ fontFamily: 'var(--font-serif)', fontSize: size, fontWeight: 600,
+                   letterSpacing: '-0.04em', lineHeight: 1, color }}>p7l</span>
+);
+
+// Horizontal lockup — stamp + wordmark + descriptor
+const HLockup = ({ color = 'var(--ink)' }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 18, color }}>
+    <ApothecaryStamp size={56} accent="var(--highlight)" color={color}/>
+    <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05 }}>
+      <span style={{ fontFamily: 'var(--font-serif)', fontSize: 32, fontWeight: 600,
+                       letterSpacing: '-0.03em' }}>p7l</span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10,
+                       letterSpacing: '0.18em', textTransform: 'uppercase',
+                       color: 'var(--ink-3)', marginTop: 4 }}>plnt · trmnl</span>
+    </div>
+  </div>
+);
+
+// === INTRO PAGE ===
+const IntroPage = () => (
+  <>
+    <PageHeader eyebrow="p7l · v0.1" title="Scandinavian apothecary"
+                lede="A pristine, modern interpretation of the home apothecary. Bone paper, sage, slate, oxidized copper, and ink. The ceremonial mark is an apothecary stamp; the day-to-day mark is the wordmark p7l. Light and dark from the start."/>
+    <Section title="Principles">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--sp-4)' }}>
+        {[
+          ['Pristine, not weathered', 'Apothecary as composition, not as costume. No grain, no ink-bleed, no faux-aging. Clean shapes, generous space, hairline rules.'],
+          ['Ceremonial vs. utilitarian', 'The stamp is rare — splash, archive, app icon. The wordmark does daily work in the header. Don\'t over-stamp.'],
+          ['Plants are the subjects', 'Type, color and chrome stay quiet. Color comes in via plant illustrations and the rare oxidized-copper accent.'],
+        ].map(([h, b]) => (
+          <div key={h} style={{ background: 'var(--bg-elevated)',
+                                  border: '1px solid var(--border)', padding: 'var(--sp-6)',
+                                  borderRadius: 'var(--r-2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500,
+                           margin: '0 0 8px', letterSpacing: '-0.01em' }}>{h}</h3>
+            <p style={{ margin: 0, color: 'var(--ink-2)', fontSize: 14 }}>{b}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+    <Section title="At a glance">
+      <Specimen tag="hero" style={{ minHeight: 360 }}>
+        <ApothecaryStamp size={300} color="var(--ink)" accent="var(--highlight)"/>
+      </Specimen>
+    </Section>
+  </>
+);
+
+// === LOGO PAGE ===
+const LogoPage = () => (
+  <>
+    <PageHeader eyebrow="Foundations" title="Logo system"
+                lede="One ceremonial stamp, one workhorse wordmark. Used together only in the lockup; otherwise they live in different contexts."/>
+    <Section title="Apothecary stamp" sub="Hero mark. Use on splashes, archive (memorial) pages, the app icon, and printed materials. Min size 36px. The leaf accent uses the copper highlight only when the surface is bone or charcoal — on colored backgrounds it disappears into ink.">
+      <Specimen tag="primary stamp · 240px">
+        <ApothecaryStamp size={240} color="var(--ink)" accent="var(--highlight)"/>
+      </Specimen>
+      <div className="specimen-grid cols-3" style={{ marginTop: 'var(--sp-4)' }}>
+        <Specimen tag="all-ink (mono)"><ApothecaryStamp size={140} color="var(--ink)" accent="var(--ink)"/></Specimen>
+        <Specimen tag="reversed" style={{ background: 'var(--charcoal-500)' }}>
+          <ApothecaryStamp size={140} color="var(--bone-50)" accent="var(--copper-300)"/>
+        </Specimen>
+        <Specimen tag="favicon · 32px"><ApothecaryStamp size={32} color="var(--ink)" accent="var(--ink)"/></Specimen>
+      </div>
+    </Section>
+
+    <Section title="Wordmark" sub="The daily-driver. Source Serif 4, weight 600, tight tracking. The numeral 7 is what you read; everything else is house style.">
+      <Specimen tag="primary wordmark"><Wordmark size={96}/></Specimen>
+      <div className="specimen-grid cols-3" style={{ marginTop: 'var(--sp-4)' }}>
+        <Specimen tag="48px"><Wordmark size={48}/></Specimen>
+        <Specimen tag="24px"><Wordmark size={24}/></Specimen>
+        <Specimen tag="16px"><Wordmark size={16}/></Specimen>
+      </div>
+    </Section>
+
+    <Section title="Horizontal lockup" sub="The marriage version — stamp + wordmark + descriptor. Use sparingly: app store header, marketing site footer, formal correspondence.">
+      <Specimen tag="lockup"><HLockup/></Specimen>
+    </Section>
+
+    <Section title="App icon" sub="iOS / Android. The stamp lives inside a soft-rect plate of bone, with a 14% safe-area inset. The descriptor microtext is dropped — too small to read.">
+      <div className="specimen-grid cols-4">
+        {[['Light bone', 'var(--bone-100)', 'var(--ink)', 'var(--copper-400)'],
+          ['Dark slate', 'var(--slate-700)', 'var(--bone-100)', 'var(--copper-300)'],
+          ['Sage', 'var(--sage-500)', 'var(--bone-50)', 'var(--bone-50)'],
+          ['Charcoal', 'var(--charcoal-500)', 'var(--bone-100)', 'var(--copper-300)']
+        ].map(([name, bg, ink, accent]) => (
+          <Specimen key={name} tag={name} style={{ minHeight: 200 }}>
+            <div style={{ width: 140, height: 140, background: bg, borderRadius: 28,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: 'var(--shadow-2)' }}>
+              <svg viewBox="0 0 240 240" width="106" height="106">
+                <circle cx="120" cy="120" r="106" fill="none" stroke={ink} strokeWidth="2"/>
+                <circle cx="120" cy="120" r="96" fill="none" stroke={ink} strokeWidth="0.8"/>
+                <text x="120" y="142" textAnchor="middle"
+                      fontFamily='"Source Serif 4", Georgia, serif' fontWeight="600"
+                      fontSize="68" letterSpacing="-2" fill={ink}>p7l</text>
+                <g transform="translate(120 75)" fill={accent}>
+                  <path d="M0 0 C -10 -14, 8 -22, 14 -12 C 18 -4, 6 6, 0 0 Z"/>
+                  <path d="M0 0 L 10 -10" stroke={accent} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                </g>
+              </svg>
+            </div>
+          </Specimen>
+        ))}
+      </div>
+    </Section>
+
+    <Section title="Don't" sub="Ground rules.">
+      <div className="specimen-grid cols-3">
+        {[
+          ['Don\'t rotate the stamp', 'Always upright. The microtext is meant to be readable.'],
+          ['Don\'t recolor the wordmark', 'Ink, ink-inverse, or accent on a soft background. Never the copper highlight — it\'s ceremonial.'],
+          ['Don\'t scale the stamp below 36px', 'The microtext stops being legible. Use the wordmark or favicon variant instead.']
+        ].map(([h, b]) => (
+          <div key={h} style={{ background: 'var(--bg-elevated)',
+                                  border: '1px solid var(--border)', padding: 'var(--sp-5)',
+                                  borderRadius: 'var(--r-2)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10,
+                            letterSpacing: '0.1em', textTransform: 'uppercase',
+                            color: 'var(--rust-400)', marginBottom: 6 }}>✕ Don't</div>
+            <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 500,
+                           margin: '0 0 6px' }}>{h}</h4>
+            <p style={{ margin: 0, color: 'var(--ink-2)', fontSize: 13 }}>{b}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+  </>
+);
+
+window.P7L_DS_FOUND_1 = { IntroPage, LogoPage, ApothecaryStamp, Wordmark, HLockup };
+
+})();
+</script>
+<script type="text/babel" data-presets="react">
+(() => {
+// Color, Type, Spacing & Radius, Shadow
+
+const { Section, Subhead, Specimen, PageHeader } = window.P7L_DS_SHELL;
+
+// === COLOR PAGE ===
+const Swatch = ({ name, varName, value, ink = 'var(--ink)', big }) => (
+  <div style={{
+    background: `var(${varName})`,
+    color: ink,
+    padding: big ? 'var(--sp-6) var(--sp-5)' : 'var(--sp-3) var(--sp-4)',
+    height: big ? 120 : 64,
+    border: '1px solid var(--border)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    fontSize: 12,
+  }}>
+    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 500 }}>{name}</span>
+    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.75 }}>
+      {value}
+    </span>
+  </div>
+);
+
+const Scale = ({ name, prefix, steps }) => (
+  <div>
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+                    marginBottom: 'var(--sp-2)' }}>
+      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500,
+                     margin: 0, letterSpacing: '-0.01em' }}>{name}</h3>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)',
+                       letterSpacing: '0.06em' }}>--{prefix}-*</span>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${steps.length}, 1fr)`,
+                    border: '1px solid var(--border)', borderRadius: 'var(--r-2)',
+                    overflow: 'hidden' }}>
+      {steps.map(([n, ink]) => (
+        <Swatch key={n} name={n} varName={`--${prefix}-${n}`} value={`${prefix}-${n}`} ink={ink} big/>
+      ))}
+    </div>
+  </div>
+);
+
+const SemanticRow = ({ rows }) => (
+  <table className="token-table">
+    <thead><tr><th style={{ width: 32 }}></th><th>Token</th><th>Maps to</th><th>Use</th></tr></thead>
+    <tbody>
+      {rows.map(([token, maps, use]) => (
+        <tr key={token}>
+          <td><span className="swatch-dot" style={{ background: `var(${token})` }}/></td>
+          <td><code>{token}</code></td>
+          <td><code style={{ color: 'var(--ink-3)' }}>{maps}</code></td>
+          <td>{use}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+
+const ColorPage = () => (
+  <>
+    <PageHeader eyebrow="Foundations" title="Color"
+                lede="Five families. Bone, sage, slate, copper, charcoal. Plus two functional notes (rust, mustard) for status only. Color is restrained — the plant is the subject."/>
+
+    <Section title="Scales">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-8)' }}>
+        <Scale name="Bone" prefix="bone"
+               steps={[['50','#1a1a17'],['100','#1a1a17'],['200','#1a1a17'],['300','#1a1a17'],['400','#1a1a17'],['500','#fff']]}/>
+        <Scale name="Sage" prefix="sage"
+               steps={[['50','#1a2113'],['100','#1a2113'],['200','#1a2113'],['300','#1a2113'],['400','#fff'],['500','#fff'],['600','#fff'],['700','#fff'],['800','#fff'],['900','#fff']]}/>
+        <Scale name="Slate" prefix="slate"
+               steps={[['50','#11171b'],['100','#11171b'],['200','#11171b'],['300','#11171b'],['400','#fff'],['500','#fff'],['600','#fff'],['700','#fff'],['800','#fff'],['900','#fff']]}/>
+        <Scale name="Copper" prefix="copper"
+               steps={[['50','#422a1a'],['100','#422a1a'],['200','#422a1a'],['300','#fff'],['400','#fff'],['500','#fff'],['600','#fff'],['700','#fff']]}/>
+        <Scale name="Charcoal" prefix="charcoal"
+               steps={[['50','#0e0e0c'],['100','#0e0e0c'],['200','#fff'],['300','#fff'],['400','#fff'],['500','#fff'],['600','#fff']]}/>
+      </div>
+    </Section>
+
+    <Section title="Semantic tokens" sub="What you actually use in code. These flip with the theme.">
+      <Subhead>Surfaces</Subhead>
+      <SemanticRow rows={[
+        ['--bg', 'bone-50 / #14171a', 'Page background.'],
+        ['--bg-elevated', '#fff / #1c2024', 'Cards and modals.'],
+        ['--bg-sunken', 'bone-100 / #0e1113', 'Sidebar, secondary regions.'],
+        ['--surface', 'bone-100 / #1c2024', 'Subtle filled chips, hovered rows.'],
+        ['--bg-inverse', 'charcoal-500 / bone-100', 'Inverted surfaces (CTAs, footer marquee).'],
+      ]}/>
+
+      <Subhead>Borders & rules</Subhead>
+      <SemanticRow rows={[
+        ['--border', 'bone-300 / #2c333a', 'Default 1px borders on cards & inputs.'],
+        ['--border-strong', 'charcoal-300 / #475058', 'High-contrast borders, active inputs.'],
+        ['--rule', 'charcoal-400 / bone-300', 'Hairline horizontal dividers.'],
+      ]}/>
+
+      <Subhead>Ink (text)</Subhead>
+      <SemanticRow rows={[
+        ['--ink', 'charcoal-500 / bone-100', 'Body and headings.'],
+        ['--ink-2', 'charcoal-300 / #aab1b8', 'Secondary, captions, eyebrows.'],
+        ['--ink-3', 'charcoal-200 / #6b737b', 'Tertiary, disabled, microtype.'],
+      ]}/>
+
+      <Subhead>Brand actions</Subhead>
+      <SemanticRow rows={[
+        ['--accent', 'sage-500 / sage-300', 'Primary action color (water, save, confirm).'],
+        ['--highlight', 'copper-400 / copper-300', 'Ceremonial accent. The stamp leaf, dialed-in seals, hero numerals.'],
+      ]}/>
+
+      <Subhead>Status</Subhead>
+      <SemanticRow rows={[
+        ['--status-due', 'copper-400', 'Watering due today.'],
+        ['--status-overdue', 'rust-400', 'Watering overdue.'],
+        ['--status-dormant', 'mustard-400', 'Plant dormant.'],
+        ['--status-healthy', 'sage-500', 'Healthy / dialed-in.'],
+      ]}/>
+    </Section>
+  </>
+);
+
+// === TYPE PAGE ===
+const TypeSpecimen = ({ name, display, body, mono, bg = 'var(--bg-elevated)' }) => (
+  <div style={{ background: bg, border: '1px solid var(--border)', borderRadius: 'var(--r-2)',
+                  padding: 'var(--sp-8)' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+                    marginBottom: 'var(--sp-6)', borderBottom: '1px solid var(--border)',
+                    paddingBottom: 'var(--sp-3)' }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                       letterSpacing: '0.12em', textTransform: 'uppercase',
+                       color: 'var(--ink-3)' }}>{name}</span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                       color: 'var(--ink-3)' }}>display · body · mono</span>
+    </div>
+    <div style={{ fontFamily: display, fontSize: 56, fontWeight: 500, letterSpacing: '-0.02em',
+                    lineHeight: 1.05, color: 'var(--ink)', marginBottom: 'var(--sp-4)' }}>
+      Lithops karasmontana
+    </div>
+    <div style={{ fontFamily: display, fontSize: 22, fontStyle: 'italic',
+                    color: 'var(--ink-2)', marginBottom: 'var(--sp-6)' }}>
+      Living stones, native to the karoo
+    </div>
+    <p style={{ fontFamily: body, fontSize: 15, lineHeight: 1.6, color: 'var(--ink)',
+                  margin: '0 0 var(--sp-4)', maxWidth: 540 }}>
+      The succulent shrugs off most attempts at care. Water once between November
+      and March; the rest of the year, leave it alone. Direct sun is fine. Soil
+      should be sharply draining, ideally with a pumice top dress.
+    </p>
+    <div style={{ display: 'flex', gap: 'var(--sp-6)', alignItems: 'baseline',
+                    fontFamily: mono, fontSize: 12, letterSpacing: '0.06em',
+                    color: 'var(--ink-2)' }}>
+      <span>WATERED 2026-04-14</span>
+      <span>NEXT ~21d</span>
+      <span>↑ 3 of 5 calibration</span>
+    </div>
+  </div>
+);
+
+const TypePage = () => (
+  <>
+    <PageHeader eyebrow="Foundations" title="Type"
+                lede="Three trios to choose from. The default is Trio A. Tell me which feels right and I'll lock the system; the others stop being part of the deliverable."/>
+
+    <Section title="Trio A · Calm modern serif (default)" sub="Source Serif 4 for display & body, Inter Tight for UI, JetBrains Mono for data. Quiet, contemporary, easy to read on dense screens.">
+      <TypeSpecimen name="Trio A · default"
+                      display='"Source Serif 4", Georgia, serif'
+                      body='"Inter Tight", system-ui, sans-serif'
+                      mono='"JetBrains Mono", ui-monospace, monospace'/>
+    </Section>
+
+    <Section title="Trio B · Chunky mid-century" sub="Fraunces (display) + Inter Tight (body) + JetBrains Mono (data). The display serif gets warmer and more characterful; body stays neutral.">
+      <TypeSpecimen name="Trio B · chunky display"
+                      display='"Fraunces", Georgia, serif'
+                      body='"Inter Tight", system-ui, sans-serif'
+                      mono='"JetBrains Mono", ui-monospace, monospace'/>
+    </Section>
+
+    <Section title="Trio C · Geometric mid-century sans" sub="Fraunces (display) + Plex Sans (body) + Plex Mono (data). Crisper feel; the body text gets more 'apothecary label'.">
+      <TypeSpecimen name="Trio C · geometric"
+                      display='"Fraunces", Georgia, serif'
+                      body='"IBM Plex Sans", system-ui, sans-serif'
+                      mono='"IBM Plex Mono", ui-monospace, monospace'/>
+    </Section>
+
+    <Section title="Type scale (Trio A)" sub="Modular scale at 1.2 ratio, with a display jump for hero moments.">
+      <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-2)', padding: 'var(--sp-6) var(--sp-8)' }}>
+        {[
+          ['Display', 72, 'display', 500, '--text-display', 'Hero numerals on plant detail, splash titles.'],
+          ['Title', 48, 'display', 500, '--text-title', 'Page titles, section heroes.'],
+          ['Headline', 28, 'display', 500, '--text-headline', 'Major section titles in long content.'],
+          ['Subhead', 20, 'display', 500, '--text-subhead', 'Card titles, plant names in lists.'],
+          ['Body Lg', 17, 'body', 400, '--text-body-lg', 'Marketing or emphasized body.'],
+          ['Body', 15, 'body', 400, '--text-body', 'Default UI body.'],
+          ['Caption', 13, 'body', 400, '--text-caption', 'Labels, helper text.'],
+          ['Eyebrow', 11, 'mono', 500, '--text-eyebrow', 'All-caps mono labels above sections.'],
+        ].map(([name, size, fam, w, varName, use]) => (
+          <div key={name} style={{ display: 'grid',
+                                     gridTemplateColumns: '120px 1fr 280px',
+                                     alignItems: 'baseline', padding: '14px 0',
+                                     borderBottom: '1px solid var(--border)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                            color: 'var(--ink-3)', letterSpacing: '0.08em',
+                            textTransform: 'uppercase' }}>{name} · {size}</div>
+            <div style={{
+              fontFamily: fam === 'display' ? 'var(--font-display)' :
+                          fam === 'mono' ? 'var(--font-mono)' : 'var(--font-sans)',
+              fontSize: size, fontWeight: w, letterSpacing: size > 28 ? '-0.02em' : 'normal',
+              lineHeight: 1.1, color: 'var(--ink)',
+              textTransform: name === 'Eyebrow' ? 'uppercase' : 'none'
+            }}>
+              {name === 'Eyebrow' ? 'plnt · trmnl · catalog' : 'Calathea ornata'}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-2)' }}>{use}</div>
+          </div>
+        ))}
+      </div>
+    </Section>
+
+    <Section title="Numerals" sub="Tabular figures everywhere they line up — calibration counters, watering intervals, dates. Source Serif 4 has a true italic for emphasis; the mono carries the data.">
+      <Specimen tag="numerals" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 24 }}>
+        <div style={{ display: 'flex', gap: 32, alignItems: 'baseline' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums',
+                           fontSize: 56, color: 'var(--ink)' }}>21d</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 56, fontWeight: 500,
+                           letterSpacing: '-0.02em', color: 'var(--ink)' }}>3 of 5</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                           fontSize: 56, color: 'var(--highlight)' }}>dialed-in</span>
+        </div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums',
+                        fontSize: 14, color: 'var(--ink-2)', letterSpacing: '0.04em' }}>
+          2026-04-14 · 2026-04-21 · 2026-04-28 · 2026-05-05 · 2026-05-12
+        </div>
+      </Specimen>
+    </Section>
+  </>
+);
+
+// === SPACING & RADIUS ===
+const SpacingPage = () => (
+  <>
+    <PageHeader eyebrow="Foundations" title="Spacing & radius"
+                lede="A 4-step spacing scale and a tight radius vocabulary. Mid-century apothecary doesn't do big rounded corners — keep things crisp."/>
+
+    <Section title="Spacing scale" sub="Multiples of 4. --sp-1 through --sp-20.">
+      <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-2)', padding: 'var(--sp-6)' }}>
+        {[1,2,3,4,5,6,8,10,12,16,20].map(n => {
+          const px = {1:4,2:8,3:12,4:16,5:20,6:24,8:32,10:40,12:48,16:64,20:80}[n];
+          return (
+            <div key={n} style={{ display: 'grid',
+                                    gridTemplateColumns: '120px 80px 1fr',
+                                    alignItems: 'center', padding: '8px 0',
+                                    borderBottom: '1px solid var(--border)' }}>
+              <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink)' }}>--sp-{n}</code>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-3)' }}>{px}px</span>
+              <div style={{ height: 16, width: px, background: 'var(--accent)' }}/>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+
+    <Section title="Radius" sub="Restrained on purpose. Pill is for chips and tags only.">
+      <div className="specimen-grid cols-4">
+        {[['--r-0', 0, 'Buttons (default), tables, dividers'],
+          ['--r-1', 2, 'Microtags, mono-pills, dense data'],
+          ['--r-2', 4, 'Cards, modals, inputs'],
+          ['--r-3', 8, 'Large containers, hero blocks'],
+          ['--r-pill', '∞', 'Status chips, plant-state badges']].map(([name, val, use]) => (
+          <div key={name} style={{ background: 'var(--bg-elevated)',
+                                     border: '1px solid var(--border)',
+                                     borderRadius: 'var(--r-2)', padding: 'var(--sp-5)' }}>
+            <div style={{ width: 64, height: 64, background: 'var(--surface-2)',
+                            border: '1px solid var(--border-strong)',
+                            borderRadius: name === '--r-pill' ? 9999 : (val + 'px'),
+                            margin: '0 auto var(--sp-3)' }}/>
+            <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink)' }}>{name}</code>
+            <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>{val === '∞' ? 'pill' : val + 'px'}</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-2)', marginTop: 6 }}>{use}</div>
+          </div>
+        ))}
+      </div>
+    </Section>
+  </>
+);
+
+// === SHADOW & ELEVATION ===
+const ShadowPage = () => (
+  <>
+    <PageHeader eyebrow="Foundations" title="Shadow & elevation"
+                lede="Three levels. Soft, never bloomy. We pair every shadow with a 1px hairline so the edge stays crisp on bone paper."/>
+    <Section title="Levels">
+      <div className="specimen-grid cols-3">
+        {[['--shadow-1', 'Resting', 'Cards, plant tiles, list rows.'],
+          ['--shadow-2', 'Floating', 'Modal contents, dropdown panels.'],
+          ['--shadow-3', 'Lifted', 'Splash hero, full-screen overlays.']].map(([v, name, use]) => (
+          <Specimen key={v} tag={name} style={{ minHeight: 200 }}>
+            <div style={{ width: 160, height: 110, background: 'var(--bg-elevated)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-2)', boxShadow: `var(${v})`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontFamily: 'var(--font-mono)', fontSize: 12,
+                            color: 'var(--ink-2)' }}>
+              {v}
+            </div>
+            <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12,
+                            fontSize: 12, color: 'var(--ink-3)' }}>{use}</div>
+          </Specimen>
+        ))}
+      </div>
+    </Section>
+  </>
+);
+
+window.P7L_DS_FOUND_2 = { ColorPage, TypePage, SpacingPage, ShadowPage };
+
+})();
+</script>
+<script type="text/babel" data-presets="react">
+(() => {
+// Marks: iconography, category seals, state badges. Plus illustration directions.
+
+const { Section, Subhead, Specimen, PageHeader } = window.P7L_DS_SHELL;
+
+// === ICONOGRAPHY ===
+// 1.5px stroke, butt-end caps, 24x24 grid, mid-century geometric.
+const I = ({ children, size = 24, stroke = 1.5 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none"
+       stroke="currentColor" strokeWidth={stroke} strokeLinecap="square"
+       strokeLinejoin="miter" aria-hidden="true">
+    {children}
+  </svg>
+);
+const ICONS = {
+  drop:    <I><path d="M12 3 C 7 11, 5 14, 5 17 a7 7 0 0 0 14 0 C 19 14, 17 11, 12 3Z"/></I>,
+  sun:     <I><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.5 4.5l2.1 2.1M17.4 17.4l2.1 2.1M4.5 19.5l2.1-2.1M17.4 6.6l2.1-2.1"/></I>,
+  leaf:    <I><path d="M5 19 C 5 11, 11 5, 19 5 C 19 13, 13 19, 5 19Z M5 19 L 13 11"/></I>,
+  pot:     <I><path d="M5 9 H 19 L 17 20 H 7 Z M3 6 H 21 V 9 H 3 Z"/></I>,
+  thermometer: <I><circle cx="12" cy="18" r="3"/><path d="M12 15 V 4 a 2 2 0 1 1 0 4"/></I>,
+  cal:     <I><rect x="3.5" y="5" width="17" height="15"/><path d="M3.5 10 H 20.5 M8 3 V 7 M16 3 V 7"/></I>,
+  bell:    <I><path d="M6 16 V 11 a 6 6 0 0 1 12 0 V 16 L 20 18 H 4 Z M10 21 a 2 2 0 0 0 4 0"/></I>,
+  scissors: <I><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.5 8 L 21 20 M8.5 16 L 21 4"/></I>,
+  search:  <I><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15 L 21 21"/></I>,
+  arrow:   <I><path d="M5 12 H 19 M13 6 L 19 12 L 13 18"/></I>,
+  plus:    <I><path d="M12 5 V 19 M5 12 H 19"/></I>,
+  archive: <I><rect x="3" y="4" width="18" height="5"/><path d="M5 9 V 20 H 19 V 9 M9 13 H 15"/></I>,
+  graph:   <I><path d="M3 19 H 21 M5 16 L 9 11 L 13 14 L 19 6"/></I>,
+  hand:    <I><path d="M9 11 V 5 a 1.5 1.5 0 0 1 3 0 V 11 V 4 a 1.5 1.5 0 0 1 3 0 V 11 V 6 a 1.5 1.5 0 0 1 3 0 V 14 a 6 6 0 0 1 -6 6 H 11 a 4 4 0 0 1 -4 -4 V 12 a 1.5 1.5 0 0 1 3 0 Z"/></I>,
+  house:   <I><path d="M4 11 L 12 4 L 20 11 V 20 H 4 Z M10 20 V 14 H 14 V 20"/></I>,
+  bookmark:<I><path d="M6 3 H 18 V 21 L 12 16 L 6 21 Z"/></I>,
+  beaker:  <I><path d="M9 3 H 15 M10 3 V 10 L 5 19 a 1.5 1.5 0 0 0 1.4 2 H 17.6 a 1.5 1.5 0 0 0 1.4 -2 L 14 10 V 3"/></I>,
+};
+
+const IconsPage = () => (
+  <>
+    <PageHeader eyebrow="Marks" title="Iconography"
+                lede="One stroke weight (1.5px), one corner style (square caps, miter joins), one geometry (24×24 grid). Mid-century geometric. Built to read at 16px and stay legible at 32px."/>
+    <Section title="Set" sub="Used across the SPA. New icons must follow the rules below.">
+      <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-2)', padding: 'var(--sp-8)',
+                      display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 'var(--sp-6)',
+                      color: 'var(--ink)' }}>
+        {Object.entries(ICONS).map(([name, el]) => (
+          <div key={name} style={{ display: 'flex', flexDirection: 'column',
+                                     alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: 56, height: 56,
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-2)' }}>{el}</div>
+            <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                             color: 'var(--ink-3)' }}>{name}</code>
+          </div>
+        ))}
+      </div>
+    </Section>
+
+    <Section title="Construction rules" sub="The boring rules that make the family read as a family.">
+      <div className="specimen-grid cols-3">
+        {[
+          ['1.5px stroke', 'Always. No filled icons in the UI set; the stamp is the only filled mark.'],
+          ['Square caps, miter joins', 'Mid-century geometric. Round caps go on the illustrations, not the icon set.'],
+          ['24×24 grid, 2px inset', 'Live area is 20×20. Keep optical balance over geometric symmetry — round shapes can sit slightly larger.'],
+        ].map(([h, b]) => (
+          <div key={h} style={{ background: 'var(--bg-elevated)',
+                                  border: '1px solid var(--border)',
+                                  padding: 'var(--sp-5)', borderRadius: 'var(--r-2)' }}>
+            <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 16,
+                           fontWeight: 500, margin: '0 0 6px' }}>{h}</h4>
+            <p style={{ margin: 0, color: 'var(--ink-2)', fontSize: 13 }}>{b}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+
+    <Section title="Sizes" sub="The same icon at the four sizes you'll meet in the UI.">
+      <Specimen tag="size scale">
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 32, color: 'var(--ink)' }}>
+          {[16, 20, 24, 32].map(s => (
+            <div key={s} style={{ display: 'flex', flexDirection: 'column',
+                                    alignItems: 'center', gap: 6 }}>
+              <I size={s}><path d="M12 3 C 7 11, 5 14, 5 17 a7 7 0 0 0 14 0 C 19 14, 17 11, 12 3Z"/></I>
+              <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)' }}>{s}</code>
+            </div>
+          ))}
+        </div>
+      </Specimen>
+    </Section>
+  </>
+);
+
+// === CATEGORY SEALS ===
+// 12 mini-stamps, one per catalog category. Same outer shape, varying glyph.
+const CategorySeal = ({ glyph, label, size = 88 }) => (
+  <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="1.25"/>
+    <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.45"/>
+    <g transform="translate(50 48)" stroke="currentColor" strokeWidth="1.5"
+       fill="none" strokeLinecap="square" strokeLinejoin="miter">
+      {glyph}
+    </g>
+    <defs>
+      <path id={'seal-arc-' + label} d="M 50,50 m -36,0 a 36,36 0 1,0 72,0"/>
+    </defs>
+    <text fontFamily='"IBM Plex Mono", monospace' fontSize="6" letterSpacing="2.4"
+          fill="currentColor" textTransform="uppercase">
+      <textPath href={'#seal-arc-' + label} startOffset="50%" textAnchor="middle">
+        {label.toUpperCase()}
+      </textPath>
+    </text>
+  </svg>
+);
+
+const CATEGORIES = [
+  { id: 'foliage',      label: 'Foliage',      glyph: <path d="M-12 12 C -12 0, 0 -12, 12 -12 C 12 0, 0 12, -12 12Z M-12 12 L 6 -6"/> },
+  { id: 'succulents',   label: 'Succulents',   glyph: <><circle cx="0" cy="0" r="6"/><circle cx="0" cy="0" r="11"/></> },
+  { id: 'flowering',    label: 'Flowering',    glyph: <><circle cx="0" cy="0" r="3"/><path d="M0 -10 V -3 M0 10 V 3 M-10 0 H -3 M10 0 H 3 M-7 -7 L -2 -2 M7 7 L 2 2 M-7 7 L -2 2 M7 -7 L 2 -2"/></> },
+  { id: 'cacti',        label: 'Cacti',        glyph: <><path d="M-4 12 V -4 a 4 4 0 0 1 8 0 V 12Z M-4 0 H -10 V -4 M4 4 H 10 V 0"/></> },
+  { id: 'orchids',      label: 'Orchids',      glyph: <><path d="M0 -8 C -8 -8, -8 4, 0 4 C 8 4, 8 -8, 0 -8Z M0 4 V 12"/></> },
+  { id: 'ferns',        label: 'Ferns',        glyph: <><path d="M-12 12 L 0 -10 M-9 9 L -4 4 M-6 6 L -1 1 M-3 3 L 2 -2 M0 0 L 5 -5 M-12 12 L -8 12 M-12 12 L -12 8"/></> },
+  { id: 'herbs',        label: 'Herbs',        glyph: <><path d="M0 -10 V 12 M0 -2 L -8 -8 M0 -2 L 8 -8 M0 4 L -8 -2 M0 4 L 8 -2"/></> },
+  { id: 'indoor_trees', label: 'Indoor trees', glyph: <><circle cx="0" cy="-2" r="9"/><path d="M0 7 V 13 M-3 13 H 3"/></> },
+  { id: 'palms',        label: 'Palms',        glyph: <><path d="M0 12 V -2 M0 -2 C -10 -8, -10 -2, -10 -2 M0 -2 C 10 -8, 10 -2, 10 -2 M0 -2 C -6 -12, 0 -12, 0 -12 M0 -2 C 6 -12, 0 -12, 0 -12"/></> },
+  { id: 'air_plants',   label: 'Air plants',   glyph: <><path d="M-10 0 L 0 -8 L 10 0 M-7 4 L 0 -2 L 7 4 M-4 8 L 0 4 L 4 8"/></> },
+  { id: 'carnivorous',  label: 'Carnivorous',  glyph: <><path d="M-8 0 C -8 -8, 8 -8, 8 0 C 8 8, -8 8, -8 0Z M-8 0 L -2 4 L 2 -2 L 8 0"/></> },
+  { id: 'terrarium',    label: 'Terrarium',    glyph: <><path d="M-10 4 a 10 10 0 0 1 20 0 V 12 H -10Z M-6 12 V 7 M0 12 V 5 M6 12 V 7"/></> },
+];
+
+const CategorySealsPage = () => (
+  <>
+    <PageHeader eyebrow="Marks" title="Category seals"
+                lede="Twelve mini-stamps, one per catalog category. Inherit the apothecary stamp's grammar — circular, microtype, geometric glyph — at a size that lives comfortably on a plant card."/>
+    <Section title="The set">
+      <div style={{ background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-2)', padding: 'var(--sp-8)',
+                      display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+                      gap: 'var(--sp-8) var(--sp-4)', color: 'var(--ink)' }}>
+        {CATEGORIES.map(c => (
+          <div key={c.id} style={{ display: 'flex', flexDirection: 'column',
+                                     alignItems: 'center', gap: 6 }}>
+            <CategorySeal glyph={c.glyph} label={c.label} size={88}/>
+            <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                             color: 'var(--ink-3)' }}>{c.id}</code>
+          </div>
+        ))}
+      </div>
+    </Section>
+
+    <Section title="Sizes & contexts" sub="64px on plant cards, 32px inline next to a plant name, 20px in dense list rows.">
+      <Specimen tag="three sizes · foliage seal">
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 40, color: 'var(--ink)' }}>
+          {[88, 56, 32, 20].map(s => (
+            <div key={s} style={{ display: 'flex', flexDirection: 'column',
+                                    alignItems: 'center', gap: 6 }}>
+              <CategorySeal glyph={CATEGORIES[0].glyph} label={CATEGORIES[0].label} size={s}/>
+              <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)' }}>{s}</code>
+            </div>
+          ))}
+        </div>
+      </Specimen>
+    </Section>
+  </>
+);
+
+// === STATE BADGES ===
+const StateBadge = ({ icon, label, tone = 'default' }) => {
+  const tones = {
+    default:  { bg: 'var(--surface)', ink: 'var(--ink)', dot: 'var(--ink-3)' },
+    due:      { bg: 'var(--highlight-soft)', ink: 'var(--copper-500)', dot: 'var(--status-due)' },
+    overdue:  { bg: 'rgba(176,74,53,0.10)', ink: 'var(--rust-400)', dot: 'var(--status-overdue)' },
+    healthy:  { bg: 'var(--accent-soft)', ink: 'var(--sage-700)', dot: 'var(--status-healthy)' },
+    dormant:  { bg: 'rgba(198,154,59,0.12)', ink: 'var(--copper-500)', dot: 'var(--status-dormant)' },
+  };
+  const t = tones[tone];
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
+                     background: t.bg, color: t.ink,
+                     padding: '4px 10px 4px 8px',
+                     borderRadius: 'var(--r-pill)',
+                     fontFamily: 'var(--font-mono)', fontSize: 11,
+                     letterSpacing: '0.06em', textTransform: 'uppercase',
+                     fontWeight: 500 }}>
+      <span style={{ width: 6, height: 6, borderRadius: 9999, background: t.dot }}/>
+      {label}
+    </span>
+  );
+};
+
+// Memorial seal — bigger, with date in the band.
+const MemorialSeal = ({ name, born, died, size = 220 }) => (
+  <svg viewBox="0 0 240 240" width={size} height={size} aria-hidden="true">
+    <defs>
+      <path id="mem-top" d="M 120,120 m -94,0 a 94,94 0 1,1 188,0"/>
+      <path id="mem-bot" d="M 120,120 m -94,0 a 94,94 0 1,0 188,0"/>
+    </defs>
+    <circle cx="120" cy="120" r="110" fill="none" stroke="currentColor" strokeWidth="1.75"/>
+    <circle cx="120" cy="120" r="100" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+    <text fontFamily='"Source Serif 4", Georgia, serif' fontStyle="italic"
+          fontSize="11" letterSpacing="3.5" fill="currentColor">
+      <textPath href="#mem-top" startOffset="50%" textAnchor="middle">in memoriam</textPath>
+    </text>
+    <text fontFamily='"IBM Plex Mono", monospace' fontSize="10"
+          letterSpacing="3.5" fill="currentColor">
+      <textPath href="#mem-bot" startOffset="50%" textAnchor="middle">{born}  ·  {died}</textPath>
+    </text>
+    <circle cx="20" cy="120" r="1.6" fill="currentColor"/>
+    <circle cx="220" cy="120" r="1.6" fill="currentColor"/>
+    <text x="120" y="124" textAnchor="middle"
+          fontFamily='"Source Serif 4", Georgia, serif' fontStyle="italic" fontWeight="400"
+          fontSize="22" fill="currentColor">{name}</text>
+    {/* small flat leaf above */}
+    <g transform="translate(120 78)" fill="currentColor">
+      <path d="M0 0 C -8 -10, 6 -16, 10 -8 C 12 -3, 4 4, 0 0Z" opacity="0.7"/>
+    </g>
+    <g transform="translate(120 158)">
+      <line x1="-30" y1="0" x2="30" y2="0" stroke="currentColor" strokeWidth="0.75"/>
+    </g>
+    <text x="120" y="172" textAnchor="middle" fontFamily='"IBM Plex Mono", monospace'
+          fontSize="8" letterSpacing="2" fill="currentColor" opacity="0.7">P · 7 · L</text>
+  </svg>
+);
+
+const StateBadgesPage = () => (
+  <>
+    <PageHeader eyebrow="Marks" title="State badges & seals"
+                lede="State badges sit inline with plant names; seals are ceremonial. The dialed-in badge is the only state that gets the copper highlight — earned, not given."/>
+
+    <Section title="State badges" sub="Pill-shaped, mono-cap, with a dot. They live next to plant names, on cards, in list rows.">
+      <Specimen tag="states">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-3)', justifyContent: 'center' }}>
+          <StateBadge label="due today" tone="due"/>
+          <StateBadge label="overdue 2d" tone="overdue"/>
+          <StateBadge label="healthy" tone="healthy"/>
+          <StateBadge label="dormant" tone="dormant"/>
+          <StateBadge label="archived" tone="default"/>
+        </div>
+      </Specimen>
+    </Section>
+
+    <Section title="Dialed-in seal" sub="Awarded when calibration converges. This is the rare moment the copper highlight earns a turn.">
+      <Specimen tag="dialed-in seal" style={{ minHeight: 240 }}>
+        <svg viewBox="0 0 100 100" width="120" height="120" style={{ color: 'var(--highlight)' }}>
+          <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="1.25"/>
+          <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.45"/>
+          <text x="50" y="46" textAnchor="middle"
+                fontFamily='"Source Serif 4", Georgia, serif' fontStyle="italic"
+                fontSize="11" fill="currentColor">dialed</text>
+          <text x="50" y="62" textAnchor="middle"
+                fontFamily='"Source Serif 4", Georgia, serif' fontWeight="600"
+                fontSize="22" fill="currentColor">in</text>
+          <text x="50" y="78" textAnchor="middle"
+                fontFamily='"IBM Plex Mono", monospace' fontSize="6"
+                letterSpacing="2" fill="currentColor">CYCLE 5 · 2026</text>
+        </svg>
+      </Specimen>
+    </Section>
+
+    <Section title="Memorial seal" sub="Used on the Archive (memorial) page only. Inherits the apothecary stamp grammar; reads as a tombstone.">
+      <Specimen tag="memorial seal" style={{ minHeight: 280 }}>
+        <div style={{ color: 'var(--ink-2)' }}>
+          <MemorialSeal name="Ferdinand" born="2019-03-12" died="2026-04-04" size={220}/>
+        </div>
+      </Specimen>
+    </Section>
+  </>
+);
+
+// === ILLUSTRATION DIRECTIONS ===
+const IllSpec = ({ children, label }) => (
+  <div style={{ background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--r-2)', padding: 'var(--sp-6)' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between',
+                    fontFamily: 'var(--font-mono)', fontSize: 11,
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    color: 'var(--ink-3)', marginBottom: 'var(--sp-4)' }}>
+      <span>{label}</span><span>monstera deliciosa</span>
+    </div>
+    <div style={{ display: 'flex', justifyContent: 'center' }}>{children}</div>
+  </div>
+);
+
+// 1: Botanical line-etching
+const IllBotanical = ({ size = 220 }) => (
+  <svg viewBox="0 0 240 240" width={size} height={size} fill="none"
+       stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    {/* Stem */}
+    <path d="M120 220 C 116 180, 124 140, 120 100"/>
+    {/* Big monstera leaf */}
+    <path d="M120 100
+             C 80 90, 50 110, 38 140
+             C 30 160, 35 180, 60 188
+             C 75 192, 95 188, 110 180
+             C 122 173, 130 160, 132 144
+             C 134 128, 130 110, 120 100Z"/>
+    {/* Vein structure */}
+    <path d="M120 100 L 105 178"/>
+    <path d="M118 120 L 70 152 M115 132 L 60 168 M112 144 L 70 180 M108 156 L 90 184"/>
+    {/* Holes (fenestration) */}
+    <ellipse cx="92" cy="148" rx="6" ry="4" transform="rotate(-30 92 148)"/>
+    <ellipse cx="78" cy="162" rx="5" ry="3.5" transform="rotate(-30 78 162)"/>
+    <ellipse cx="100" cy="135" rx="4" ry="3" transform="rotate(-30 100 135)"/>
+    {/* Splits at edge */}
+    <path d="M50 140 L 62 152 M44 158 L 60 168 M58 180 L 70 174"/>
+    {/* Mirror-side leaf */}
+    <path d="M120 100
+             C 160 92, 188 110, 200 138
+             C 208 156, 200 176, 178 184
+             C 162 188, 144 184, 132 174"/>
+    <path d="M120 100 L 134 172 M126 118 L 168 148 M130 132 L 178 162 M134 144 L 178 176"/>
+    <ellipse cx="158" cy="146" rx="6" ry="4" transform="rotate(30 158 146)"/>
+    <ellipse cx="172" cy="160" rx="5" ry="3.5" transform="rotate(30 172 160)"/>
+    {/* Latin label */}
+    <g transform="translate(120 234)" stroke="none" fill="currentColor">
+      <text textAnchor="middle" fontFamily='"Source Serif 4", Georgia, serif'
+            fontStyle="italic" fontSize="11">Monstera deliciosa</text>
+    </g>
+  </svg>
+);
+
+// 2: Mid-century woodcut — chunky, 2-color
+const IllWoodcut = ({ size = 220 }) => (
+  <svg viewBox="0 0 240 240" width={size} height={size}>
+    {/* Background tile */}
+    <rect width="240" height="240" fill="var(--bone-100)"/>
+    {/* Pot */}
+    <path d="M85 200 L 95 230 H 145 L 155 200 Z" fill="var(--copper-400)"/>
+    <rect x="82" y="194" width="76" height="8" fill="var(--copper-500)"/>
+    {/* Two big monstera leaves, chunky */}
+    <g fill="var(--sage-600)" stroke="var(--charcoal-500)" strokeWidth="2.5">
+      <path d="M120 200 C 105 170, 60 160, 50 130 C 45 110, 60 96, 80 100 C 95 102, 110 120, 120 140 Z"/>
+      <path d="M120 200 C 135 170, 180 160, 190 130 C 195 110, 180 96, 160 100 C 145 102, 130 120, 120 140 Z"/>
+    </g>
+    {/* Cuts in leaves — the woodcut tell */}
+    <g stroke="var(--bone-100)" strokeWidth="3" fill="none" strokeLinecap="round">
+      <path d="M85 130 L 65 130"/>
+      <path d="M75 145 L 60 145"/>
+      <path d="M155 130 L 175 130"/>
+      <path d="M165 145 L 180 145"/>
+    </g>
+    {/* central vein */}
+    <line x1="120" y1="200" x2="120" y2="140" stroke="var(--charcoal-500)" strokeWidth="2.5"/>
+  </svg>
+);
+
+// 3: Charley Harper-style flat geometric
+const IllFlat = ({ size = 220 }) => (
+  <svg viewBox="0 0 240 240" width={size} height={size}>
+    <rect width="240" height="240" fill="var(--bone-100)"/>
+    {/* Two abstracted leaves as overlapping flat shapes */}
+    <ellipse cx="80" cy="120" rx="50" ry="78" fill="var(--sage-500)" transform="rotate(-22 80 120)"/>
+    <ellipse cx="160" cy="120" rx="50" ry="78" fill="var(--sage-700)" transform="rotate(22 160 120)"/>
+    {/* Fenestration as cut-outs (circles in bone-100) */}
+    <circle cx="68" cy="120" r="10" fill="var(--bone-100)"/>
+    <circle cx="60" cy="156" r="6" fill="var(--bone-100)"/>
+    <circle cx="172" cy="120" r="10" fill="var(--bone-100)"/>
+    <circle cx="180" cy="156" r="6" fill="var(--bone-100)"/>
+    {/* Veins as stripes */}
+    <line x1="80" y1="60" x2="80" y2="180" stroke="var(--charcoal-500)" strokeWidth="2"/>
+    <line x1="160" y1="60" x2="160" y2="180" stroke="var(--charcoal-500)" strokeWidth="2"/>
+    {/* Pot — a single trapezoid */}
+    <path d="M90 200 L 100 230 H 140 L 150 200 Z" fill="var(--copper-400)"/>
+    {/* Stem */}
+    <line x1="120" y1="200" x2="120" y2="180" stroke="var(--charcoal-500)" strokeWidth="3"/>
+  </svg>
+);
+
+const IllustrationPage = () => (
+  <>
+    <PageHeader eyebrow="Illustration" title="Illustration directions"
+                lede="Three distinct ways to render the 444-species catalog. Same plant (Monstera deliciosa) shown each way. Pick one and we lock the style for the whole catalog."/>
+
+    <Section title="Direction 1 · Botanical line-etching"
+             sub="Apothecary book-plate style. Single-color line, italic Latin label, no fill. Reads beautifully on bone paper. Strongest fit for the apothecary identity. Best for: leaf glyph + hero. Renders cleanly on TRMNL X (line-art is dither-friendly).">
+      <IllSpec label="Direction 1 · etching">
+        <div style={{ color: 'var(--ink)' }}><IllBotanical/></div>
+      </IllSpec>
+    </Section>
+
+    <Section title="Direction 2 · Mid-century woodcut"
+             sub="Chunky 2-color, slight-imperfection (without grain — pristine still). Sage on bone with copper pots. Higher visual energy; reads instantly even at thumbnail size. Best for: hero portraits and category cards. Slightly harder to dither cleanly on OG.">
+      <IllSpec label="Direction 2 · woodcut">
+        <IllWoodcut/>
+      </IllSpec>
+    </Section>
+
+    <Section title="Direction 3 · Flat geometric (Charley Harper)"
+             sub="Plant as a few flat shapes — fenestration as cut-out circles, veins as stripes. Strongest mid-century-modern fit; most stylized; least 'plant'. Best when consistency at scale matters more than per-species fidelity. Hardest to scale across 444 species without looking samey.">
+      <IllSpec label="Direction 3 · flat">
+        <IllFlat/>
+      </IllSpec>
+    </Section>
+
+    <Section title="Recommendation"
+             sub="Direction 1 is the safest fit for 'home apothecary'; Direction 2 is the most charismatic. Direction 3 is the boldest but the riskiest at 444 species. My pick: Direction 1 for leaf glyphs + hero portraits, with Direction 2 reserved for category cover art (12 illustrations — manageable). Tell me what you want.">
+      <Specimen tag="combined system" style={{ minHeight: 320 }}>
+        <div style={{ display: 'flex', gap: 40, alignItems: 'center', color: 'var(--ink)' }}>
+          <IllBotanical size={140}/>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 24, color: 'var(--ink-3)' }}>+</span>
+          <IllWoodcut size={140}/>
+        </div>
+      </Specimen>
+    </Section>
+  </>
+);
+
+window.P7L_DS_MARKS = { IconsPage, CategorySealsPage, StateBadgesPage, IllustrationPage,
+                          ICONS, CATEGORIES, CategorySeal, StateBadge, MemorialSeal,
+                          IllBotanical, IllWoodcut, IllFlat };
+
+})();
+</script>
+<script type="text/babel" data-presets="react">
+(() => {
+// Plant card + Plant detail in the new Scandinavian apothecary system.
+
+const { Section, Subhead, Specimen, PageHeader } = window.P7L_DS_SHELL;
+const { ICONS, CATEGORIES, CategorySeal, StateBadge, IllBotanical } = window.P7L_DS_MARKS;
+
+// ============================================================
+// PLANT CARD
+// Variants:
+//  - default (resting)
+//  - due-today (copper accent, watering CTA)
+//  - dialed-in (copper seal corner)
+//  - dense (list row)
+// ============================================================
+
+const cardStyle = {
+  background: 'var(--bg-elevated)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--r-2)',
+  boxShadow: 'var(--shadow-1)',
+  padding: 0,
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  width: 280,
+  fontFamily: 'var(--font-sans)',
+  color: 'var(--ink)',
+};
+
+const PlantCard = ({ name, latin, category = 'foliage', state = 'healthy',
+                       interval = '~21d', dueIn = null, dialed = false,
+                       location = 'Living room — east window' }) => {
+  const cat = CATEGORIES.find(c => c.id === category) || CATEGORIES[0];
+  const isDue = state === 'due' || state === 'overdue';
+  return (
+    <div style={cardStyle}>
+      {/* Hero panel — illustration on a sunken bone surface */}
+      <div style={{ background: 'var(--bg-sunken)',
+                      borderBottom: '1px solid var(--border)',
+                      height: 168, position: 'relative',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: 'var(--ink)' }}><IllBotanical size={130}/></div>
+        {/* Category seal corner */}
+        <div style={{ position: 'absolute', top: 10, left: 10, color: 'var(--ink-2)' }}>
+          <CategorySeal glyph={cat.glyph} label={cat.label} size={36}/>
+        </div>
+        {/* Dialed-in copper seal */}
+        {dialed && (
+          <div style={{ position: 'absolute', top: 10, right: 10, color: 'var(--highlight)' }}>
+            <svg viewBox="0 0 100 100" width="38" height="38">
+              <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+              <text x="50" y="46" textAnchor="middle" fontFamily='"Source Serif 4", Georgia, serif'
+                    fontStyle="italic" fontSize="11" fill="currentColor">dialed</text>
+              <text x="50" y="62" textAnchor="middle" fontFamily='"Source Serif 4", Georgia, serif'
+                    fontWeight="600" fontSize="20" fill="currentColor">in</text>
+            </svg>
+          </div>
+        )}
+      </div>
+      {/* Body */}
+      <div style={{ padding: '14px 16px 16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between',
+                        alignItems: 'flex-start', gap: 10 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20,
+                            fontWeight: 500, letterSpacing: '-0.01em',
+                            lineHeight: 1.1, color: 'var(--ink)' }}>{name}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                            fontSize: 13, color: 'var(--ink-2)', marginTop: 2 }}>
+              {latin}
+            </div>
+          </div>
+          <StateBadge label={
+            state === 'due' ? 'due today' :
+            state === 'overdue' ? `overdue ${dueIn}d` :
+            state === 'dormant' ? 'dormant' : 'healthy'
+          } tone={state}/>
+        </div>
+        <div style={{ marginTop: 14, paddingTop: 10,
+                        borderTop: '1px solid var(--border)',
+                        display: 'flex', justifyContent: 'space-between',
+                        alignItems: 'center' }}>
+          <div style={{ fontSize: 12, color: 'var(--ink-2)' }}>{location}</div>
+          <span style={{ fontFamily: 'var(--font-mono)',
+                           fontSize: 11, color: 'var(--ink-3)',
+                           letterSpacing: '0.06em' }}>
+            {interval.toUpperCase()}
+          </span>
+        </div>
+        {/* Action row only if due */}
+        {isDue && (
+          <button style={{
+            width: '100%', marginTop: 12,
+            background: 'var(--highlight)', color: 'var(--bone-50)',
+            border: 'none', borderRadius: 'var(--r-1)',
+            padding: '10px 12px',
+            fontFamily: 'var(--font-mono)', fontSize: 12,
+            letterSpacing: '0.1em', textTransform: 'uppercase',
+            fontWeight: 500, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+          }}>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                 stroke="currentColor" strokeWidth="1.6" strokeLinecap="square">
+              <path d="M12 3 C 7 11, 5 14, 5 17 a7 7 0 0 0 14 0 C 19 14, 17 11, 12 3Z"/>
+            </svg>
+            water now
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Compact list row (alternative density)
+const PlantRow = ({ name, latin, state = 'healthy', interval = '~21d',
+                     category = 'foliage' }) => {
+  const cat = CATEGORIES.find(c => c.id === category) || CATEGORIES[0];
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '32px 1fr auto auto',
+                    gap: 14, alignItems: 'center',
+                    padding: '12px 16px',
+                    borderBottom: '1px solid var(--border)',
+                    background: 'var(--bg-elevated)' }}>
+      <span style={{ color: 'var(--ink-2)' }}>
+        <CategorySeal glyph={cat.glyph} label={cat.label} size={28}/>
+      </span>
+      <div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 16,
+                        fontWeight: 500, color: 'var(--ink)' }}>{name}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                        fontSize: 12, color: 'var(--ink-3)' }}>{latin}</div>
+      </div>
+      <StateBadge label={
+        state === 'due' ? 'due today' :
+        state === 'overdue' ? 'overdue' :
+        state === 'dormant' ? 'dormant' : 'healthy'
+      } tone={state}/>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                       color: 'var(--ink-3)', letterSpacing: '0.06em',
+                       width: 56, textAlign: 'right' }}>
+        {interval.toUpperCase()}
+      </span>
+    </div>
+  );
+};
+
+const PlantCardPage = () => (
+  <>
+    <PageHeader eyebrow="Components" title="Plant card"
+                lede="The atom of the SPA. Hero illustration, name, latin, state badge, location, watering interval. Watering CTA only when due."/>
+
+    <Section title="Card variants">
+      <Specimen tag="three states · light surface" style={{ padding: 'var(--sp-8) var(--sp-6)' }}>
+        <div style={{ display: 'flex', gap: 'var(--sp-5)', flexWrap: 'wrap',
+                        justifyContent: 'center' }}>
+          <PlantCard name="Monstera" latin="Monstera deliciosa"
+                     category="foliage" state="healthy"
+                     interval="~14d" location="Living room — east window"/>
+          <PlantCard name="Ferdinand" latin="Sansevieria trifasciata"
+                     category="foliage" state="due"
+                     interval="~21d" dueIn={0}
+                     location="Office desk — north"/>
+          <PlantCard name="Greta" latin="Calathea ornata"
+                     category="foliage" state="overdue"
+                     interval="~10d" dueIn={3}
+                     location="Bathroom — bright"/>
+        </div>
+      </Specimen>
+    </Section>
+
+    <Section title="Calibration converged" sub="Dialed-in seal sits in the top-right corner — copper highlight earns its turn.">
+      <Specimen tag="dialed-in" style={{ padding: 'var(--sp-8)' }}>
+        <PlantCard name="Cleo" latin="Pilea peperomioides"
+                   category="foliage" state="healthy"
+                   interval="~12d" location="Kitchen — south window"
+                   dialed/>
+      </Specimen>
+    </Section>
+
+    <Section title="Dormant state" sub="Mustard accent only on the badge; the card stays calm.">
+      <Specimen tag="dormant" style={{ padding: 'var(--sp-8)' }}>
+        <PlantCard name="Karoo" latin="Lithops karasmontana"
+                   category="succulents" state="dormant"
+                   interval="~90d" location="South window sill"/>
+      </Specimen>
+    </Section>
+
+    <Section title="Dense list row" sub="When you have 40 plants, cards become exhausting. Same data, list density.">
+      <div style={{ background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-2)',
+                      overflow: 'hidden' }}>
+        <PlantRow name="Monstera" latin="Monstera deliciosa" category="foliage" state="healthy" interval="~14d"/>
+        <PlantRow name="Ferdinand" latin="Sansevieria trifasciata" category="foliage" state="due" interval="~21d"/>
+        <PlantRow name="Greta" latin="Calathea ornata" category="foliage" state="overdue" interval="~10d"/>
+        <PlantRow name="Cleo" latin="Pilea peperomioides" category="foliage" state="healthy" interval="~12d"/>
+        <PlantRow name="Karoo" latin="Lithops karasmontana" category="succulents" state="dormant" interval="~90d"/>
+      </div>
+    </Section>
+  </>
+);
+
+// ============================================================
+// PLANT DETAIL
+// ============================================================
+
+const Stat = ({ label, value, accent }) => (
+  <div style={{ borderRight: '1px solid var(--border)',
+                  padding: '12px 20px',
+                  display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10,
+                     letterSpacing: '0.12em', textTransform: 'uppercase',
+                     color: 'var(--ink-3)' }}>{label}</span>
+    <span style={{ fontFamily: 'var(--font-display)', fontSize: 28,
+                     fontWeight: 500, lineHeight: 1, letterSpacing: '-0.01em',
+                     color: accent || 'var(--ink)' }}>{value}</span>
+  </div>
+);
+
+const ConditionRow = ({ icon, label, value }) => (
+  <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr auto',
+                  alignItems: 'center', gap: 12,
+                  padding: '12px 0',
+                  borderBottom: '1px solid var(--border)',
+                  fontSize: 14, color: 'var(--ink)' }}>
+    <span style={{ color: 'var(--ink-2)' }}>{icon}</span>
+    <span>{label}</span>
+    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12,
+                     color: 'var(--ink-2)', letterSpacing: '0.04em' }}>{value}</span>
+  </div>
+);
+
+const PlantDetail = () => (
+  <article style={{ background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-2)',
+                      overflow: 'hidden',
+                      fontFamily: 'var(--font-sans)' }}>
+    {/* HERO */}
+    <header style={{ padding: 'var(--sp-12) var(--sp-12) var(--sp-8)',
+                       background: 'var(--bg-sunken)',
+                       borderBottom: '1px solid var(--border)',
+                       display: 'grid', gridTemplateColumns: '1fr 280px',
+                       gap: 'var(--sp-12)', alignItems: 'center' }}>
+      <div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: 'var(--ink-3)', marginBottom: 8,
+                        display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ color: 'var(--ink-2)' }}>
+            <CategorySeal glyph={CATEGORIES[0].glyph} label="Foliage" size={20}/>
+          </span>
+          <span>foliage · cat #042</span>
+        </div>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 56, fontWeight: 500,
+                       letterSpacing: '-0.02em', lineHeight: 1, margin: '0 0 6px',
+                       color: 'var(--ink)' }}>
+          Monstera
+        </h1>
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                        fontSize: 22, color: 'var(--ink-2)' }}>
+          Monstera deliciosa
+        </div>
+        <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <StateBadge label="due today" tone="due"/>
+          <StateBadge label="cycle 4 of ~5" tone="default"/>
+          <StateBadge label="east window" tone="default"/>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'var(--ink)' }}>
+        <IllBotanical size={240}/>
+      </div>
+    </header>
+
+    {/* STATS BAR */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+                    borderBottom: '1px solid var(--border)' }}>
+      <Stat label="Last watered" value="6d ago"/>
+      <Stat label="Interval" value="~14d"/>
+      <Stat label="Calibration" value="3 of 5"/>
+      <Stat label="Lifespan" value="427d" accent="var(--highlight)"/>
+    </div>
+
+    {/* CONTENT GRID */}
+    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr',
+                    gap: 0,
+                    minHeight: 360 }}>
+      {/* Left — narrative */}
+      <div style={{ padding: 'var(--sp-10) var(--sp-12)',
+                      borderRight: '1px solid var(--border)' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: 'var(--ink-3)', marginBottom: 10 }}>
+          Origin & lore
+        </div>
+        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 17, lineHeight: 1.55,
+                      color: 'var(--ink)', margin: 0 }}>
+          Climbs the trunks of trees in the rainforests of southern Mexico and Panama,
+          pulling itself toward the canopy with aerial roots. The fenestrations — the
+          famous holes — let wind pass through the otherwise huge leaves without
+          tearing them. Indoors, given a moss pole and bright indirect light, it will
+          remember it is a vine and start to climb.
+        </p>
+        <hr style={{ border: 'none', borderTop: '1px solid var(--rule)',
+                       margin: 'var(--sp-8) 0' }}/>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: 'var(--ink-3)', marginBottom: 10 }}>
+          Common conditions
+        </div>
+        <div>
+          <ConditionRow icon={ICONS.drop} label="Yellow lower leaves — overwatering"
+                        value="see remedy"/>
+          <ConditionRow icon={ICONS.sun}  label="Brown leaf edges — low humidity"
+                        value="see remedy"/>
+          <ConditionRow icon={ICONS.leaf} label="Fewer fenestrations — too little light"
+                        value="see remedy"/>
+        </div>
+      </div>
+
+      {/* Right — care panel */}
+      <div style={{ padding: 'var(--sp-10) var(--sp-10)',
+                      background: 'var(--bg-sunken)' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: 'var(--ink-3)', marginBottom: 14 }}>
+          This plant
+        </div>
+        {[
+          ['Light',     'Bright indirect',                  ICONS.sun],
+          ['Water',     'When top 5cm dry',                 ICONS.drop],
+          ['Soil',      'Free-draining, peat-free',          ICONS.beaker],
+          ['Temp',      '18–27°C, no draughts',             ICONS.thermometer],
+          ['Repot',     'Spring, every 2 years',             ICONS.pot],
+        ].map(([k, v, ic]) => (
+          <div key={k} style={{ display: 'grid',
+                                  gridTemplateColumns: '24px 80px 1fr',
+                                  alignItems: 'center', gap: 10,
+                                  padding: '10px 0',
+                                  borderBottom: '1px solid var(--border)',
+                                  fontSize: 14, color: 'var(--ink)' }}>
+            <span style={{ color: 'var(--ink-2)' }}>{ic}</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                             letterSpacing: '0.08em', textTransform: 'uppercase',
+                             color: 'var(--ink-3)' }}>{k}</span>
+            <span>{v}</span>
+          </div>
+        ))}
+        <button style={{
+          marginTop: 24, width: '100%',
+          background: 'var(--highlight)', color: 'var(--bone-50)',
+          border: 'none', borderRadius: 'var(--r-1)',
+          padding: '14px 16px',
+          fontFamily: 'var(--font-mono)', fontSize: 12,
+          letterSpacing: '0.12em', textTransform: 'uppercase',
+          fontWeight: 500, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
+        }}>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+               stroke="currentColor" strokeWidth="1.6" strokeLinecap="square">
+            <path d="M12 3 C 7 11, 5 14, 5 17 a7 7 0 0 0 14 0 C 19 14, 17 11, 12 3Z"/>
+          </svg>
+          mark watered
+        </button>
+        <button style={{
+          marginTop: 8, width: '100%',
+          background: 'transparent', color: 'var(--ink-2)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--r-1)',
+          padding: '12px 16px',
+          fontFamily: 'var(--font-mono)', fontSize: 11,
+          letterSpacing: '0.1em', textTransform: 'uppercase',
+          cursor: 'pointer'
+        }}>
+          calibrate (3 of 5)
+        </button>
+      </div>
+    </div>
+  </article>
+);
+
+const PlantDetailPage = () => (
+  <>
+    <PageHeader eyebrow="Components" title="Plant detail"
+                lede="The single longest screen in the SPA. Hero with the apothecary-style title block, a four-stat strip, narrative on the left, care panel on the right."/>
+
+    <Section title="Default — due today">
+      <PlantDetail/>
+    </Section>
+
+    <Section title="Notes" sub="Decisions baked into this layout.">
+      <div className="specimen-grid cols-3">
+        {[
+          ['Heading reads as a label', 'Italic Latin under the common name. Mono eyebrow above. Same grammar as the apothecary stamp.'],
+          ['Stats strip, no chart', 'Four big numerals. A sparkline would compete with the illustration; numbers are calmer.'],
+          ['Care panel is the right side', 'Quiet sunken bone. The watering CTA is the only place the copper highlight appears on this screen.'],
+        ].map(([h, b]) => (
+          <div key={h} style={{ background: 'var(--bg-elevated)',
+                                  border: '1px solid var(--border)',
+                                  padding: 'var(--sp-5)',
+                                  borderRadius: 'var(--r-2)' }}>
+            <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 16,
+                           fontWeight: 500, margin: '0 0 6px' }}>{h}</h4>
+            <p style={{ margin: 0, color: 'var(--ink-2)', fontSize: 13 }}>{b}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+  </>
+);
+
+window.P7L_DS_COMPONENTS = { PlantCardPage, PlantDetailPage, PlantCard, PlantRow, PlantDetail };
+
+})();
+</script>
+<script type="text/babel" data-presets="react">
+(() => {
+// p7l design system — entry. Wires sidebar + page routing.
+
+const { useHashRoute, useTheme, Sidebar } = window.P7L_DS_SHELL;
+const { IntroPage, LogoPage } = window.P7L_DS_FOUND_1;
+const { ColorPage, TypePage, SpacingPage, ShadowPage } = window.P7L_DS_FOUND_2;
+const { IconsPage, CategorySealsPage, StateBadgesPage, IllustrationPage } = window.P7L_DS_MARKS;
+const { PlantCardPage, PlantDetailPage } = window.P7L_DS_COMPONENTS;
+
+const PAGES = {
+  intro:           IntroPage,
+  logo:            LogoPage,
+  color:           ColorPage,
+  type:            TypePage,
+  spacing:         SpacingPage,
+  shadow:          ShadowPage,
+  icons:           IconsPage,
+  'category-seals':CategorySealsPage,
+  'state-badges':  StateBadgesPage,
+  illustration:    IllustrationPage,
+  'plant-card':    PlantCardPage,
+  'plant-detail':  PlantDetailPage,
+};
+
+const App = () => {
+  const [route, go] = useHashRoute();
+  const [theme, setTheme] = useTheme();
+  const Page = PAGES[route] || IntroPage;
+  return (
+    <div className="app">
+      <Sidebar route={route} go={go} theme={theme} setTheme={setTheme}/>
+      <main className="main" key={route}>
+        <Page/>
+      </main>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+})();
+</script>
+</body>
+</html>

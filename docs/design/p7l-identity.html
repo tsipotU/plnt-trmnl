@@ -1,0 +1,2708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>p7l · identity</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;1,8..60,400;1,8..60,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* p7l identity tokens — both directions in one file, scoped by class */
+
+/* ─── Direction A · Field Guide refined ─── */
+.dir-a {
+  /* Paper / ink */
+  --paper: #f3ecd9;          /* warmer, more rag than the original */
+  --paper-2: #ece4cc;        /* card body */
+  --paper-edge: #d8cca8;     /* divider / hairline */
+  --ink: #1a1612;            /* near-black, warm */
+  --ink-2: #4a3f2e;          /* secondary text, ≥ AA on paper */
+  --ink-3: #7a6e55;          /* tertiary, captions, italics */
+
+  /* Single accent: the chlorophyll-green of a healthy leaf in afternoon light */
+  --leaf: #3e6b3a;           /* AA on paper @ 14px */
+  --leaf-deep: #2a4a28;      /* hover / pressed */
+
+  /* Single alarm: dried clay, never red. Overdue/danger only */
+  --clay: #a04a28;
+  --clay-deep: #7a3818;
+
+  /* Type — direction A */
+  --font-display: "Source Serif 4", "Source Serif Pro", "Lora", Georgia, serif;
+  --font-body: "Inter Tight", "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* Geometry */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 14px;
+  --hairline: 1px solid var(--paper-edge);
+}
+
+/* ─── Direction B · p7l Operator ─── */
+.dir-b {
+  /* Higher-contrast, slightly cooler paper. Built for instrumentation feel. */
+  --paper: #ebe7dd;
+  --paper-2: #f5f2ea;        /* cards float lighter than ground */
+  --paper-edge: #c8c2b2;
+  --ink: #0e0e0c;
+  --ink-2: #3a3a36;
+  --ink-3: #6e6e64;
+
+  /* The "p7l" green: a pixelated phosphor leaf-green. Slightly more vivid than A. */
+  --leaf: #2e7d3a;
+  --leaf-deep: #1f5c28;
+
+  /* Alarm: amber-ochre, like a warning lamp on a control panel */
+  --clay: #c47a1a;
+  --clay-deep: #8a5210;
+
+  /* Type — direction B */
+  --font-display: "Fraunces", "Newsreader", Georgia, serif;
+  --font-display-disp: "Newsreader", "Fraunces", Georgia, serif; /* used for display-italic */
+  --font-body: "IBM Plex Sans", "Inter Tight", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Sharper geometry — operator panels are square-ish */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-lg: 6px;
+  --hairline: 1px solid var(--paper-edge);
+}
+
+/* Shared utilities */
+.paper { background: var(--paper); color: var(--ink); }
+.card  { background: var(--paper-2); border: var(--hairline); border-radius: var(--r-md); }
+
+.mono  { font-family: var(--font-mono); font-feature-settings: "tnum"; }
+.display { font-family: var(--font-display); }
+.body  { font-family: var(--font-body); }
+
+.italic-latin { font-style: italic; color: var(--ink-3); }
+
+/* Reset within artboards */
+.dir-a *, .dir-b * { box-sizing: border-box; }
+.dir-a button, .dir-b button { font-family: inherit; }
+
+  html, body { margin: 0; padding: 0; background: #f0eee9; }
+  body { font-family: "Inter Tight", system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+
+(() => {
+
+// DesignCanvas.jsx — Figma-ish design canvas wrapper
+// Warm gray grid bg + Sections + Artboards + PostIt notes.
+// Artboards are reorderable (grip-drag), labels/titles are inline-editable,
+// and any artboard can be opened in a fullscreen focus overlay (←/→/Esc).
+// State persists to a .design-canvas.state.json sidecar via the host
+// bridge. No assets, no deps.
+//
+// Usage:
+//   <DesignCanvas>
+//     <DCSection id="onboarding" title="Onboarding" subtitle="First-run variants">
+//       <DCArtboard id="a" label="A · Dusk" width={260} height={480}>…</DCArtboard>
+//       <DCArtboard id="b" label="B · Minimal" width={260} height={480}>…</DCArtboard>
+//     </DCSection>
+//   </DesignCanvas>
+
+const DC = {
+  bg: '#f0eee9',
+  grid: 'rgba(0,0,0,0.06)',
+  label: 'rgba(60,50,40,0.7)',
+  title: 'rgba(40,30,20,0.85)',
+  subtitle: 'rgba(60,50,40,0.6)',
+  postitBg: '#fef4a8',
+  postitText: '#5a4a2a',
+  font: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+};
+
+// One-time CSS injection (classes are dc-prefixed so they don't collide with
+// the hosted design's own styles).
+if (typeof document !== 'undefined' && !document.getElementById('dc-styles')) {
+  const s = document.createElement('style');
+  s.id = 'dc-styles';
+  s.textContent = [
+    '.dc-editable{cursor:text;outline:none;white-space:nowrap;border-radius:3px;padding:0 2px;margin:0 -2px}',
+    '.dc-editable:focus{background:#fff;box-shadow:0 0 0 1.5px #c96442}',
+    '[data-dc-slot]{transition:transform .18s cubic-bezier(.2,.7,.3,1)}',
+    '[data-dc-slot].dc-dragging{transition:none;z-index:10;pointer-events:none}',
+    '[data-dc-slot].dc-dragging .dc-card{box-shadow:0 12px 40px rgba(0,0,0,.25),0 0 0 2px #c96442;transform:scale(1.02)}',
+    '.dc-card{transition:box-shadow .15s,transform .15s}',
+    '.dc-card *{scrollbar-width:none}',
+    '.dc-card *::-webkit-scrollbar{display:none}',
+    '.dc-labelrow{display:flex;align-items:center;gap:4px;height:24px}',
+    '.dc-grip{cursor:grab;display:flex;align-items:center;padding:5px 4px;border-radius:4px;transition:background .12s}',
+    '.dc-grip:hover{background:rgba(0,0,0,.08)}',
+    '.dc-grip:active{cursor:grabbing}',
+    '.dc-labeltext{cursor:pointer;border-radius:4px;padding:3px 6px;display:flex;align-items:center;transition:background .12s}',
+    '.dc-labeltext:hover{background:rgba(0,0,0,.05)}',
+    '.dc-expand{position:absolute;bottom:100%;right:0;margin-bottom:5px;z-index:2;opacity:0;transition:opacity .12s,background .12s;',
+    '  width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;padding:0;',
+    '  background:transparent;color:rgba(60,50,40,.7);display:flex;align-items:center;justify-content:center}',
+    '.dc-expand:hover{background:rgba(0,0,0,.06);color:#2a251f}',
+    '[data-dc-slot]:hover .dc-expand{opacity:1}',
+  ].join('\n');
+  document.head.appendChild(s);
+}
+
+const DCCtx = React.createContext(null);
+
+// ─────────────────────────────────────────────────────────────
+// DesignCanvas — stateful wrapper around the pan/zoom viewport.
+// Owns runtime state (per-section order, renamed titles/labels, focused
+// artboard). Order/titles/labels persist to a .design-canvas.state.json
+// sidecar next to the HTML. Reads go via plain fetch() so the saved
+// arrangement is visible anywhere the HTML + sidecar are served together
+// (omelette preview, direct link, downloaded zip). Writes go through the
+// host's window.omelette bridge — editing requires the omelette runtime.
+// Focus is ephemeral.
+// ─────────────────────────────────────────────────────────────
+const DC_STATE_FILE = '.design-canvas.state.json';
+
+function DesignCanvas({ children, minScale, maxScale, style }) {
+  const [state, setState] = React.useState({ sections: {}, focus: null });
+  // Hold rendering until the sidecar read settles so the saved order/titles
+  // appear on first paint (no source-order flash). didRead gates writes until
+  // the read settles so the empty initial state can't clobber a slow read;
+  // skipNextWrite suppresses the one echo-write that would otherwise follow
+  // hydration.
+  const [ready, setReady] = React.useState(false);
+  const didRead = React.useRef(false);
+  const skipNextWrite = React.useRef(false);
+
+  React.useEffect(() => {
+    let off = false;
+    fetch('./' + DC_STATE_FILE)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((saved) => {
+        if (off || !saved || !saved.sections) return;
+        skipNextWrite.current = true;
+        setState((s) => ({ ...s, sections: saved.sections }));
+      })
+      .catch(() => {})
+      .finally(() => { didRead.current = true; if (!off) setReady(true); });
+    const t = setTimeout(() => { if (!off) setReady(true); }, 150);
+    return () => { off = true; clearTimeout(t); };
+  }, []);
+
+  React.useEffect(() => {
+    if (!didRead.current) return;
+    if (skipNextWrite.current) { skipNextWrite.current = false; return; }
+    const t = setTimeout(() => {
+      window.omelette?.writeFile(DC_STATE_FILE, JSON.stringify({ sections: state.sections })).catch(() => {});
+    }, 250);
+    return () => clearTimeout(t);
+  }, [state.sections]);
+
+  // Build registries synchronously from children so FocusOverlay can read
+  // them in the same render. Only direct DCSection > DCArtboard children are
+  // walked — wrapping them in other elements opts out of focus/reorder.
+  const registry = {};     // slotId -> { sectionId, artboard }
+  const sectionMeta = {};  // sectionId -> { title, subtitle, slotIds[] }
+  const sectionOrder = [];
+  React.Children.forEach(children, (sec) => {
+    if (!sec || sec.type !== DCSection) return;
+    const sid = sec.props.id ?? sec.props.title;
+    if (!sid) return;
+    sectionOrder.push(sid);
+    const persisted = state.sections[sid] || {};
+    const srcIds = [];
+    React.Children.forEach(sec.props.children, (ab) => {
+      if (!ab || ab.type !== DCArtboard) return;
+      const aid = ab.props.id ?? ab.props.label;
+      if (!aid) return;
+      registry[`${sid}/${aid}`] = { sectionId: sid, artboard: ab };
+      srcIds.push(aid);
+    });
+    const kept = (persisted.order || []).filter((k) => srcIds.includes(k));
+    sectionMeta[sid] = {
+      title: persisted.title ?? sec.props.title,
+      subtitle: sec.props.subtitle,
+      slotIds: [...kept, ...srcIds.filter((k) => !kept.includes(k))],
+    };
+  });
+
+  const api = React.useMemo(() => ({
+    state,
+    section: (id) => state.sections[id] || {},
+    patchSection: (id, p) => setState((s) => ({
+      ...s,
+      sections: { ...s.sections, [id]: { ...s.sections[id], ...(typeof p === 'function' ? p(s.sections[id] || {}) : p) } },
+    })),
+    setFocus: (slotId) => setState((s) => ({ ...s, focus: slotId })),
+  }), [state]);
+
+  // Esc exits focus; any outside pointerdown commits an in-progress rename.
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') api.setFocus(null); };
+    const onPd = (e) => {
+      const ae = document.activeElement;
+      if (ae && ae.isContentEditable && !ae.contains(e.target)) ae.blur();
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPd, true);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPd, true);
+    };
+  }, [api]);
+
+  return (
+    <DCCtx.Provider value={api}>
+      <DCViewport minScale={minScale} maxScale={maxScale} style={style}>{ready && children}</DCViewport>
+      {state.focus && registry[state.focus] && (
+        <DCFocusOverlay entry={registry[state.focus]} sectionMeta={sectionMeta} sectionOrder={sectionOrder} />
+      )}
+    </DCCtx.Provider>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// DCViewport — transform-based pan/zoom (internal)
+//
+// Input mapping (Figma-style):
+//   • trackpad pinch  → zoom   (ctrlKey wheel; Safari gesture* events)
+//   • trackpad scroll → pan    (two-finger)
+//   • mouse wheel     → zoom   (notched; distinguished from trackpad scroll)
+//   • middle-drag / primary-drag-on-bg → pan
+//
+// Transform state lives in a ref and is written straight to the DOM
+// (translate3d + will-change) so wheel ticks don't go through React —
+// keeps pans at 60fps on dense canvases.
+// ─────────────────────────────────────────────────────────────
+function DCViewport({ children, minScale = 0.1, maxScale = 8, style = {} }) {
+  const vpRef = React.useRef(null);
+  const worldRef = React.useRef(null);
+  const tf = React.useRef({ x: 0, y: 0, scale: 1 });
+
+  const apply = React.useCallback(() => {
+    const { x, y, scale } = tf.current;
+    const el = worldRef.current;
+    if (el) el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+  }, []);
+
+  React.useEffect(() => {
+    const vp = vpRef.current;
+    if (!vp) return;
+
+    const zoomAt = (cx, cy, factor) => {
+      const r = vp.getBoundingClientRect();
+      const px = cx - r.left, py = cy - r.top;
+      const t = tf.current;
+      const next = Math.min(maxScale, Math.max(minScale, t.scale * factor));
+      const k = next / t.scale;
+      // keep the world point under the cursor fixed
+      t.x = px - (px - t.x) * k;
+      t.y = py - (py - t.y) * k;
+      t.scale = next;
+      apply();
+    };
+
+    // Mouse-wheel vs trackpad-scroll heuristic. A physical wheel sends
+    // line-mode deltas (Firefox) or large integer pixel deltas with no X
+    // component (Chrome/Safari, typically multiples of 100/120). Trackpad
+    // two-finger scroll sends small/fractional pixel deltas, often with
+    // non-zero deltaX. ctrlKey is set by the browser for trackpad pinch.
+    const isMouseWheel = (e) =>
+      e.deltaMode !== 0 ||
+      (e.deltaX === 0 && Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 40);
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      if (isGesturing) return; // Safari: gesture* owns the pinch — discard concurrent wheels
+      if (e.ctrlKey) {
+        // trackpad pinch (or explicit ctrl+wheel)
+        zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.01));
+      } else if (isMouseWheel(e)) {
+        // notched mouse wheel — fixed-ratio step per click
+        zoomAt(e.clientX, e.clientY, Math.exp(-Math.sign(e.deltaY) * 0.18));
+      } else {
+        // trackpad two-finger scroll — pan
+        tf.current.x -= e.deltaX;
+        tf.current.y -= e.deltaY;
+        apply();
+      }
+    };
+
+    // Safari sends native gesture* events for trackpad pinch with a smooth
+    // e.scale; preferring these over the ctrl+wheel fallback gives a much
+    // better feel there. No-ops on other browsers. Safari also fires
+    // ctrlKey wheel events during the same pinch — isGesturing makes
+    // onWheel drop those entirely so they neither zoom nor pan.
+    let gsBase = 1;
+    let isGesturing = false;
+    const onGestureStart = (e) => { e.preventDefault(); isGesturing = true; gsBase = tf.current.scale; };
+    const onGestureChange = (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, (gsBase * e.scale) / tf.current.scale);
+    };
+    const onGestureEnd = (e) => { e.preventDefault(); isGesturing = false; };
+
+    // Drag-pan: middle button anywhere, or primary button on canvas
+    // background (anything that isn't an artboard or an inline editor).
+    let drag = null;
+    const onPointerDown = (e) => {
+      const onBg = !e.target.closest('[data-dc-slot], .dc-editable');
+      if (!(e.button === 1 || (e.button === 0 && onBg))) return;
+      e.preventDefault();
+      vp.setPointerCapture(e.pointerId);
+      drag = { id: e.pointerId, lx: e.clientX, ly: e.clientY };
+      vp.style.cursor = 'grabbing';
+    };
+    const onPointerMove = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      tf.current.x += e.clientX - drag.lx;
+      tf.current.y += e.clientY - drag.ly;
+      drag.lx = e.clientX; drag.ly = e.clientY;
+      apply();
+    };
+    const onPointerUp = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      vp.releasePointerCapture(e.pointerId);
+      drag = null;
+      vp.style.cursor = '';
+    };
+
+    vp.addEventListener('wheel', onWheel, { passive: false });
+    vp.addEventListener('gesturestart', onGestureStart, { passive: false });
+    vp.addEventListener('gesturechange', onGestureChange, { passive: false });
+    vp.addEventListener('gestureend', onGestureEnd, { passive: false });
+    vp.addEventListener('pointerdown', onPointerDown);
+    vp.addEventListener('pointermove', onPointerMove);
+    vp.addEventListener('pointerup', onPointerUp);
+    vp.addEventListener('pointercancel', onPointerUp);
+    return () => {
+      vp.removeEventListener('wheel', onWheel);
+      vp.removeEventListener('gesturestart', onGestureStart);
+      vp.removeEventListener('gesturechange', onGestureChange);
+      vp.removeEventListener('gestureend', onGestureEnd);
+      vp.removeEventListener('pointerdown', onPointerDown);
+      vp.removeEventListener('pointermove', onPointerMove);
+      vp.removeEventListener('pointerup', onPointerUp);
+      vp.removeEventListener('pointercancel', onPointerUp);
+    };
+  }, [apply, minScale, maxScale]);
+
+  const gridSvg = `url("data:image/svg+xml,%3Csvg width='120' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M120 0H0v120' fill='none' stroke='${encodeURIComponent(DC.grid)}' stroke-width='1'/%3E%3C/svg%3E")`;
+  return (
+    <div
+      ref={vpRef}
+      className="design-canvas"
+      style={{
+        height: '100vh', width: '100vw',
+        background: DC.bg,
+        overflow: 'hidden',
+        overscrollBehavior: 'none',
+        touchAction: 'none',
+        position: 'relative',
+        fontFamily: DC.font,
+        boxSizing: 'border-box',
+        ...style,
+      }}
+    >
+      <div
+        ref={worldRef}
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          transformOrigin: '0 0',
+          willChange: 'transform',
+          width: 'max-content', minWidth: '100%',
+          minHeight: '100%',
+          padding: '60px 0 80px',
+        }}
+      >
+        <div style={{ position: 'absolute', inset: -6000, backgroundImage: gridSvg, backgroundSize: '120px 120px', pointerEvents: 'none', zIndex: -1 }} />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// DCSection — editable title + h-row of artboards in persisted order
+// ─────────────────────────────────────────────────────────────
+function DCSection({ id, title, subtitle, children, gap = 48 }) {
+  const ctx = React.useContext(DCCtx);
+  const sid = id ?? title;
+  const all = React.Children.toArray(children);
+  const artboards = all.filter((c) => c && c.type === DCArtboard);
+  const rest = all.filter((c) => !(c && c.type === DCArtboard));
+  const srcOrder = artboards.map((a) => a.props.id ?? a.props.label);
+  const sec = (ctx && sid && ctx.section(sid)) || {};
+
+  const order = React.useMemo(() => {
+    const kept = (sec.order || []).filter((k) => srcOrder.includes(k));
+    return [...kept, ...srcOrder.filter((k) => !kept.includes(k))];
+  }, [sec.order, srcOrder.join('|')]);
+
+  const byId = Object.fromEntries(artboards.map((a) => [a.props.id ?? a.props.label, a]));
+
+  return (
+    <div data-dc-section={sid} style={{ marginBottom: 80, position: 'relative' }}>
+      <div style={{ padding: '0 60px 56px' }}>
+        <DCEditable tag="div" value={sec.title ?? title}
+          onChange={(v) => ctx && sid && ctx.patchSection(sid, { title: v })}
+          style={{ fontSize: 28, fontWeight: 600, color: DC.title, letterSpacing: -0.4, marginBottom: 6, display: 'inline-block' }} />
+        {subtitle && <div style={{ fontSize: 16, color: DC.subtitle }}>{subtitle}</div>}
+      </div>
+      <div style={{ display: 'flex', gap, padding: '0 60px', alignItems: 'flex-start', width: 'max-content' }}>
+        {order.map((k) => (
+          <DCArtboardFrame key={k} sectionId={sid} artboard={byId[k]} order={order}
+            label={(sec.labels || {})[k] ?? byId[k].props.label}
+            onRename={(v) => ctx && ctx.patchSection(sid, (x) => ({ labels: { ...x.labels, [k]: v } }))}
+            onReorder={(next) => ctx && ctx.patchSection(sid, { order: next })}
+            onFocus={() => ctx && ctx.setFocus(`${sid}/${k}`)} />
+        ))}
+      </div>
+      {rest}
+    </div>
+  );
+}
+
+// DCArtboard — marker; rendered by DCArtboardFrame via DCSection.
+function DCArtboard() { return null; }
+
+function DCArtboardFrame({ sectionId, artboard, label, order, onRename, onReorder, onFocus }) {
+  const { id: rawId, label: rawLabel, width = 260, height = 480, children, style = {} } = artboard.props;
+  const id = rawId ?? rawLabel;
+  const ref = React.useRef(null);
+
+  // Live drag-reorder: dragged card sticks to cursor; siblings slide into
+  // their would-be slots in real time via transforms. DOM order only
+  // changes on drop.
+  const onGripDown = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const me = ref.current;
+    // translateX is applied in local (pre-scale) space but pointer deltas and
+    // getBoundingClientRect().left are screen-space — divide by the viewport's
+    // current scale so the dragged card tracks the cursor at any zoom level.
+    const scale = me.getBoundingClientRect().width / me.offsetWidth || 1;
+    const peers = Array.from(document.querySelectorAll(`[data-dc-section="${sectionId}"] [data-dc-slot]`));
+    const homes = peers.map((el) => ({ el, id: el.dataset.dcSlot, x: el.getBoundingClientRect().left }));
+    const slotXs = homes.map((h) => h.x);
+    const startIdx = order.indexOf(id);
+    const startX = e.clientX;
+    let liveOrder = order.slice();
+    me.classList.add('dc-dragging');
+
+    const layout = () => {
+      for (const h of homes) {
+        if (h.id === id) continue;
+        const slot = liveOrder.indexOf(h.id);
+        h.el.style.transform = `translateX(${(slotXs[slot] - h.x) / scale}px)`;
+      }
+    };
+
+    const move = (ev) => {
+      const dx = ev.clientX - startX;
+      me.style.transform = `translateX(${dx / scale}px)`;
+      const cur = homes[startIdx].x + dx;
+      let nearest = 0, best = Infinity;
+      for (let i = 0; i < slotXs.length; i++) {
+        const d = Math.abs(slotXs[i] - cur);
+        if (d < best) { best = d; nearest = i; }
+      }
+      if (liveOrder.indexOf(id) !== nearest) {
+        liveOrder = order.filter((k) => k !== id);
+        liveOrder.splice(nearest, 0, id);
+        layout();
+      }
+    };
+
+    const up = () => {
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+      const finalSlot = liveOrder.indexOf(id);
+      me.classList.remove('dc-dragging');
+      me.style.transform = `translateX(${(slotXs[finalSlot] - homes[startIdx].x) / scale}px)`;
+      // After the settle transition, kill transitions + clear transforms +
+      // commit the reorder in the same frame so there's no visual snap-back.
+      setTimeout(() => {
+        for (const h of homes) { h.el.style.transition = 'none'; h.el.style.transform = ''; }
+        if (liveOrder.join('|') !== order.join('|')) onReorder(liveOrder);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          for (const h of homes) h.el.style.transition = '';
+        }));
+      }, 180);
+    };
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+  };
+
+  return (
+    <div ref={ref} data-dc-slot={id} style={{ position: 'relative', flexShrink: 0 }}>
+      <div className="dc-labelrow" style={{ position: 'absolute', bottom: '100%', left: -4, marginBottom: 4, color: DC.label }}>
+        <div className="dc-grip" onPointerDown={onGripDown} title="Drag to reorder">
+          <svg width="9" height="13" viewBox="0 0 9 13" fill="currentColor"><circle cx="2" cy="2" r="1.1"/><circle cx="7" cy="2" r="1.1"/><circle cx="2" cy="6.5" r="1.1"/><circle cx="7" cy="6.5" r="1.1"/><circle cx="2" cy="11" r="1.1"/><circle cx="7" cy="11" r="1.1"/></svg>
+        </div>
+        <div className="dc-labeltext" onClick={onFocus} title="Click to focus">
+          <DCEditable value={label} onChange={onRename} onClick={(e) => e.stopPropagation()}
+            style={{ fontSize: 15, fontWeight: 500, color: DC.label, lineHeight: 1 }} />
+        </div>
+      </div>
+      <button className="dc-expand" onClick={onFocus} onPointerDown={(e) => e.stopPropagation()} title="Focus">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M7 1h4v4M5 11H1V7M11 1L7.5 4.5M1 11l3.5-3.5"/></svg>
+      </button>
+      <div className="dc-card"
+        style={{ borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06)', overflow: 'hidden', width, height, background: '#fff', ...style }}>
+        {children || <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: 13, fontFamily: DC.font }}>{id}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Inline rename — commits on blur or Enter.
+function DCEditable({ value, onChange, style, tag = 'span', onClick }) {
+  const T = tag;
+  return (
+    <T className="dc-editable" contentEditable suppressContentEditableWarning
+      onClick={onClick}
+      onPointerDown={(e) => e.stopPropagation()}
+      onBlur={(e) => onChange && onChange(e.currentTarget.textContent)}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }}
+      style={style}>{value}</T>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Focus mode — overlay one artboard; ←/→ within section, ↑/↓ across
+// sections, Esc or backdrop click to exit.
+// ─────────────────────────────────────────────────────────────
+function DCFocusOverlay({ entry, sectionMeta, sectionOrder }) {
+  const ctx = React.useContext(DCCtx);
+  const { sectionId, artboard } = entry;
+  const sec = ctx.section(sectionId);
+  const meta = sectionMeta[sectionId];
+  const peers = meta.slotIds;
+  const aid = artboard.props.id ?? artboard.props.label;
+  const idx = peers.indexOf(aid);
+  const secIdx = sectionOrder.indexOf(sectionId);
+
+  const go = (d) => { const n = peers[(idx + d + peers.length) % peers.length]; if (n) ctx.setFocus(`${sectionId}/${n}`); };
+  const goSection = (d) => {
+    const ns = sectionOrder[(secIdx + d + sectionOrder.length) % sectionOrder.length];
+    const first = sectionMeta[ns] && sectionMeta[ns].slotIds[0];
+    if (first) ctx.setFocus(`${ns}/${first}`);
+  };
+
+  React.useEffect(() => {
+    const k = (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); goSection(-1); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); goSection(1); }
+    };
+    document.addEventListener('keydown', k);
+    return () => document.removeEventListener('keydown', k);
+  });
+
+  const { width = 260, height = 480, children } = artboard.props;
+  const [vp, setVp] = React.useState({ w: window.innerWidth, h: window.innerHeight });
+  React.useEffect(() => { const r = () => setVp({ w: window.innerWidth, h: window.innerHeight }); window.addEventListener('resize', r); return () => window.removeEventListener('resize', r); }, []);
+  const scale = Math.max(0.1, Math.min((vp.w - 200) / width, (vp.h - 260) / height, 2));
+
+  const [ddOpen, setDd] = React.useState(false);
+  const Arrow = ({ dir, onClick }) => (
+    <button onClick={(e) => { e.stopPropagation(); onClick(); }}
+      style={{ position: 'absolute', top: '50%', [dir]: 28, transform: 'translateY(-50%)',
+        border: 'none', background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.9)',
+        width: 44, height: 44, borderRadius: 22, fontSize: 18, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.18)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.08)')}>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d={dir === 'left' ? 'M11 3L5 9l6 6' : 'M7 3l6 6-6 6'} /></svg>
+    </button>
+  );
+
+  // Portal to body so position:fixed is the real viewport regardless of any
+  // transform on DesignCanvas's ancestors (including the canvas zoom itself).
+  return ReactDOM.createPortal(
+    <div onClick={() => ctx.setFocus(null)}
+      onWheel={(e) => e.preventDefault()}
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(24,20,16,.6)', backdropFilter: 'blur(14px)',
+        fontFamily: DC.font, color: '#fff' }}>
+
+      {/* top bar: section dropdown (left) · close (right) */}
+      <div onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 72, display: 'flex', alignItems: 'flex-start', padding: '16px 20px 0', gap: 16 }}>
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setDd((o) => !o)}
+            style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', padding: '6px 8px',
+              borderRadius: 6, textAlign: 'left', fontFamily: 'inherit' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.3 }}>{meta.title}</span>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ opacity: .7 }}><path d="M2 4l3.5 3.5L9 4"/></svg>
+            </span>
+            {meta.subtitle && <span style={{ display: 'block', fontSize: 13, opacity: .6, fontWeight: 400, marginTop: 2 }}>{meta.subtitle}</span>}
+          </button>
+          {ddOpen && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, background: '#2a251f', borderRadius: 8,
+              boxShadow: '0 8px 32px rgba(0,0,0,.4)', padding: 4, minWidth: 200, zIndex: 10 }}>
+              {sectionOrder.map((sid) => (
+                <button key={sid} onClick={() => { setDd(false); const f = sectionMeta[sid].slotIds[0]; if (f) ctx.setFocus(`${sid}/${f}`); }}
+                  style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+                    background: sid === sectionId ? 'rgba(255,255,255,.1)' : 'transparent', color: '#fff',
+                    padding: '8px 12px', borderRadius: 5, fontSize: 14, fontWeight: sid === sectionId ? 600 : 400, fontFamily: 'inherit' }}>
+                  {sectionMeta[sid].title}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ flex: 1 }} />
+        <button onClick={() => ctx.setFocus(null)}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.12)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          style={{ border: 'none', background: 'transparent', color: 'rgba(255,255,255,.7)', width: 32, height: 32,
+            borderRadius: 16, fontSize: 20, cursor: 'pointer', lineHeight: 1, transition: 'background .12s' }}>×</button>
+      </div>
+
+      {/* card centered, label + index below — only the card itself stops
+          propagation so any backdrop click (including the margins around
+          the card) exits focus */}
+      <div
+        style={{ position: 'absolute', top: 64, bottom: 56, left: 100, right: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ width: width * scale, height: height * scale, position: 'relative' }}>
+          <div style={{ width, height, transform: `scale(${scale})`, transformOrigin: 'top left', background: '#fff', borderRadius: 2, overflow: 'hidden',
+            boxShadow: '0 20px 80px rgba(0,0,0,.4)' }}>
+            {children || <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb' }}>{aid}</div>}
+          </div>
+        </div>
+        <div onClick={(e) => e.stopPropagation()} style={{ fontSize: 14, fontWeight: 500, opacity: .85, textAlign: 'center' }}>
+          {(sec.labels || {})[aid] ?? artboard.props.label}
+          <span style={{ opacity: .5, marginLeft: 10, fontVariantNumeric: 'tabular-nums' }}>{idx + 1} / {peers.length}</span>
+        </div>
+      </div>
+
+      <Arrow dir="left" onClick={() => go(-1)} />
+      <Arrow dir="right" onClick={() => go(1)} />
+
+      {/* dots */}
+      <div onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+        {peers.map((p, i) => (
+          <button key={p} onClick={() => ctx.setFocus(`${sectionId}/${p}`)}
+            style={{ border: 'none', padding: 0, cursor: 'pointer', width: 6, height: 6, borderRadius: 3,
+              background: i === idx ? '#fff' : 'rgba(255,255,255,.3)' }} />
+        ))}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Post-it — absolute-positioned sticky note
+// ─────────────────────────────────────────────────────────────
+function DCPostIt({ children, top, left, right, bottom, rotate = -2, width = 180 }) {
+  return (
+    <div style={{
+      position: 'absolute', top, left, right, bottom, width,
+      background: DC.postitBg, padding: '14px 16px',
+      fontFamily: '"Comic Sans MS", "Marker Felt", "Segoe Print", cursive',
+      fontSize: 14, lineHeight: 1.4, color: DC.postitText,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+      transform: `rotate(${rotate}deg)`,
+      zIndex: 5,
+    }}>{children}</div>
+  );
+}
+
+Object.assign(window, { DesignCanvas, DCSection, DCArtboard, DCPostIt });
+
+
+
+// p7l — botanical illustrations as inline SVG
+// All monochrome line-art (currentColor). Sized via parent.
+// Style is uniform: 1px strokes, rounded caps, minimal fills, herbarium feel.
+
+const Monstera = ({ size = 200, stroke = 1.4, style }) => (
+  <svg viewBox="0 0 200 220" width={size} style={{ display: 'block', ...style }}
+       fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    {/* main fenestrated leaf */}
+    <path d="M100 200 C 100 160, 92 140, 80 122 C 60 92, 36 78, 28 58 C 24 46, 32 32, 50 32 C 70 32, 92 42, 110 30 C 130 18, 158 22, 168 42 C 178 62, 170 90, 152 112 C 138 130, 120 148, 110 168 C 104 180, 100 192, 100 200 Z"/>
+    {/* central vein */}
+    <path d="M100 200 C 100 170, 102 140, 108 110 C 114 80, 124 60, 138 46"/>
+    {/* fenestrations */}
+    <path d="M68 70 C 80 64, 88 60, 96 60 C 102 60, 104 66, 100 72 C 92 82, 78 86, 68 82 Z"/>
+    <path d="M58 100 C 70 92, 80 88, 90 88 C 96 88, 98 94, 92 102 C 80 116, 64 120, 56 116 Z"/>
+    <path d="M118 56 C 128 50, 138 48, 146 50 C 152 52, 152 58, 146 64 C 134 76, 120 78, 114 74 Z"/>
+    <path d="M124 88 C 138 82, 150 80, 156 84 C 162 88, 158 96, 148 102 C 134 110, 120 110, 116 104 Z"/>
+    {/* side veins */}
+    <path d="M104 130 L 78 138" opacity="0.7"/>
+    <path d="M106 110 L 84 116" opacity="0.7"/>
+    <path d="M110 90 L 132 94" opacity="0.7"/>
+  </svg>
+);
+
+const PeaceLily = ({ size = 200, stroke = 1.4, style }) => (
+  <svg viewBox="0 0 200 240" width={size} style={{ display: 'block', ...style }}
+       fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    {/* stem cluster */}
+    <path d="M100 230 L 100 200"/>
+    {/* big leaf left */}
+    <path d="M100 200 C 90 170, 60 150, 50 110 C 44 80, 60 64, 80 76 C 96 86, 104 130, 108 170 C 110 188, 106 200, 100 200 Z"/>
+    <path d="M100 200 C 96 180, 88 150, 78 124"/>
+    {/* big leaf right */}
+    <path d="M100 200 C 110 170, 140 152, 152 116 C 158 90, 144 72, 124 80 C 108 88, 100 124, 96 168 C 94 184, 96 198, 100 200 Z"/>
+    <path d="M100 200 C 104 180, 114 154, 126 130"/>
+    {/* spathe (white flower) */}
+    <path d="M100 60 C 86 40, 86 22, 100 14 C 114 22, 114 40, 100 60 Z"/>
+    {/* spadix */}
+    <path d="M100 16 L 100 50" strokeWidth={stroke * 1.6}/>
+    <circle cx="100" cy="22" r="0.8" fill="currentColor"/>
+    <circle cx="100" cy="28" r="0.8" fill="currentColor"/>
+    <circle cx="100" cy="34" r="0.8" fill="currentColor"/>
+    <circle cx="100" cy="40" r="0.8" fill="currentColor"/>
+    <circle cx="100" cy="46" r="0.8" fill="currentColor"/>
+    {/* small back leaves */}
+    <path d="M100 200 C 95 185, 80 175, 72 150" opacity="0.55"/>
+    <path d="M100 200 C 105 185, 120 175, 128 150" opacity="0.55"/>
+  </svg>
+);
+
+const FiddleLeaf = ({ size = 200, stroke = 1.4, style }) => (
+  <svg viewBox="0 0 200 240" width={size} style={{ display: 'block', ...style }}
+       fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M100 230 L 100 210"/>
+    {/* lower pair */}
+    <path d="M100 200 C 80 196, 60 184, 56 168 C 54 156, 64 150, 78 156 C 92 162, 102 178, 100 200 Z"/>
+    <path d="M100 200 C 120 196, 140 184, 144 168 C 146 156, 136 150, 122 156 C 108 162, 98 178, 100 200 Z"/>
+    {/* mid pair */}
+    <path d="M98 168 C 70 162, 46 142, 44 118 C 42 102, 56 96, 72 106 C 90 118, 100 144, 98 168 Z"/>
+    <path d="M102 168 C 130 162, 154 142, 156 118 C 158 102, 144 96, 128 106 C 110 118, 100 144, 102 168 Z"/>
+    {/* top single leaf */}
+    <path d="M100 110 C 78 100, 58 78, 60 56 C 62 38, 78 32, 92 46 C 104 58, 108 88, 100 110 Z"/>
+    <path d="M100 110 C 122 100, 142 78, 140 56 C 138 38, 122 32, 108 46 C 96 58, 92 88, 100 110 Z"/>
+    {/* central veins */}
+    <path d="M100 200 L 100 14" opacity="0.5"/>
+  </svg>
+);
+
+const Pothos = ({ size = 200, stroke = 1.4, style }) => (
+  <svg viewBox="0 0 200 240" width={size} style={{ display: 'block', ...style }}
+       fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    {/* trailing vine */}
+    <path d="M30 30 C 40 60, 70 80, 100 100 C 130 120, 160 140, 170 180 C 174 200, 168 220, 150 230"/>
+    {/* leaves on vine */}
+    <path d="M40 40 C 32 28, 18 28, 14 42 C 12 54, 24 62, 36 56 C 44 52, 48 46, 40 40 Z"/>
+    <path d="M70 78 C 62 64, 46 64, 44 80 C 44 92, 58 100, 70 92 C 78 86, 78 84, 70 78 Z"/>
+    <path d="M104 108 C 96 92, 78 92, 78 110 C 78 124, 94 132, 108 122 C 116 116, 114 114, 104 108 Z"/>
+    <path d="M138 142 C 130 124, 110 124, 110 144 C 110 160, 128 168, 142 156 C 150 150, 148 148, 138 142 Z"/>
+    <path d="M168 188 C 160 170, 140 170, 140 188 C 140 204, 158 212, 172 200 C 180 194, 178 194, 168 188 Z"/>
+    {/* small leaves */}
+    <path d="M86 60 C 80 50, 68 50, 66 62 C 66 70, 76 76, 84 70 Z" opacity="0.7"/>
+    <path d="M120 92 C 114 82, 102 82, 100 94 C 100 102, 110 108, 118 102 Z" opacity="0.7"/>
+  </svg>
+);
+
+const SnakePlant = ({ size = 200, stroke = 1.4, style }) => (
+  <svg viewBox="0 0 200 240" width={size} style={{ display: 'block', ...style }}
+       fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    {/* tall sword leaves */}
+    <path d="M70 220 C 66 180, 64 120, 70 40 C 72 30, 78 30, 80 40 C 84 120, 80 180, 78 220 Z"/>
+    <path d="M90 220 C 88 180, 90 110, 96 30 C 98 20, 104 20, 106 30 C 108 110, 102 180, 98 220 Z"/>
+    <path d="M110 220 C 110 180, 116 130, 124 60 C 126 50, 132 50, 132 60 C 132 130, 122 180, 118 220 Z"/>
+    <path d="M130 220 C 132 188, 138 150, 146 90 C 148 80, 154 82, 154 92 C 152 150, 142 188, 138 220 Z" opacity="0.7"/>
+    <path d="M58 220 C 54 196, 50 170, 50 130 C 50 120, 56 120, 58 130 C 60 170, 62 196, 64 220 Z" opacity="0.7"/>
+    {/* horizontal banding suggestion */}
+    <path d="M72 80 L 78 78" opacity="0.4"/>
+    <path d="M72 110 L 78 108" opacity="0.4"/>
+    <path d="M72 150 L 78 148" opacity="0.4"/>
+    <path d="M94 60 L 102 58" opacity="0.4"/>
+    <path d="M94 100 L 102 98" opacity="0.4"/>
+    <path d="M94 140 L 102 138" opacity="0.4"/>
+    <path d="M114 100 L 124 98" opacity="0.4"/>
+    <path d="M114 140 L 124 138" opacity="0.4"/>
+    {/* pot rim */}
+    <path d="M40 220 L 160 220"/>
+  </svg>
+);
+
+const ZZ = ({ size = 200, stroke = 1.4, style }) => (
+  <svg viewBox="0 0 200 240" width={size} style={{ display: 'block', ...style }}
+       fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    {/* central stem */}
+    <path d="M100 220 C 100 180, 100 120, 100 40"/>
+    {/* alternating leaflets */}
+    {[200,180,160,140,120,100,80,60].map((y, i) => {
+      const dir = i % 2 === 0 ? 1 : -1;
+      const x1 = 100;
+      const x2 = 100 + dir * (28 + Math.random()*0);
+      return (
+        <g key={y}>
+          <path d={`M${x1} ${y} Q ${x2 + dir*14} ${y - 4}, ${x2 + dir*4} ${y - 14}`} />
+          <path d={`M${x1} ${y} Q ${x2 + dir*16} ${y - 2}, ${x2 + dir*22} ${y - 8}`} opacity="0" />
+          <path d={`M${x1} ${y - 2} C ${x1 + dir*8} ${y - 8}, ${x1 + dir*22} ${y - 14}, ${x1 + dir*30} ${y - 12} C ${x1 + dir*32} ${y - 6}, ${x1 + dir*22} ${y + 2}, ${x1 + dir*4} ${y + 2} Z`}/>
+        </g>
+      );
+    })}
+    {/* pot */}
+    <path d="M76 218 L 124 218" opacity="0.6"/>
+  </svg>
+);
+
+// Pixel/dither rendering — converts a leaf silhouette into a Bayer-dithered grid
+// for direction B and TRMNL renders. Returns SVG with rect cells.
+const PixelMonstera = ({ size = 200, cells = 24, style, ink = 'currentColor' }) => {
+  const rows = cells;
+  const cols = cells;
+  const cell = 200 / cols;
+  const rects = [];
+  // Bayer 4x4 threshold matrix
+  const bayer = [
+    [ 0, 8, 2,10],
+    [12, 4,14, 6],
+    [ 3,11, 1, 9],
+    [15, 7,13, 5],
+  ];
+  // Sample alpha from a leaf-shape function
+  const leaf = (u, v) => {
+    // u,v in [-1,1]
+    const r = Math.sqrt(u*u + v*v);
+    const a = Math.atan2(v, u);
+    // heart-monstera shape
+    const shape = 0.95 - r + 0.18 * Math.sin(a*5) + 0.12 * Math.cos(a*3);
+    // cut a notch on the bottom
+    const notch = v > 0.6 ? 0.8 - Math.abs(u)*2 : 1;
+    return Math.max(0, Math.min(1, shape * notch + 0.05));
+  };
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const u = (c + 0.5) / cols * 2 - 1;
+      const v = (r + 0.5) / rows * 2 - 1;
+      const a = leaf(u, v);
+      const t = bayer[r % 4][c % 4] / 16;
+      if (a > t) {
+        rects.push(<rect key={`${r}-${c}`} x={c*cell} y={r*cell} width={cell} height={cell} fill={ink} />);
+      }
+    }
+  }
+  return (
+    <svg viewBox="0 0 200 200" width={size} style={{ display: 'block', shapeRendering: 'crispEdges', ...style }}>
+      {rects}
+    </svg>
+  );
+};
+
+// Botanical ornament for rest-day screens
+const Ornament = ({ size = 220, stroke = 1.2, style }) => (
+  <svg viewBox="0 0 240 80" width={size} style={{ display: 'block', ...style }}
+       fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M120 40 L 120 40"/>
+    {/* center sprig */}
+    <path d="M120 70 C 120 50, 122 30, 124 12"/>
+    <path d="M124 12 C 118 16, 116 22, 118 30"/>
+    <path d="M124 12 C 130 16, 132 22, 130 30"/>
+    {/* left swirl */}
+    <path d="M120 60 C 110 56, 92 56, 78 50 C 60 42, 50 28, 32 30 C 18 32, 14 44, 22 52 C 30 60, 44 56, 48 48"/>
+    <path d="M48 48 C 44 56, 36 60, 28 56" opacity="0.6"/>
+    {/* leaves on left */}
+    <path d="M70 48 C 64 42, 56 42, 54 50 C 54 56, 62 60, 68 54 Z"/>
+    <path d="M50 38 C 44 32, 36 34, 36 42 C 38 48, 46 50, 50 44 Z"/>
+    <path d="M90 52 C 84 46, 76 48, 76 54 C 78 60, 86 60, 90 54 Z" opacity="0.7"/>
+    {/* right swirl (mirror) */}
+    <path d="M120 60 C 130 56, 148 56, 162 50 C 180 42, 190 28, 208 30 C 222 32, 226 44, 218 52 C 210 60, 196 56, 192 48"/>
+    <path d="M192 48 C 196 56, 204 60, 212 56" opacity="0.6"/>
+    <path d="M170 48 C 176 42, 184 42, 186 50 C 186 56, 178 60, 172 54 Z"/>
+    <path d="M190 38 C 196 32, 204 34, 204 42 C 202 48, 194 50, 190 44 Z"/>
+    <path d="M150 52 C 156 46, 164 48, 164 54 C 162 60, 154 60, 150 54 Z" opacity="0.7"/>
+    {/* tiny berries */}
+    <circle cx="120" cy="74" r="2" fill="currentColor"/>
+  </svg>
+);
+
+window.P7L_Illustrations = {
+  Monstera, PeaceLily, FiddleLeaf, Pothos, SnakePlant, ZZ, PixelMonstera, Ornament,
+};
+
+
+// p7l — wordmarks and lockups for both directions
+// The "7" replaces "etal" — count of letters between p and l in "petal" is 3,
+// but the numeronym style ("i18n") counts ALL chars including kept ones is wrong;
+// it counts the OMITTED ones. petal → p + (eta=3) + l → p3l. But user said p7l.
+// User says it's "plnt trmnl" with letters in between counted. Let's verify:
+// "plnttrmnl" with p…l = "lnttrm" = 6 chars, hmm. Or count the literal middle:
+// p[lnttrmn]l = 7 chars. ✓ So p7l literally encodes "plnttrmnl".
+// We honor the user's spec exactly.
+
+const Wordmark = ({ direction = 'a', size = 64, color, style }) => {
+  const A = direction === 'a';
+  const ink = color || 'currentColor';
+  if (A) {
+    // Direction A: serif wordmark with the 7 as a stylized leaf-stem flourish
+    return (
+      <svg viewBox="0 0 220 80" width={size * 220 / 80} height={size}
+           style={{ display: 'block', ...style }} fill={ink}>
+        <text x="6" y="62" fontFamily='"Source Serif 4", "Source Serif Pro", Georgia, serif'
+              fontWeight="600" fontSize="76" letterSpacing="-2">p</text>
+        {/* stylized 7 — diagonal stroke ends in a small leaf */}
+        <g transform="translate(78 14)">
+          <path d="M0 0 L 50 0 L 16 60" fill="none" stroke={ink} strokeWidth="9"
+                strokeLinecap="round" strokeLinejoin="round"/>
+          {/* leaf at the end of the 7's tail */}
+          <path d="M16 60 C 12 58, 6 60, 4 66 C 4 70, 10 72, 16 68 C 20 66, 22 64, 16 60 Z"
+                fill={ink}/>
+        </g>
+        <text x="156" y="62" fontFamily='"Source Serif 4", "Source Serif Pro", Georgia, serif'
+              fontWeight="600" fontSize="76" letterSpacing="-2">l</text>
+      </svg>
+    );
+  }
+  // Direction B: monospaced operator wordmark, 7 as a pixel-grid leaf
+  return (
+    <svg viewBox="0 0 240 80" width={size * 240 / 80} height={size}
+         style={{ display: 'block', ...style }} fill={ink}>
+      <text x="0" y="60" fontFamily='"JetBrains Mono", "IBM Plex Mono", monospace'
+            fontWeight="700" fontSize="64" letterSpacing="-1">p</text>
+      {/* the 7 as a 6x6 pixel-leaf */}
+      <g transform="translate(70 14)">
+        {/* solid grid forming a 7-shape with a leaf curl */}
+        {[
+          [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],
+          [4,1],
+          [3,2],[4,2],
+          [2,3],[3,3],
+          [1,4],[2,4],
+          [0,5],[1,5],
+          // little leaf bud
+          [0,6],[2,6],
+        ].map(([c, r], i) => (
+          <rect key={i} x={c*9} y={r*9} width="8" height="8" fill={ink} shapeRendering="crispEdges"/>
+        ))}
+      </g>
+      <text x="170" y="60" fontFamily='"JetBrains Mono", "IBM Plex Mono", monospace'
+            fontWeight="700" fontSize="64" letterSpacing="-1">l</text>
+    </svg>
+  );
+};
+
+const Mark = ({ direction = 'a', size = 64, style, color }) => {
+  const ink = color || 'currentColor';
+  if (direction === 'a') {
+    // Pixel monstera leaf inside a circle "stamp" — herbarium specimen feel
+    return (
+      <svg viewBox="0 0 100 100" width={size} height={size}
+           style={{ display: 'block', ...style }}>
+        <circle cx="50" cy="50" r="48" fill="none" stroke={ink} strokeWidth="1.2"/>
+        <circle cx="50" cy="50" r="44" fill="none" stroke={ink} strokeWidth="0.6" opacity="0.4"/>
+        {/* dithered leaf inside */}
+        <g transform="translate(20 20) scale(0.3)">
+          <PixelLeafInner ink={ink} />
+        </g>
+      </svg>
+    );
+  }
+  // Direction B: pure pixel grid leaf in a square
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size}
+         style={{ display: 'block', ...style }}>
+      <rect x="0" y="0" width="100" height="100" fill="none" stroke={ink} strokeWidth="1.5"/>
+      <g transform="translate(8 8)">
+        <PixelLeafInner ink={ink} scale={0.42} />
+      </g>
+    </svg>
+  );
+};
+
+// Shared pixel leaf used by both marks — a 14x14 dithered monstera silhouette
+const PixelLeafInner = ({ ink = 'currentColor', scale = 0.42 }) => {
+  const grid = [
+    "..XX...XXXX...",
+    ".XXXX.XXXXXX..",
+    "XXXXXXXXX.XXX.",
+    "XXX.XXXXX.XXXX",
+    "XX...XXXX..XXX",
+    "XXX.XXXXX...XX",
+    ".XXXXXXXXX.XX.",
+    ".XX.XXXXXXX.X.",
+    ".XX..XXXXXXXX.",
+    "..X..XXXXXXX..",
+    "...X.XXXXXX...",
+    "...X.XXXX.....",
+    "....XXXX......",
+    ".....XX.......",
+  ];
+  const cell = 14;
+  const rects = [];
+  grid.forEach((row, r) => {
+    [...row].forEach((ch, c) => {
+      if (ch === 'X') {
+        rects.push(<rect key={`${r}-${c}`} x={c*cell} y={r*cell} width={cell} height={cell}
+                         fill={ink} shapeRendering="crispEdges"/>);
+      }
+    });
+  });
+  return <g transform={`scale(${scale})`}>{rects}</g>;
+};
+
+// Lockup: mark + wordmark
+const Lockup = ({ direction = 'a', size = 48, style }) => (
+  <div style={{ display: 'inline-flex', alignItems: 'center', gap: size * 0.3, ...style }}>
+    <Mark direction={direction} size={size} />
+    <Wordmark direction={direction} size={size * 0.85} />
+  </div>
+);
+
+window.P7L_Brand = { Wordmark, Mark, Lockup, PixelLeafInner };
+
+
+// 8 logo concepts for p7l — single typeface per logo, the "7" varies
+// All assume an outer wrapper provides .dir-a or similar tokens; we use literal colors
+// so each concept stands alone.
+
+const LogoFrame = ({ children, label, sub, bg = '#f3ecd9', ink = '#1a1612', accent = '#3e6b3a' }) => (
+  <div style={{ background: bg, padding: 32, height: 280, display: 'flex',
+                flexDirection: 'column', justifyContent: 'space-between',
+                fontFamily: '"Inter Tight", system-ui, sans-serif', color: ink }}>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {children}
+    </div>
+    <div style={{ borderTop: '1px solid rgba(0,0,0,0.15)', paddingTop: 10,
+                  display: 'flex', justifyContent: 'space-between', fontSize: 11,
+                  letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,0.55)' }}>
+      <span style={{ fontWeight: 600, color: ink }}>{label}</span>
+      <span style={{ fontFamily: '"IBM Plex Mono", monospace', textTransform: 'none',
+                       letterSpacing: 0 }}>{sub}</span>
+    </div>
+  </div>
+);
+
+// 1. Serif classical — 7 as a regular serif numeral, no flourish
+const Logo1 = () => (
+  <LogoFrame label="01 · Serif Classical" sub="Source Serif 4, single weight">
+    <span style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 120,
+                     fontWeight: 600, letterSpacing: '-0.04em', lineHeight: 1 }}>p7l</span>
+  </LogoFrame>
+);
+
+// 2. Mono operator — JetBrains Mono, no decoration. Lets the numeronym do the work.
+const Logo2 = () => (
+  <LogoFrame label="02 · Mono Operator" sub="JetBrains Mono Bold" bg="#ebe7dd">
+    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 96,
+                     fontWeight: 700, letterSpacing: '-0.02em' }}>p7l</span>
+  </LogoFrame>
+);
+
+// 3. Sprout 7 — the 7's diagonal becomes a stem with a single leaf. Same typeface throughout.
+const Logo3 = () => (
+  <LogoFrame label="03 · Sprout 7" sub="Source Serif 4, glyph-edit on 7" bg="#f3ecd9" accent="#3e6b3a">
+    <svg viewBox="0 0 280 130" width="320" height="148">
+      <text x="0" y="108" fontFamily='"Source Serif 4", Georgia, serif' fontWeight="600"
+            fontSize="128" letterSpacing="-4" fill="#1a1612">p</text>
+      {/* hand-shaped 7: top bar + diagonal that curves into a leaf */}
+      <g transform="translate(108 18)">
+        <path d="M0 0 L 64 0 C 64 0, 30 70, 22 100" fill="none"
+              stroke="#1a1612" strokeWidth="13" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* leaf at the foot */}
+        <path d="M22 100 C 10 96, 2 102, 6 112 C 12 120, 30 116, 28 104 C 27 100, 25 100, 22 100 Z"
+              fill="#3e6b3a"/>
+      </g>
+      <text x="200" y="108" fontFamily='"Source Serif 4", Georgia, serif' fontWeight="600"
+            fontSize="128" letterSpacing="-4" fill="#1a1612">l</text>
+    </svg>
+  </LogoFrame>
+);
+
+// 4. Pixel 7 — the 7 is a dithered pixel-leaf. Body type stays consistent (Plex Sans)
+const Logo4 = () => (
+  <LogoFrame label="04 · Pixel 7" sub="IBM Plex Sans Bold + 7-as-pixel-leaf" bg="#ebe7dd">
+    <svg viewBox="0 0 280 120" width="320" height="137">
+      <text x="0" y="92" fontFamily='"IBM Plex Sans", system-ui, sans-serif'
+            fontWeight="700" fontSize="100" letterSpacing="-2" fill="#0e0e0c">p</text>
+      {/* 7-shape from a 7×7 pixel grid, leaf-curl on the bottom */}
+      <g transform="translate(86 18)">
+        {[
+          [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],
+          [5,1],[6,1],
+          [4,2],[5,2],
+          [3,3],[4,3],
+          [2,4],[3,4],
+          [1,5],[2,5],
+          [0,6],[1,6],[3,6]
+        ].map(([c, r], i) => (
+          <rect key={i} x={c*12} y={r*12} width="11" height="11"
+                fill="#0e0e0c" shapeRendering="crispEdges"/>
+        ))}
+      </g>
+      <text x="208" y="92" fontFamily='"IBM Plex Sans", system-ui, sans-serif'
+            fontWeight="700" fontSize="100" letterSpacing="-2" fill="#0e0e0c">l</text>
+    </svg>
+  </LogoFrame>
+);
+
+// 5. Stacked block — like a pharmaceutical/seed packet. Heavy black slab.
+const Logo5 = () => (
+  <LogoFrame label="05 · Seed Packet" sub="Inter Tight 800, all caps stack" bg="#1a1612" ink="#f3ecd9">
+    <div style={{ textAlign: 'center', lineHeight: 0.9 }}>
+      <div style={{ fontFamily: '"Inter Tight", system-ui', fontWeight: 800,
+                      fontSize: 28, letterSpacing: 6, color: '#7a6e55',
+                      textTransform: 'uppercase', marginBottom: 6 }}>petal</div>
+      <div style={{ fontFamily: '"Inter Tight", system-ui', fontWeight: 800,
+                      fontSize: 116, letterSpacing: -3, color: '#f3ecd9' }}>p7l</div>
+      <div style={{ fontFamily: '"Inter Tight", system-ui', fontWeight: 700,
+                      fontSize: 11, letterSpacing: 4, color: '#7a6e55',
+                      textTransform: 'uppercase', marginTop: 6 }}>plnt · trmnl</div>
+    </div>
+  </LogoFrame>
+);
+
+// 6. Drop & dot — minimal: the dot of "p" and counter of "p" are highlighted, 7 is hairline
+const Logo6 = () => (
+  <LogoFrame label="06 · Hairline" sub="Fraunces 300, 7 thinned" bg="#f5f2ea">
+    <span style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 132,
+                     fontWeight: 300, letterSpacing: '-0.04em', lineHeight: 1,
+                     fontVariationSettings: '"opsz" 144' }}>p7l</span>
+  </LogoFrame>
+);
+
+// 7. Watermark — circular badge / stamp
+const Logo7 = () => (
+  <LogoFrame label="07 · Apothecary Stamp" sub="Source Serif 4 + circular text" bg="#f3ecd9">
+    <svg viewBox="0 0 200 200" width="180" height="180">
+      <defs>
+        <path id="circ" d="M 100,100 m -78,0 a 78,78 0 1,1 156,0 a 78,78 0 1,1 -156,0"/>
+      </defs>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#1a1612" strokeWidth="1.5"/>
+      <circle cx="100" cy="100" r="84" fill="none" stroke="#1a1612" strokeWidth="1"/>
+      <text fontFamily='"Source Serif 4", Georgia, serif' fontStyle="italic"
+            fontSize="11" letterSpacing="3" fill="#1a1612">
+        <textPath href="#circ" startOffset="2%">plnt trmnl · houseplant care companion · est 2025 ·</textPath>
+      </text>
+      <text x="100" y="118" textAnchor="middle"
+            fontFamily='"Source Serif 4", Georgia, serif' fontWeight="600"
+            fontSize="64" letterSpacing="-2" fill="#1a1612">p7l</text>
+      {/* tiny leaf above */}
+      <g transform="translate(95 60)">
+        <path d="M0 0 C -6 -8, 6 -14, 10 -8 C 14 -2, 4 4, 0 0 Z" fill="#3e6b3a"/>
+        <path d="M0 0 L 5 -6" stroke="#3e6b3a" strokeWidth="1.5" strokeLinecap="round"/>
+      </g>
+    </svg>
+  </LogoFrame>
+);
+
+// 8. Equation — wordmark + literal expansion. Lets the numeronym be the joke.
+const Logo8 = () => (
+  <LogoFrame label="08 · Equation" sub="Source Serif 4, expansion notation" bg="#f3ecd9">
+    <div style={{ textAlign: 'center', fontFamily: '"Source Serif 4", Georgia, serif',
+                    color: '#1a1612', lineHeight: 1 }}>
+      <div style={{ fontSize: 104, fontWeight: 600, letterSpacing: '-0.04em' }}>p7l</div>
+      <div style={{ fontSize: 14, fontStyle: 'italic', color: '#7a6e55',
+                      marginTop: 14, letterSpacing: 0.5 }}>
+        p<span style={{ color: '#3e6b3a' }}>(lnttrm)</span>l <span style={{ color: '#7a6e55' }}>· seven letters between</span>
+      </div>
+    </div>
+  </LogoFrame>
+);
+
+window.P7L_Logos = { Logo1, Logo2, Logo3, Logo4, Logo5, Logo6, Logo7, Logo8 };
+
+
+// Direction A — Field Guide refined
+// Soul: vintage botanical field guide, herbarium specimen, paper + ink
+// Refinements over the Lovable mockups:
+//   - Tighter type system (Source Serif 4 + Inter Tight + IBM Plex Mono)
+//   - Restrained palette: paper, ink, ONE leaf-green accent, ONE clay alarm
+//   - Calibration scale becomes a real interactive component, not text
+//   - Plant cards use a herbarium-label structure: specimen image + Latin tag
+//   - Spadix/spathe etc rendered as proper inline SVG so they print clean
+
+const { Monstera: AMonstera, PeaceLily: APeaceLily, FiddleLeaf: AFiddleLeaf,
+        Pothos: APothos, SnakePlant: ASnakePlant, ZZ: AZZ, Ornament: AOrnament } = window.P7L_Illustrations;
+const { Wordmark: AWordmark, Mark: AMark, Lockup: ALockup } = window.P7L_Brand;
+
+// ─── A · Wordmark + Mark artboard ───
+const A_Logo = () => (
+  <div className="dir-a paper" style={{ padding: 40, height: 360 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 36, alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <AMark direction="a" size={88} style={{ color: 'var(--ink)' }} />
+        <AWordmark direction="a" size={68} style={{ color: 'var(--ink)' }} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 32, color: 'var(--ink-2)' }}>
+        <AMark direction="a" size={48} />
+        <AWordmark direction="a" size={36} />
+        <span className="mono" style={{ fontSize: 12, color: 'var(--ink-3)', letterSpacing: 1 }}>
+          /ˈpɛt.əl/
+        </span>
+      </div>
+      <div style={{ borderTop: '1px solid var(--paper-edge)', paddingTop: 16, width: '100%',
+                    display: 'flex', justifyContent: 'space-between', color: 'var(--ink-3)',
+                    fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: 1, textTransform: 'uppercase' }}>
+        <span>p7l · petal</span>
+        <span>plnt trmnl</span>
+        <span>est. 2026</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── A · Color palette ───
+const SwatchA = ({ name, value, hex, mono }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div style={{ width: 96, height: 96, background: value, border: '1px solid var(--paper-edge)' }} />
+    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{name}</div>
+    <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>{hex}</div>
+    {mono && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>{mono}</div>}
+  </div>
+);
+const A_Palette = () => (
+  <div className="dir-a paper" style={{ padding: 40, height: 360 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1.5,
+                                      textTransform: 'uppercase' }}>
+        Palette · Field Guide
+      </div>
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+        <SwatchA name="Paper" value="#f3ecd9" hex="#F3ECD9" mono="--paper" />
+        <SwatchA name="Paper 2" value="#ece4cc" hex="#ECE4CC" mono="--paper-2" />
+        <SwatchA name="Ink" value="#1a1612" hex="#1A1612" mono="--ink" />
+        <SwatchA name="Ink 2" value="#4a3f2e" hex="#4A3F2E" mono="--ink-2" />
+        <SwatchA name="Leaf" value="#3e6b3a" hex="#3E6B3A" mono="--leaf" />
+        <SwatchA name="Clay" value="#a04a28" hex="#A04A28" mono="--clay" />
+      </div>
+      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--ink-3)', maxWidth: 520, lineHeight: 1.5 }}>
+        Paper + ink ground. <span style={{ color: 'var(--leaf)', fontWeight: 600 }}>Leaf</span> is the
+        only positive accent — used for "due today" and primary actions.
+        <span style={{ color: 'var(--clay)', fontWeight: 600 }}> Clay</span> is reserved for overdue and destructive states.
+      </div>
+    </div>
+  </div>
+);
+
+// ─── A · Type ───
+const A_Type = () => (
+  <div className="dir-a paper" style={{ padding: 40, height: 480 }}>
+    <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1.5,
+                                    textTransform: 'uppercase', marginBottom: 20 }}>
+      Type · Source Serif 4 · Inter Tight · IBM Plex Mono
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <div>
+        <div className="display" style={{ fontSize: 56, fontWeight: 600, lineHeight: 1, color: 'var(--ink)',
+                                          letterSpacing: '-0.02em' }}>
+          Monstera deliciosa
+        </div>
+        <div className="display" style={{ fontSize: 22, fontStyle: 'italic', color: 'var(--ink-3)', marginTop: 6 }}>
+          Swiss cheese plant · Araceae
+        </div>
+      </div>
+      <div style={{ borderTop: 'var(--hairline)', paddingTop: 14 }}>
+        <div className="display" style={{ fontSize: 26, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>
+          A few drinks today, then a long rest.
+        </div>
+        <div className="body" style={{ fontSize: 15, color: 'var(--ink-2)', lineHeight: 1.55, maxWidth: 520 }}>
+          Body sets in Inter Tight at 15/24. Used for instructions, longer-form descriptions,
+          and anything that has to read fast on a phone at the kitchen sink.
+        </div>
+      </div>
+      <div style={{ borderTop: 'var(--hairline)', paddingTop: 14 }}>
+        <div className="mono" style={{ fontSize: 13, color: 'var(--ink-2)' }}>
+          250 ml &nbsp;·&nbsp; every 7 days &nbsp;·&nbsp; cycle 04 &nbsp;·&nbsp; 12:00
+        </div>
+        <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 6, letterSpacing: 1 }}>
+          MONO IS FOR DATA · TIMES · IDS · NEVER FOR PROSE
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── A · Plant Card (Herbarium label) ───
+const HerbariumCard = ({ illustration: Illo, common, latin, location, pot, water, fertilizer, watch, due, accent }) => (
+  <div style={{ background: 'var(--paper-2)', border: '1px solid var(--paper-edge)', borderRadius: 4,
+                padding: 18, display: 'flex', flexDirection: 'column', gap: 10, position: 'relative' }}>
+    {/* corner pin marks like a real specimen */}
+    {[[8,8],[8,'calc(100% - 14px)'],['calc(100% - 14px)',8],['calc(100% - 14px)','calc(100% - 14px)']].map(([l,t], i) =>
+      <div key={i} style={{ position: 'absolute', left: l, top: t, width: 6, height: 6, borderRadius: '50%',
+                            background: 'var(--paper)', border: '1px solid var(--paper-edge)' }} />
+    )}
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', color: 'var(--ink)' }}>
+      <Illo size={140} stroke={1.3} />
+    </div>
+    <div style={{ borderTop: '1px solid var(--paper-edge)', paddingTop: 10 }}>
+      <div className="display" style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.05, color: 'var(--ink)' }}>
+        {common}
+      </div>
+      <div className="display" style={{ fontStyle: 'italic', fontSize: 13, color: 'var(--ink-3)' }}>
+        {latin}
+      </div>
+      <div className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, letterSpacing: 0.5,
+                                     textTransform: 'uppercase' }}>
+        {location} · {pot}
+      </div>
+    </div>
+    <div className="body" style={{ fontSize: 12.5, color: 'var(--ink-2)', display: 'grid',
+                                    gridTemplateColumns: 'auto 1fr', columnGap: 8, rowGap: 3 }}>
+      <span style={{ fontWeight: 600 }}>Water</span><span>{water}</span>
+      <span style={{ fontWeight: 600 }}>Fertilizer</span><span>{fertilizer}</span>
+      <span style={{ fontWeight: 600 }}>Watch</span><span>{watch}</span>
+    </div>
+    {due && (
+      <div style={{ marginTop: 'auto', borderTop: '1px solid var(--paper-edge)', paddingTop: 8,
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="mono" style={{ fontSize: 10, color: accent === 'leaf' ? 'var(--leaf)' : accent === 'clay' ? 'var(--clay)' : 'var(--ink-3)',
+                                         fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
+          {due}
+        </span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>04 / 12</span>
+      </div>
+    )}
+  </div>
+);
+
+const A_PlantCards = () => (
+  <div className="dir-a paper" style={{ padding: 32, height: 460, display: 'flex', gap: 16 }}>
+    <HerbariumCard illustration={APeaceLily} common="Peace Lily" latin="Spathiphyllum wallisii"
+      location="Office" pot="20cm" water="250 ml" fertilizer="Yes — diluted"
+      watch="Drooping leaves" due="Due today" accent="leaf" />
+    <HerbariumCard illustration={AMonstera} common="Monstera" latin="Monstera deliciosa"
+      location="Living room" pot="25cm" water="350 ml" fertilizer="No"
+      watch="Yellowing leaves" due="Overdue · 2 days" accent="clay" />
+    <HerbariumCard illustration={ASnakePlant} common="Snake Plant" latin="Dracaena trifasciata"
+      location="Bedroom" pot="18cm" water="120 ml" fertilizer="No"
+      watch="Soft leaves" due="In 9 days" accent="ink" />
+  </div>
+);
+
+// ─── A · Calibration question ───
+const CalibrationDots = ({ value = 3, accent = 'leaf' }) => (
+  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+    {[1,2,3,4,5].map(n => (
+      <div key={n} style={{
+        width: 36, height: 36, borderRadius: '50%',
+        border: `1.5px solid var(--ink-2)`,
+        background: n === value ? `var(--${accent})` : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: n === value ? 'var(--paper)' : 'var(--ink-2)',
+        fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 600,
+      }}>{n}</div>
+    ))}
+  </div>
+);
+
+const A_Calibration = () => (
+  <div className="dir-a paper" style={{ padding: 32, height: 360 }}>
+    <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1.5,
+                                    textTransform: 'uppercase', marginBottom: 18 }}>
+      Calibration · cycle 04
+    </div>
+    <div style={{ background: 'var(--paper-2)', border: '1px solid var(--paper-edge)', padding: 28,
+                  borderRadius: 6, maxWidth: 520 }}>
+      <div className="display" style={{ fontSize: 28, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.15,
+                                         marginBottom: 8 }}>
+        How moist is the soil?
+      </div>
+      <div className="body" style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 22, lineHeight: 1.5 }}>
+        Stick a finger 2cm in. Honest answer is the right answer — this teaches p7l
+        the actual cadence in your home.
+      </div>
+      <CalibrationDots value={3} />
+      <div className="mono" style={{ display: 'flex', justifyContent: 'space-between',
+                                      fontSize: 10, color: 'var(--ink-3)', marginTop: 10, letterSpacing: 0.5 }}>
+        <span>1 · BONE DRY</span>
+        <span>5 · SOAKING</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── A · Mobile SPA home ───
+const A_MobileHome = () => (
+  <div className="dir-a paper" style={{ width: 375, height: 812, padding: 0, display: 'flex',
+                                          flexDirection: 'column', overflow: 'hidden' }}>
+    {/* status bar */}
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '0 24px', fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--ink)' }}>
+      <span style={{ fontWeight: 600 }}>9:41</span>
+      <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <span style={{ fontSize: 11 }}>●●●●</span>
+        <span style={{ fontSize: 11 }}>5G</span>
+        <span style={{ width: 22, height: 11, border: '1px solid currentColor', borderRadius: 2,
+                       padding: 1, display: 'inline-flex' }}>
+          <span style={{ background: 'currentColor', flex: 1, borderRadius: 1 }}/>
+        </span>
+      </span>
+    </div>
+    {/* header */}
+    <div style={{ padding: '8px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <ALockup direction="a" size={28} />
+      <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase' }}>
+        Mon · 7 Apr
+      </div>
+    </div>
+    {/* hero — today's plan */}
+    <div style={{ padding: '0 20px 16px' }}>
+      <div className="mono" style={{ fontSize: 10, color: 'var(--leaf)', fontWeight: 700, letterSpacing: 2,
+                                      textTransform: 'uppercase', marginBottom: 6 }}>
+        ── Today
+      </div>
+      <div className="display" style={{ fontSize: 34, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.05,
+                                         letterSpacing: '-0.01em' }}>
+        Two plants
+        <br/>need a drink.
+      </div>
+      <div className="body" style={{ fontSize: 14, color: 'var(--ink-2)', marginTop: 8 }}>
+        Peace Lily · Monstera. Tap a plant to log.
+      </div>
+    </div>
+    {/* plant rows */}
+    {[
+      { illo: APeaceLily, name: 'Peace Lily', latin: 'Spathiphyllum wallisii', amount: '250 ml', loc: 'Office', state: 'due' },
+      { illo: AMonstera, name: 'Monstera', latin: 'Monstera deliciosa', amount: '350 ml', loc: 'Living room', state: 'overdue' },
+      { illo: ASnakePlant, name: 'Snake Plant', latin: 'Dracaena trifasciata', amount: '120 ml', loc: 'Bedroom', state: 'rest' },
+      { illo: APothos, name: 'Pothos', latin: 'Epipremnum aureum', amount: '180 ml', loc: 'Kitchen', state: 'rest' },
+    ].map((p, i) => (
+      <div key={i} style={{ display: 'flex', gap: 14, padding: '14px 20px', borderTop: 'var(--hairline)',
+                              alignItems: 'center', background: i < 2 ? 'transparent' : 'transparent' }}>
+        <div style={{ width: 56, height: 56, color: 'var(--ink)', flexShrink: 0,
+                       border: '1px solid var(--paper-edge)', background: 'var(--paper-2)',
+                       display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4 }}>
+          <p.illo size={50} stroke={1.2} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="display" style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.1 }}>
+            {p.name}
+          </div>
+          <div className="display" style={{ fontStyle: 'italic', fontSize: 11, color: 'var(--ink-3)' }}>
+            {p.latin}
+          </div>
+          <div className="mono" style={{ fontSize: 10.5, color: 'var(--ink-3)', marginTop: 3, letterSpacing: 0.4 }}>
+            {p.amount.toUpperCase()} · {p.loc.toUpperCase()}
+          </div>
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          {p.state === 'due' && (
+            <button style={{ background: 'var(--leaf)', color: 'var(--paper)', border: 'none',
+                              padding: '10px 14px', borderRadius: 4, fontFamily: 'var(--font-mono)',
+                              fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
+              Water
+            </button>
+          )}
+          {p.state === 'overdue' && (
+            <button style={{ background: 'var(--clay)', color: 'var(--paper)', border: 'none',
+                              padding: '10px 14px', borderRadius: 4, fontFamily: 'var(--font-mono)',
+                              fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
+              2d late
+            </button>
+          )}
+          {p.state === 'rest' && (
+            <span className="mono" style={{ fontSize: 10.5, color: 'var(--ink-3)', letterSpacing: 0.5 }}>
+              REST
+            </span>
+          )}
+        </div>
+      </div>
+    ))}
+    {/* bottom calibration nudge */}
+    <div style={{ marginTop: 'auto', borderTop: 'var(--hairline)', padding: '14px 20px',
+                    background: 'var(--paper-2)', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--leaf)' }} />
+      <div className="body" style={{ fontSize: 12, color: 'var(--ink-2)', flex: 1 }}>
+        Calibration ready for <strong>Pothos</strong> after you water.
+      </div>
+      <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: 0.5 }}>›</span>
+    </div>
+  </div>
+);
+
+window.P7L_DirA = { A_Logo, A_Palette, A_Type, A_PlantCards, A_Calibration, A_MobileHome };
+
+
+// Direction A — TRMNL screens
+// TRMNL OG: 800×480, 4-grey
+// TRMNL X:  1872×1404, 16-grey
+// Both must read as e-ink: pure paper bg, ink strokes, dithered fills only.
+// At canvas display we'll downscale; the design is to-spec.
+
+const { Monstera: TAMonstera, PeaceLily: TAPeaceLily, FiddleLeaf: TAFiddleLeaf,
+        Pothos: TAPothos, Ornament: TAOrnament } = window.P7L_Illustrations;
+const { Wordmark: TAWordmark, Mark: TAMark } = window.P7L_Brand;
+
+// E-ink shells: real white paper + black ink, NO color, scaled to fit artboard
+const EinkFrame = ({ w, h, displayW, label, deviceLabel, children }) => {
+  const scale = displayW / w;
+  return (
+    <div style={{ width: displayW, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase' }}>
+          {deviceLabel}
+        </span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--ink-3)' }}>{w}×{h}</span>
+      </div>
+      <div style={{
+        width: displayW, height: h * scale,
+        background: '#fafaf6', /* e-ink off-white */
+        border: '1px solid #999',
+        boxShadow: '0 6px 24px rgba(0,0,0,0.08)',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: 'top left',
+                       position: 'absolute', top: 0, left: 0, color: '#0a0a0a',
+                       fontFamily: 'var(--font-body)' }}>
+          {children}
+        </div>
+      </div>
+      <div className="mono" style={{ fontSize: 9, color: 'var(--ink-3)', letterSpacing: 0.5 }}>{label}</div>
+    </div>
+  );
+};
+
+// Dither pattern as SVG fill — 4-grey friendly Bayer
+const DitherDef = ({ id = 'dither-50', density = 50 }) => (
+  <defs>
+    <pattern id={id} x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+      {density >= 75 && <rect width="4" height="4" fill="#0a0a0a"/>}
+      {density >= 50 && density < 75 && (<>
+        <rect x="0" y="0" width="2" height="2" fill="#0a0a0a"/>
+        <rect x="2" y="2" width="2" height="2" fill="#0a0a0a"/>
+      </>)}
+      {density >= 25 && density < 50 && (
+        <rect x="0" y="0" width="2" height="2" fill="#0a0a0a"/>
+      )}
+      {density < 25 && (
+        <rect x="0" y="0" width="1" height="1" fill="#0a0a0a"/>
+      )}
+    </pattern>
+  </defs>
+);
+
+// ─── TRMNL X · A · Watering day (1 plant) ───
+const A_TrmnlX_Watering = () => (
+  <div style={{ width: 1872, height: 1404, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a' }}>
+    {/* title bar */}
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '24px 48px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <TAMark direction="a" size={64} color="#fafaf6" />
+        <span className="display" style={{ fontSize: 44, fontWeight: 600, letterSpacing: '-0.01em' }}>
+          p7l · field guide
+        </span>
+      </div>
+      <span className="mono" style={{ fontSize: 26, letterSpacing: 1 }}>
+        MON · 7 APR · CYCLE 04
+      </span>
+    </div>
+    {/* main: specimen card */}
+    <div style={{ flex: 1, display: 'flex', padding: 60, gap: 60 }}>
+      <div style={{ flex: 1.2, border: '4px solid #0a0a0a', borderRadius: 12, padding: 56,
+                      display: 'flex', flexDirection: 'column' }}>
+        {/* corner pin marks */}
+        <div style={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
+          <TAPeaceLily size={620} stroke={3.4} />
+        </div>
+        <div style={{ borderTop: '2px solid #0a0a0a', paddingTop: 32, marginTop: 24 }}>
+          <div className="display" style={{ fontSize: 96, fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em' }}>
+            Peace Lily
+          </div>
+          <div className="display" style={{ fontStyle: 'italic', fontSize: 44, color: '#3a3a36', marginTop: 8 }}>
+            Spathiphyllum wallisii
+          </div>
+          <div className="mono" style={{ fontSize: 24, marginTop: 16, letterSpacing: 1, textTransform: 'uppercase', color: '#3a3a36' }}>
+            Office · 20 cm pot
+          </div>
+        </div>
+      </div>
+      {/* right column: instructions + calibration */}
+      <div style={{ flex: 0.9, display: 'flex', flexDirection: 'column', gap: 36 }}>
+        <div>
+          <div className="mono" style={{ fontSize: 22, letterSpacing: 2, textTransform: 'uppercase', color: '#3a3a36' }}>
+            ── Today's pour
+          </div>
+          <div className="display" style={{ fontSize: 168, fontWeight: 700, lineHeight: 0.95, marginTop: 16 }}>
+            250<span style={{ fontSize: 64, fontWeight: 500, color: '#3a3a36', marginLeft: 12 }}>ml</span>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          <div style={{ border: '2px solid #0a0a0a', padding: 24 }}>
+            <div className="mono" style={{ fontSize: 16, letterSpacing: 1.5, textTransform: 'uppercase', color: '#3a3a36' }}>Fertilizer</div>
+            <div className="display" style={{ fontSize: 44, fontWeight: 600, marginTop: 4 }}>Yes — diluted</div>
+          </div>
+          <div style={{ border: '2px solid #0a0a0a', padding: 24 }}>
+            <div className="mono" style={{ fontSize: 16, letterSpacing: 1.5, textTransform: 'uppercase', color: '#3a3a36' }}>Watch for</div>
+            <div className="display" style={{ fontSize: 44, fontWeight: 600, marginTop: 4 }}>Drooping leaves</div>
+          </div>
+        </div>
+        {/* calibration question */}
+        <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: 32, marginTop: 'auto' }}>
+          <div className="mono" style={{ fontSize: 16, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.7 }}>
+            Calibration question
+          </div>
+          <div className="display" style={{ fontSize: 56, fontWeight: 600, marginTop: 8, lineHeight: 1.1 }}>
+            How moist is the soil?
+          </div>
+          <div style={{ display: 'flex', gap: 14, marginTop: 24, alignItems: 'center' }}>
+            {[1,2,3,4,5].map(n => (
+              <div key={n} style={{ width: 64, height: 64, border: '3px solid #fafaf6', borderRadius: '50%',
+                                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                       fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700 }}>
+                {n}
+              </div>
+            ))}
+            <span className="mono" style={{ fontSize: 16, opacity: 0.7, marginLeft: 16, letterSpacing: 1 }}>
+              ANSWER IN APP · BEFORE 12:00
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {/* footer */}
+    <div style={{ borderTop: '2px solid #0a0a0a', padding: '20px 48px', display: 'flex', justifyContent: 'space-between' }}>
+      <span className="mono" style={{ fontSize: 22, letterSpacing: 1 }}>
+        NEXT · POTHOS · THU 10 APR · EVERY 7 DAYS
+      </span>
+      <span className="mono" style={{ fontSize: 22, color: '#3a3a36' }}>12 PLANTS · 4 DUE THIS WEEK</span>
+    </div>
+  </div>
+);
+
+// ─── TRMNL X · A · Rest day ───
+const A_TrmnlX_Rest = () => (
+  <div style={{ width: 1872, height: 1404, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a' }}>
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '24px 48px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <TAMark direction="a" size={64} color="#fafaf6" />
+        <span className="display" style={{ fontSize: 44, fontWeight: 600 }}>p7l · field guide</span>
+      </div>
+      <span className="mono" style={{ fontSize: 26, letterSpacing: 1 }}>TUE · 8 APR · REST DAY</span>
+    </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    justifyContent: 'center', padding: '40px 80px', textAlign: 'center' }}>
+      <TAOrnament size={520} />
+      <div className="display" style={{ fontSize: 88, fontWeight: 600, lineHeight: 1.15, maxWidth: 1500,
+                                          marginTop: 40, letterSpacing: '-0.01em', textWrap: 'balance' }}>
+        Bamboo can grow up to 91&nbsp;cm in a single day, making it the fastest growing plant on Earth.
+      </div>
+      <div className="display" style={{ fontStyle: 'italic', fontSize: 32, color: '#3a3a36', marginTop: 24 }}>
+        Phyllostachys edulis · Poaceae
+      </div>
+    </div>
+    <div style={{ borderTop: '2px solid #0a0a0a', padding: '24px 48px', display: 'flex',
+                    justifyContent: 'space-between', alignItems: 'center', gap: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, color: '#0a0a0a' }}>
+        <TAMonstera size={68} stroke={2.4} />
+        <div>
+          <div className="mono" style={{ fontSize: 16, letterSpacing: 2, textTransform: 'uppercase', color: '#3a3a36' }}>
+            Next watering
+          </div>
+          <div className="display" style={{ fontSize: 36, fontWeight: 600, marginTop: 2 }}>
+            Monstera · Wed 9 Apr · every 7 days
+          </div>
+        </div>
+      </div>
+      <span className="mono" style={{ fontSize: 22, color: '#3a3a36' }}>FACT 14 / 15 · CATALOG</span>
+    </div>
+  </div>
+);
+
+// ─── TRMNL OG · A · Watering day ───
+const A_TrmnlOG_Watering = () => (
+  <div style={{ width: 800, height: 480, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a' }}>
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '8px 16px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span className="display" style={{ fontSize: 20, fontWeight: 600 }}>p7l</span>
+      <span className="mono" style={{ fontSize: 12, letterSpacing: 1 }}>MON · 7 APR · 04</span>
+    </div>
+    <div style={{ flex: 1, display: 'flex', padding: 16, gap: 16 }}>
+      <div style={{ flex: 1, border: '2px solid #0a0a0a', padding: 16, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <TAPeaceLily size={170} stroke={1.6} />
+        </div>
+        <div style={{ borderTop: '1px solid #0a0a0a', paddingTop: 8, marginTop: 6 }}>
+          <div className="display" style={{ fontSize: 26, fontWeight: 700, lineHeight: 1 }}>Peace Lily</div>
+          <div className="display" style={{ fontStyle: 'italic', fontSize: 12, color: '#3a3a36' }}>
+            Spathiphyllum wallisii
+          </div>
+        </div>
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <div className="mono" style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: '#3a3a36' }}>
+            Today's pour
+          </div>
+          <div className="display" style={{ fontSize: 64, fontWeight: 700, lineHeight: 0.95 }}>
+            250<span style={{ fontSize: 22, color: '#3a3a36', marginLeft: 4 }}>ml</span>
+          </div>
+        </div>
+        <div className="mono" style={{ fontSize: 11, lineHeight: 1.7, color: '#0a0a0a' }}>
+          OFFICE · 20cm POT<br/>
+          FERT: YES (DILUTED)<br/>
+          WATCH: DROOPING
+        </div>
+        <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: 10, marginTop: 'auto' }}>
+          <div className="mono" style={{ fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.7 }}>Calibration</div>
+          <div className="display" style={{ fontSize: 16, fontWeight: 600, marginTop: 2 }}>How moist?</div>
+          <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+            {[1,2,3,4,5].map(n => (
+              <div key={n} style={{ width: 22, height: 22, border: '1.5px solid #fafaf6', borderRadius: '50%',
+                                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                       fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700 }}>
+                {n}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style={{ borderTop: '1px solid #0a0a0a', padding: '6px 16px', display: 'flex', justifyContent: 'space-between' }}>
+      <span className="mono" style={{ fontSize: 11, letterSpacing: 1 }}>NEXT · POTHOS · THU 10 APR</span>
+      <span className="mono" style={{ fontSize: 11, color: '#3a3a36' }}>12 PLANTS</span>
+    </div>
+  </div>
+);
+
+// ─── TRMNL OG · A · Rest day ───
+const A_TrmnlOG_Rest = () => (
+  <div style={{ width: 800, height: 480, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a' }}>
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '8px 16px',
+                    display: 'flex', justifyContent: 'space-between' }}>
+      <span className="display" style={{ fontSize: 20, fontWeight: 600 }}>p7l</span>
+      <span className="mono" style={{ fontSize: 12, letterSpacing: 1 }}>TUE · 8 APR · REST</span>
+    </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    justifyContent: 'center', padding: '16px 28px', textAlign: 'center' }}>
+      <TAOrnament size={220} />
+      <div className="display" style={{ fontSize: 28, fontWeight: 600, lineHeight: 1.2,
+                                          marginTop: 12, textWrap: 'balance' }}>
+        Bamboo can grow up to 91 cm in a single day — the fastest plant on Earth.
+      </div>
+    </div>
+    <div style={{ borderTop: '1px solid #0a0a0a', padding: '8px 16px', display: 'flex',
+                    alignItems: 'center', gap: 10 }}>
+      <TAMonstera size={28} stroke={1.4} />
+      <div className="mono" style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', flex: 1 }}>
+        Next: Monstera · Wed 9 Apr · 7 days
+      </div>
+    </div>
+  </div>
+);
+
+window.P7L_DirA_TRMNL = { A_TrmnlX_Watering, A_TrmnlX_Rest, A_TrmnlOG_Watering, A_TrmnlOG_Rest };
+
+
+// Direction B — p7l Operator
+// Soul: instrumentation panel meets quantified-self meets Dutch graphic
+// Energy: confident, technical, slightly playful via the "p7l" numeronym pun
+// Display + Mono. Sharp corners. The "7" is the brand DNA — pixel-leaf form.
+
+const { Monstera: BMonstera, PeaceLily: BPeaceLily, FiddleLeaf: BFiddleLeaf,
+        Pothos: BPothos, SnakePlant: BSnakePlant, ZZ: BZZ, PixelMonstera: BPixelMonstera,
+        Ornament: BOrnament } = window.P7L_Illustrations;
+const { Wordmark: BWordmark, Mark: BMark, Lockup: BLockup, PixelLeafInner: BPixelLeafInner } = window.P7L_Brand;
+
+// ─── B · Logo system ───
+const B_Logo = () => (
+  <div className="dir-b paper" style={{ padding: 40, height: 360 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <BMark direction="b" size={88} style={{ color: 'var(--ink)' }} />
+        <BWordmark direction="b" size={64} style={{ color: 'var(--ink)' }} />
+      </div>
+      {/* monogram + variants */}
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+        <div style={{ width: 64, height: 64, background: 'var(--ink)', display: 'flex',
+                       alignItems: 'center', justifyContent: 'center' }}>
+          <svg viewBox="0 0 100 100" width="48" height="48"><BPixelLeafInner ink="var(--leaf)" scale={0.42}/></svg>
+        </div>
+        <div style={{ width: 64, height: 64, background: 'var(--leaf)', display: 'flex',
+                       alignItems: 'center', justifyContent: 'center' }}>
+          <svg viewBox="0 0 100 100" width="48" height="48"><BPixelLeafInner ink="var(--paper)" scale={0.42}/></svg>
+        </div>
+        <BMark direction="b" size={64} />
+        <span className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1 }}>
+          /ˈpɛt.əl/<br/>
+          n. plnt[7]l
+        </span>
+      </div>
+      <div style={{ borderTop: '1px solid var(--paper-edge)', paddingTop: 12,
+                    display: 'flex', justifyContent: 'space-between', color: 'var(--ink-3)',
+                    fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1, textTransform: 'uppercase' }}>
+        <span>p7l://operator</span>
+        <span>v1.0</span>
+        <span>16 grey · 4 grey · paper</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── B · Palette ───
+const SwatchB = ({ name, value, hex, mono }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div style={{ width: 88, height: 88, background: value, border: '1px solid var(--paper-edge)' }} />
+    <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink)' }}>{name}</div>
+    <div className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>{hex}</div>
+    {mono && <div className="mono" style={{ fontSize: 9, color: 'var(--ink-3)' }}>{mono}</div>}
+  </div>
+);
+const B_Palette = () => (
+  <div className="dir-b paper" style={{ padding: 40, height: 360 }}>
+    <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1.5,
+                                    textTransform: 'uppercase', marginBottom: 18 }}>
+      Palette · Operator
+    </div>
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+      <SwatchB name="paper" value="#ebe7dd" hex="#EBE7DD" mono="--paper" />
+      <SwatchB name="paper.2" value="#f5f2ea" hex="#F5F2EA" mono="--paper-2" />
+      <SwatchB name="ink" value="#0e0e0c" hex="#0E0E0C" mono="--ink" />
+      <SwatchB name="ink.2" value="#3a3a36" hex="#3A3A36" mono="--ink-2" />
+      <SwatchB name="leaf" value="#2e7d3a" hex="#2E7D3A" mono="--leaf" />
+      <SwatchB name="amber" value="#c47a1a" hex="#C47A1A" mono="--clay" />
+    </div>
+    <div className="mono" style={{ marginTop: 16, fontSize: 11, color: 'var(--ink-3)', maxWidth: 540, lineHeight: 1.6 }}>
+      &gt; Operator panels are built on paper.2 floating over paper.<br/>
+      &gt; <span style={{ color: 'var(--leaf)' }}>leaf</span> = healthy / due / primary.
+      &nbsp;<span style={{ color: 'var(--clay)' }}>amber</span> = attention / overdue.<br/>
+      &gt; Never use color to encode quantity. Use mono numerals.
+    </div>
+  </div>
+);
+
+// ─── B · Type ───
+const B_Type = () => (
+  <div className="dir-b paper" style={{ padding: 40, height: 480 }}>
+    <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1.5,
+                                    textTransform: 'uppercase', marginBottom: 22 }}>
+      Type · Fraunces · IBM Plex Sans · JetBrains Mono
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div className="display" style={{ fontSize: 64, fontWeight: 500, lineHeight: 0.95,
+                                          letterSpacing: '-0.025em', color: 'var(--ink)' }}>
+        p7l<span style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--leaf)' }}> petal,</span><br/>
+        the kitchen-sink<br/>
+        <span style={{ fontStyle: 'italic', fontWeight: 300 }}>plant operator.</span>
+      </div>
+      <div style={{ borderTop: 'var(--hairline)', paddingTop: 12 }}>
+        <div className="body" style={{ fontSize: 15, color: 'var(--ink-2)', lineHeight: 1.55, maxWidth: 540 }}>
+          IBM Plex Sans for body. Carries data well, keeps hierarchies legible at e-ink resolutions.
+        </div>
+      </div>
+      <div style={{ borderTop: 'var(--hairline)', paddingTop: 12, display: 'flex', gap: 32 }}>
+        <div>
+          <div className="mono" style={{ fontSize: 36, fontWeight: 700, color: 'var(--ink)' }}>
+            04 · 250ml
+          </div>
+          <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1, marginTop: 4, textTransform: 'uppercase' }}>
+            cycle · pour
+          </div>
+        </div>
+        <div>
+          <div className="mono" style={{ fontSize: 36, fontWeight: 700, color: 'var(--leaf)' }}>
+            +2.3d
+          </div>
+          <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1, marginTop: 4, textTransform: 'uppercase' }}>
+            drift / mean
+          </div>
+        </div>
+        <div>
+          <div className="mono" style={{ fontSize: 36, fontWeight: 700, color: 'var(--clay)' }}>
+            !02d
+          </div>
+          <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1, marginTop: 4, textTransform: 'uppercase' }}>
+            overdue
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── B · Plant Cards (Operator panels) ───
+const OperatorCard = ({ illustration: Illo, common, latin, water, drift, location, due, accent }) => {
+  const accentColor = accent === 'leaf' ? 'var(--leaf)' : accent === 'clay' ? 'var(--clay)' : 'var(--ink)';
+  return (
+    <div style={{ background: 'var(--paper-2)', border: '1.5px solid var(--ink)', position: 'relative',
+                    display: 'flex', flexDirection: 'column' }}>
+      {/* top status bar */}
+      <div style={{ background: accentColor, color: 'var(--paper)', padding: '6px 14px',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase' }}>
+        <span style={{ fontWeight: 700 }}>{due}</span>
+        <span style={{ opacity: 0.85 }}>{location}</span>
+      </div>
+      <div style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0', color: 'var(--ink)' }}>
+          <Illo size={120} stroke={1.4} />
+        </div>
+        <div>
+          <div className="display" style={{ fontSize: 24, fontWeight: 500, lineHeight: 1.05,
+                                              letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+            {common}
+          </div>
+          <div className="display" style={{ fontStyle: 'italic', fontSize: 13, color: 'var(--ink-3)' }}>
+            {latin}
+          </div>
+        </div>
+        {/* data row */}
+        <div style={{ borderTop: '1px solid var(--paper-edge)', borderBottom: '1px solid var(--paper-edge)',
+                        display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '8px 0' }}>
+          <div>
+            <div className="mono" style={{ fontSize: 9, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase' }}>pour</div>
+            <div className="mono" style={{ fontSize: 18, color: 'var(--ink)', fontWeight: 700 }}>{water}</div>
+          </div>
+          <div>
+            <div className="mono" style={{ fontSize: 9, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase' }}>drift</div>
+            <div className="mono" style={{ fontSize: 18, color: drift.startsWith('-') ? 'var(--clay)' : 'var(--leaf)', fontWeight: 700 }}>{drift}</div>
+          </div>
+        </div>
+        {/* sparkline */}
+        <div>
+          <div className="mono" style={{ fontSize: 9, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>
+            last 8 cycles
+          </div>
+          <svg viewBox="0 0 200 28" width="100%" height="28" preserveAspectRatio="none">
+            {[7,7.2,6.8,7.1,7.4,7,7.3,7.2].map((v, i, arr) => {
+              const x = i * (200/(arr.length-1));
+              const y = 26 - (v - 6) * 14;
+              return <circle key={i} cx={x} cy={y} r="2" fill="var(--ink)"/>;
+            })}
+            <polyline points={[7,7.2,6.8,7.1,7.4,7,7.3,7.2].map((v, i, arr) => {
+              const x = i * (200/(arr.length-1));
+              const y = 26 - (v - 6) * 14;
+              return `${x},${y}`;
+            }).join(' ')} fill="none" stroke="var(--ink)" strokeWidth="1.2"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const B_PlantCards = () => (
+  <div className="dir-b paper" style={{ padding: 32, height: 460, display: 'flex', gap: 14 }}>
+    <OperatorCard illustration={BPeaceLily} common="Peace Lily" latin="Spathiphyllum wallisii"
+      water="250 ml" drift="+1.2d" location="OFFICE" due="Due today" accent="leaf" />
+    <OperatorCard illustration={BMonstera} common="Monstera" latin="Monstera deliciosa"
+      water="350 ml" drift="-2.0d" location="LIVING" due="Overdue · 2d" accent="clay" />
+    <OperatorCard illustration={BSnakePlant} common="Snake Plant" latin="Dracaena trifasciata"
+      water="120 ml" drift="+0.4d" location="BEDROOM" due="In 9 days" accent="ink" />
+  </div>
+);
+
+// ─── B · Calibration ───
+const B_Calibration = () => (
+  <div className="dir-b paper" style={{ padding: 32, height: 360, display: 'flex', flexDirection: 'column' }}>
+    <div className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1.5,
+                                    textTransform: 'uppercase', marginBottom: 16 }}>
+      Calibration · cycle 04 · pothos
+    </div>
+    <div style={{ background: 'var(--ink)', color: 'var(--paper)', padding: 28, flex: 1 }}>
+      <div className="mono" style={{ fontSize: 11, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' }}>
+        ── question
+      </div>
+      <div className="display" style={{ fontSize: 36, fontWeight: 500, lineHeight: 1.1, marginTop: 8,
+                                          letterSpacing: '-0.01em' }}>
+        How moist is the soil, <em style={{ color: 'var(--leaf)' }}>honestly</em>?
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginTop: 24 }}>
+        {[
+          [1, 'bone dry'],
+          [2, 'dry'],
+          [3, 'just right', true],
+          [4, 'moist'],
+          [5, 'soaking'],
+        ].map(([n, label, sel]) => (
+          <div key={n} style={{
+            background: sel ? 'var(--leaf)' : 'transparent',
+            border: '2px solid var(--paper)',
+            padding: '14px 8px', textAlign: 'center',
+          }}>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700 }}>{n}</div>
+            <div className="mono" style={{ fontSize: 10, opacity: 0.8, letterSpacing: 1, textTransform: 'uppercase', marginTop: 2 }}>
+              {label}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mono" style={{ fontSize: 11, opacity: 0.6, marginTop: 18, letterSpacing: 1 }}>
+        &gt; non-3 answers nudge the schedule. answer before 12:00.
+      </div>
+    </div>
+  </div>
+);
+
+// ─── B · Mobile SPA home ───
+const B_MobileHome = () => (
+  <div className="dir-b paper" style={{ width: 375, height: 812, padding: 0,
+                                          display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    {/* status bar */}
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '0 24px', fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--ink)' }}>
+      <span style={{ fontWeight: 700 }}>9:41</span>
+      <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <span style={{ fontSize: 11 }}>●●●●</span>
+        <span style={{ fontSize: 11 }}>5G</span>
+        <span style={{ width: 22, height: 11, border: '1px solid currentColor', borderRadius: 2, padding: 1, display: 'inline-flex' }}>
+          <span style={{ background: 'currentColor', flex: 1, borderRadius: 1 }}/>
+        </span>
+      </span>
+    </div>
+    {/* dark header — operator dashboard */}
+    <div style={{ background: 'var(--ink)', color: 'var(--paper)', padding: '14px 20px 18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <BLockup direction="b" size={26} style={{ color: 'var(--paper)' }} />
+        <span className="mono" style={{ fontSize: 10, opacity: 0.6, letterSpacing: 1, textTransform: 'uppercase' }}>
+          MON 07.04 · 04
+        </span>
+      </div>
+      {/* big number — plants needing attention */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 16 }}>
+        <span className="display" style={{ fontSize: 80, fontWeight: 500, lineHeight: 0.85, letterSpacing: '-0.04em' }}>02</span>
+        <span className="mono" style={{ fontSize: 11, color: 'var(--paper)', opacity: 0.7, letterSpacing: 1, textTransform: 'uppercase' }}>
+          plants<br/>need a pour
+        </span>
+      </div>
+      {/* little stat strip */}
+      <div style={{ display: 'flex', gap: 16, marginTop: 14, fontFamily: 'var(--font-mono)',
+                      fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.7 }}>
+        <span>12 plants</span>
+        <span>·</span>
+        <span>4 this wk</span>
+        <span>·</span>
+        <span style={{ color: 'var(--leaf)' }}>3 calibrating</span>
+      </div>
+    </div>
+    {/* operator rows */}
+    {[
+      { illo: BPeaceLily, name: 'Peace Lily', latin: 'Spathiphyllum wallisii', amount: '250ml', loc: 'OFFICE', state: 'due', drift: '+1.2d' },
+      { illo: BMonstera, name: 'Monstera', latin: 'Monstera deliciosa', amount: '350ml', loc: 'LIVING', state: 'overdue', drift: '-2.0d' },
+      { illo: BSnakePlant, name: 'Snake Plant', latin: 'Dracaena trifasciata', amount: '120ml', loc: 'BEDROOM', state: 'rest', drift: '+0.4d' },
+      { illo: BPothos, name: 'Pothos', latin: 'Epipremnum aureum', amount: '180ml', loc: 'KITCHEN', state: 'rest', drift: '0.0d' },
+    ].map((p, i) => (
+      <div key={i} style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto',
+                              gap: 12, padding: '14px 20px', borderBottom: 'var(--hairline)',
+                              alignItems: 'center' }}>
+        <div style={{ width: 48, height: 48, color: 'var(--ink)',
+                       background: p.state === 'due' ? 'var(--leaf)' : p.state === 'overdue' ? 'var(--clay)' : 'var(--paper-2)',
+                       border: '1.5px solid var(--ink)',
+                       display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ color: p.state === 'rest' ? 'var(--ink)' : 'var(--paper)' }}>
+            <p.illo size={42} stroke={1.4} />
+          </div>
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div className="display" style={{ fontSize: 17, fontWeight: 500, color: 'var(--ink)', letterSpacing: '-0.01em' }}>
+            {p.name}
+          </div>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+            {p.amount} · {p.loc} · drift <span style={{ color: p.drift.startsWith('-') ? 'var(--clay)' : 'var(--ink-2)' }}>{p.drift}</span>
+          </div>
+        </div>
+        <div>
+          {p.state === 'due' && (
+            <button style={{ background: 'var(--ink)', color: 'var(--paper)', border: 'none',
+                              padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                              letterSpacing: 1.5, textTransform: 'uppercase', borderRadius: 2 }}>
+              Pour ▸
+            </button>
+          )}
+          {p.state === 'overdue' && (
+            <button style={{ background: 'var(--clay)', color: 'var(--paper)', border: 'none',
+                              padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                              letterSpacing: 1.5, textTransform: 'uppercase', borderRadius: 2 }}>
+              !2d ▸
+            </button>
+          )}
+          {p.state === 'rest' && (
+            <span className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1 }}>
+              ──
+            </span>
+          )}
+        </div>
+      </div>
+    ))}
+    {/* bottom ribbon */}
+    <div style={{ marginTop: 'auto', background: 'var(--paper-2)', borderTop: 'var(--hairline)',
+                    padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span className="mono" style={{ fontSize: 9, color: 'var(--leaf)', letterSpacing: 2 }}>●</span>
+      <div className="mono" style={{ fontSize: 11, color: 'var(--ink-2)', flex: 1, letterSpacing: 0.5 }}>
+        cal_q ready &nbsp;·&nbsp; pothos &nbsp;·&nbsp; cycle 03 → 04
+      </div>
+      <span className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>›</span>
+    </div>
+  </div>
+);
+
+window.P7L_DirB = { B_Logo, B_Palette, B_Type, B_PlantCards, B_Calibration, B_MobileHome };
+
+
+// Direction B — TRMNL screens
+// Operator panel aesthetic: heavy header bar, mono labels, sparklines, dithered fills
+
+const { Monstera: TBMonstera, PeaceLily: TBPeaceLily, FiddleLeaf: TBFiddleLeaf,
+        Pothos: TBPothos, PixelMonstera: TBPixelMonstera, Ornament: TBOrnament } = window.P7L_Illustrations;
+const { Wordmark: TBWordmark, Mark: TBMark, PixelLeafInner: TBPixelLeaf } = window.P7L_Brand;
+
+// Dithered "phosphor" leaf fill — lots of dots for e-ink crunch
+const DitheredLeaf = ({ size = 400, color = '#0a0a0a' }) => (
+  <svg viewBox="0 0 100 100" width={size} height={size} style={{ display: 'block' }}>
+    <g style={{ color }}><PixelLeafInner ink={color} scale={0.42} /></g>
+  </svg>
+);
+
+// ─── TRMNL X · B · Watering ───
+const B_TrmnlX_Watering = () => (
+  <div style={{ width: 1872, height: 1404, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a', background: '#fafaf6' }}>
+    {/* operator header */}
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '32px 56px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <TBMark direction="b" size={72} color="#fafaf6" />
+        <div>
+          <div className="display" style={{ fontSize: 48, fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>
+            p7l<span style={{ color: '#9adfa6', fontStyle: 'italic', fontWeight: 300 }}> operator</span>
+          </div>
+          <div className="mono" style={{ fontSize: 16, opacity: 0.6, letterSpacing: 2, textTransform: 'uppercase', marginTop: 4 }}>
+            kitchen-sink dashboard · v1.0
+          </div>
+        </div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <div className="mono" style={{ fontSize: 32, fontWeight: 700, letterSpacing: 1 }}>MON 07.04</div>
+        <div className="mono" style={{ fontSize: 16, opacity: 0.6, letterSpacing: 2, textTransform: 'uppercase' }}>cycle · 04</div>
+      </div>
+    </div>
+    {/* big counter strip */}
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '0 56px 32px',
+                    display: 'flex', gap: 48, alignItems: 'baseline', borderTop: '1px solid #3a3a36' }}>
+      <div style={{ paddingTop: 24 }}>
+        <div className="display" style={{ fontSize: 200, fontWeight: 500, lineHeight: 0.85, letterSpacing: '-0.05em' }}>
+          02
+        </div>
+        <div className="mono" style={{ fontSize: 18, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase', marginTop: 4 }}>
+          plants need a pour
+        </div>
+      </div>
+      <div style={{ flex: 1, display: 'flex', gap: 32, paddingTop: 60 }}>
+        <div>
+          <div className="mono" style={{ fontSize: 56, fontWeight: 700, color: '#9adfa6' }}>+1.2d</div>
+          <div className="mono" style={{ fontSize: 14, opacity: 0.6, letterSpacing: 1.5, textTransform: 'uppercase' }}>peace lily · drift</div>
+        </div>
+        <div>
+          <div className="mono" style={{ fontSize: 56, fontWeight: 700, color: '#e5b773' }}>!2d</div>
+          <div className="mono" style={{ fontSize: 14, opacity: 0.6, letterSpacing: 1.5, textTransform: 'uppercase' }}>monstera · overdue</div>
+        </div>
+        <div style={{ marginLeft: 'auto' }}>
+          <div className="mono" style={{ fontSize: 56, fontWeight: 700 }}>12 / 444</div>
+          <div className="mono" style={{ fontSize: 14, opacity: 0.6, letterSpacing: 1.5, textTransform: 'uppercase' }}>collection · catalog</div>
+        </div>
+      </div>
+    </div>
+    {/* main panel grid */}
+    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, padding: 0,
+                    borderTop: '4px solid #0a0a0a' }}>
+      {/* PANEL 1 */}
+      <div style={{ padding: 48, borderRight: '2px solid #0a0a0a',
+                      display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="mono" style={{ fontSize: 16, letterSpacing: 2, textTransform: 'uppercase', color: '#3a3a36' }}>
+            ── plant 01 / due
+          </div>
+          <span style={{ background: '#0a0a0a', color: '#fafaf6', padding: '6px 14px',
+                           fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, letterSpacing: 1.5 }}>
+            POUR · 250ml
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flex: 1 }}>
+          <div style={{ flexShrink: 0, color: '#0a0a0a' }}>
+            <TBPeaceLily size={300} stroke={2.6} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="display" style={{ fontSize: 80, fontWeight: 500, lineHeight: 0.95,
+                                                letterSpacing: '-0.025em' }}>
+              Peace<br/>Lily
+            </div>
+            <div className="display" style={{ fontStyle: 'italic', fontSize: 28, color: '#3a3a36', marginTop: 12 }}>
+              Spathiphyllum wallisii
+            </div>
+            <div className="mono" style={{ fontSize: 18, color: '#3a3a36', marginTop: 16, letterSpacing: 1.5, textTransform: 'uppercase' }}>
+              office · 20cm pot · fert: yes
+            </div>
+          </div>
+        </div>
+        {/* sparkline */}
+        <div style={{ borderTop: '1.5px solid #0a0a0a', paddingTop: 16 }}>
+          <div className="mono" style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#3a3a36', marginBottom: 6 }}>
+            last 8 cycles · dry-days
+          </div>
+          <svg viewBox="0 0 600 60" width="100%" height="60" preserveAspectRatio="none">
+            {[7,7.2,6.8,7.1,7.4,7,7.3,7.2].map((v, i, arr) => {
+              const x = i * (600/(arr.length-1));
+              const y = 56 - (v - 6) * 28;
+              return <g key={i}><circle cx={x} cy={y} r="6" fill="#0a0a0a"/></g>;
+            })}
+            <polyline points={[7,7.2,6.8,7.1,7.4,7,7.3,7.2].map((v, i, arr) => {
+              const x = i * (600/(arr.length-1));
+              const y = 56 - (v - 6) * 28;
+              return `${x},${y}`;
+            }).join(' ')} fill="none" stroke="#0a0a0a" strokeWidth="3"/>
+          </svg>
+        </div>
+      </div>
+      {/* PANEL 2 */}
+      <div style={{ padding: 48, display: 'flex', flexDirection: 'column', gap: 24, background: '#0a0a0a', color: '#fafaf6' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="mono" style={{ fontSize: 16, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.7 }}>
+            ── plant 02 / overdue
+          </div>
+          <span style={{ background: '#fafaf6', color: '#0a0a0a', padding: '6px 14px',
+                           fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, letterSpacing: 1.5 }}>
+            !2d · POUR 350ml
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flex: 1 }}>
+          <div style={{ flexShrink: 0, color: '#fafaf6' }}>
+            <TBMonstera size={300} stroke={2.6} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="display" style={{ fontSize: 80, fontWeight: 500, lineHeight: 0.95, letterSpacing: '-0.025em' }}>
+              Monstera
+            </div>
+            <div className="display" style={{ fontStyle: 'italic', fontSize: 28, opacity: 0.7, marginTop: 12 }}>
+              Monstera deliciosa
+            </div>
+            <div className="mono" style={{ fontSize: 18, opacity: 0.7, marginTop: 16, letterSpacing: 1.5, textTransform: 'uppercase' }}>
+              living · 25cm · watch: yellow
+            </div>
+          </div>
+        </div>
+        <div style={{ borderTop: '1.5px solid #fafaf6', paddingTop: 16 }}>
+          <div className="mono" style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', opacity: 0.7, marginBottom: 6 }}>
+            calibration · how moist?
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+            {[1,2,3,4,5].map(n => (
+              <div key={n} style={{ flex: 1, border: '2.5px solid #fafaf6', padding: '14px 0',
+                                       textAlign: 'center', fontFamily: 'var(--font-mono)',
+                                       fontSize: 28, fontWeight: 700 }}>
+                {n}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+    {/* footer */}
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '20px 56px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span className="mono" style={{ fontSize: 18, letterSpacing: 1.5 }}>
+        next · pothos · thu 10.04 · every 7 days
+      </span>
+      <span className="mono" style={{ fontSize: 18, opacity: 0.6, letterSpacing: 1.5 }}>
+        p7l://operator · 16 grey
+      </span>
+    </div>
+  </div>
+);
+
+// ─── TRMNL X · B · Rest day ───
+const B_TrmnlX_Rest = () => (
+  <div style={{ width: 1872, height: 1404, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a', background: '#fafaf6' }}>
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '32px 56px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <TBMark direction="b" size={64} color="#fafaf6" />
+        <span className="display" style={{ fontSize: 48, fontWeight: 500, letterSpacing: '-0.02em' }}>
+          p7l<span style={{ color: '#9adfa6', fontStyle: 'italic', fontWeight: 300 }}> rest</span>
+        </span>
+      </div>
+      <span className="mono" style={{ fontSize: 28, fontWeight: 700, letterSpacing: 1 }}>TUE 08.04</span>
+    </div>
+    {/* dithered leaf as massive backdrop */}
+    <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80 }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', opacity: 0.13 }}>
+        <DitheredLeaf size={1200} color="#0a0a0a" />
+      </div>
+      <div style={{ position: 'relative', maxWidth: 1500, textAlign: 'center' }}>
+        <div className="mono" style={{ fontSize: 18, letterSpacing: 4, textTransform: 'uppercase',
+                                          color: '#3a3a36', marginBottom: 24 }}>
+          fact · 14 / 15 · phyllostachys edulis
+        </div>
+        <div className="display" style={{ fontSize: 116, fontWeight: 500, lineHeight: 1.05,
+                                            letterSpacing: '-0.02em', textWrap: 'balance' }}>
+          Bamboo can grow <em style={{ fontStyle: 'italic', fontWeight: 400 }}>91&nbsp;cm</em><br/>
+          in a single day, the<br/>
+          fastest plant on Earth.
+        </div>
+      </div>
+    </div>
+    {/* footer with next watering */}
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '24px 56px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ color: '#fafaf6' }}><TBMonstera size={56} stroke={2} /></div>
+        <div>
+          <div className="mono" style={{ fontSize: 14, opacity: 0.6, letterSpacing: 2, textTransform: 'uppercase' }}>
+            next pour
+          </div>
+          <div className="display" style={{ fontSize: 32, fontWeight: 500 }}>
+            Monstera · Wed 09.04 · 350ml
+          </div>
+        </div>
+      </div>
+      <span className="mono" style={{ fontSize: 16, opacity: 0.6, letterSpacing: 2, textTransform: 'uppercase' }}>
+        12 plants · 0 due today
+      </span>
+    </div>
+  </div>
+);
+
+// ─── TRMNL OG · B · Watering ───
+const B_TrmnlOG_Watering = () => (
+  <div style={{ width: 800, height: 480, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a', background: '#fafaf6' }}>
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '8px 16px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <TBMark direction="b" size={22} color="#fafaf6" />
+        <span className="display" style={{ fontSize: 18, fontWeight: 500 }}>p7l</span>
+      </div>
+      <span className="mono" style={{ fontSize: 11, letterSpacing: 1.5 }}>MON 07.04 · 04</span>
+    </div>
+    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+      <div style={{ padding: 14, borderRight: '1.5px solid #0a0a0a', display: 'flex', flexDirection: 'column' }}>
+        <div className="mono" style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: '#3a3a36' }}>── 01 / due</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flex: 1, marginTop: 6 }}>
+          <div style={{ color: '#0a0a0a' }}><TBPeaceLily size={120} stroke={1.6} /></div>
+          <div style={{ flex: 1 }}>
+            <div className="display" style={{ fontSize: 24, fontWeight: 500, lineHeight: 0.95, letterSpacing: '-0.02em' }}>Peace<br/>Lily</div>
+            <div className="mono" style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>250ml</div>
+            <div className="mono" style={{ fontSize: 9, color: '#3a3a36', letterSpacing: 1, textTransform: 'uppercase' }}>office</div>
+          </div>
+        </div>
+      </div>
+      <div style={{ padding: 14, background: '#0a0a0a', color: '#fafaf6', display: 'flex', flexDirection: 'column' }}>
+        <div className="mono" style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', opacity: 0.7 }}>── 02 / !2d</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flex: 1, marginTop: 6 }}>
+          <div style={{ color: '#fafaf6' }}><TBMonstera size={120} stroke={1.6} /></div>
+          <div style={{ flex: 1 }}>
+            <div className="display" style={{ fontSize: 24, fontWeight: 500, lineHeight: 0.95, letterSpacing: '-0.02em' }}>Monstera</div>
+            <div className="mono" style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>350ml</div>
+            <div className="mono" style={{ fontSize: 9, opacity: 0.7, letterSpacing: 1, textTransform: 'uppercase' }}>living</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {/* calibration strip */}
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '6px 16px',
+                    display: 'flex', alignItems: 'center', gap: 12 }}>
+      <span className="mono" style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', opacity: 0.7 }}>cal</span>
+      <span className="mono" style={{ fontSize: 11 }}>How moist?</span>
+      <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+        {[1,2,3,4,5].map(n => (
+          <div key={n} style={{ width: 18, height: 18, border: '1.2px solid #fafaf6',
+                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                   fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700 }}>{n}</div>
+        ))}
+      </div>
+    </div>
+    <div style={{ borderTop: '1px solid #0a0a0a', padding: '5px 16px', display: 'flex', justifyContent: 'space-between' }}>
+      <span className="mono" style={{ fontSize: 10, letterSpacing: 1 }}>NEXT · POTHOS · THU 10.04</span>
+      <span className="mono" style={{ fontSize: 10, color: '#3a3a36' }}>12/444</span>
+    </div>
+  </div>
+);
+
+// ─── TRMNL OG · B · Rest ───
+const B_TrmnlOG_Rest = () => (
+  <div style={{ width: 800, height: 480, padding: 0, display: 'flex', flexDirection: 'column',
+                  fontFamily: 'var(--font-body)', color: '#0a0a0a', background: '#fafaf6' }}>
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '8px 16px',
+                    display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <TBMark direction="b" size={22} color="#fafaf6" />
+        <span className="display" style={{ fontSize: 18, fontWeight: 500 }}>p7l<span style={{ color: '#9adfa6', fontStyle: 'italic', fontWeight: 300 }}> rest</span></span>
+      </div>
+      <span className="mono" style={{ fontSize: 11, letterSpacing: 1.5 }}>TUE 08.04</span>
+    </div>
+    <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 32px' }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', opacity: 0.13 }}>
+        <DitheredLeaf size={500} color="#0a0a0a" />
+      </div>
+      <div style={{ position: 'relative', textAlign: 'center', maxWidth: 700 }}>
+        <div className="mono" style={{ fontSize: 9, letterSpacing: 3, textTransform: 'uppercase', color: '#3a3a36', marginBottom: 8 }}>
+          fact · 14 / 15
+        </div>
+        <div className="display" style={{ fontSize: 38, fontWeight: 500, lineHeight: 1.05,
+                                            letterSpacing: '-0.02em', textWrap: 'balance' }}>
+          Bamboo grows <em style={{ fontStyle: 'italic' }}>91&nbsp;cm</em><br/>
+          in a day. Fastest plant on Earth.
+        </div>
+      </div>
+    </div>
+    <div style={{ background: '#0a0a0a', color: '#fafaf6', padding: '8px 16px',
+                    display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ color: '#fafaf6' }}><TBMonstera size={26} stroke={1.4} /></div>
+      <span className="mono" style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase' }}>
+        next · monstera · wed 09.04 · 350ml
+      </span>
+    </div>
+  </div>
+);
+
+window.P7L_DirB_TRMNL = { B_TrmnlX_Watering, B_TrmnlX_Rest, B_TrmnlOG_Watering, B_TrmnlOG_Rest };
+
+
+// All component consts (A_Logo, B_Logo, etc.) are already in scope from prior scripts
+// when this file is concatenated into a single IIFE.
+
+
+const Eink = ({ w, h, displayW, children }) => {
+  const scale = displayW / w;
+  return (
+    <div style={{ width: displayW, height: h * scale,
+                    background: '#fafaf6', border: '1px solid #999',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.08)',
+                    position: 'relative', overflow: 'hidden' }}>
+      <div style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: 'top left',
+                      position: 'absolute', top: 0, left: 0 }}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const Intro = () => (
+  <div style={{ padding: 40, maxWidth: 920, fontFamily: '"Inter Tight", system-ui, sans-serif', color: '#1a1612' }}>
+    <div style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 44, fontWeight: 600,
+                    letterSpacing: '-0.02em', lineHeight: 1.05 }}>
+      p7l <span style={{ fontStyle: 'italic', color: 'rgba(60,50,40,0.7)' }}>(petal) — identity exploration</span>
+    </div>
+    <div style={{ fontSize: 16, lineHeight: 1.6, marginTop: 18, color: '#3a3a36' }}>
+      Two directions, side by side. <strong>Direction A · Field Guide</strong> sharpens the soul of the existing
+      Lovable mockups: paper, ink, herbarium, serif. <strong>Direction B · Operator</strong> goes the other way:
+      instrumentation panel for the quantified-self plant daddy, display + mono, the "7" as the brand DNA.
+    </div>
+    <div style={{ fontSize: 14, lineHeight: 1.6, marginTop: 12, color: '#3a3a36' }}>
+      Each direction is shown as: logo system, palette, type, mobile home, plant cards, calibration UI,
+      TRMNL X (1872×1404), and TRMNL OG (800×480). Drag-reorder artboards; click ⤢ to open one fullscreen.
+    </div>
+    <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'rgba(60,50,40,0.6)',
+                    letterSpacing: 1, textTransform: 'uppercase', marginTop: 18 }}>
+      brand · color · type · components · trmnl x · trmnl og · spa
+    </div>
+  </div>
+);
+
+// Logo1..Logo8 are in IIFE scope from logo-concepts.js
+
+const ImageAudit = () => (
+  <div style={{ padding: 40, maxWidth: 920, fontFamily: '"Inter Tight", system-ui, sans-serif', color: '#1a1612' }}>
+    <div style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 32, fontWeight: 600,
+                    letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+      Image audit — what we need to generate
+    </div>
+    <div style={{ fontSize: 14, lineHeight: 1.6, marginTop: 12, color: '#3a3a36' }}>
+      Catalog is at <strong>444 species</strong> across 12 categories. To cover the SPA dashboard, plant detail,
+      TRMNL X, and TRMNL OG with consistent visual identity, we need <strong>2 source assets per species</strong>;
+      the two TRMNL renditions are deterministic outputs from one of them via build-time <code style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 13, background: '#ece4cc', padding: '1px 4px', borderRadius: 3 }}>sharp</code> dithering.
+    </div>
+    <table style={{ marginTop: 20, fontSize: 13, lineHeight: 1.5, borderCollapse: 'collapse', width: '100%' }}>
+      <thead>
+        <tr style={{ borderBottom: '2px solid #1a1612', textAlign: 'left' }}>
+          <th style={{ padding: '8px 10px 8px 0', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>Asset</th>
+          <th style={{ padding: '8px 10px', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>Used in</th>
+          <th style={{ padding: '8px 10px', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>Spec</th>
+          <th style={{ padding: '8px 0 8px 10px', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>Source?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style={{ borderBottom: '1px solid #d8cca8' }}>
+          <td style={{ padding: '10px 10px 10px 0', fontWeight: 600 }}>Leaf glyph</td>
+          <td style={{ padding: '10px' }}>Dashboard list, "needs water today", PlantCard avatar</td>
+          <td style={{ padding: '10px', fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }}>SVG, mono-color, ~2 KB</td>
+          <td style={{ padding: '10px 0 10px 10px', color: '#3e6b3a', fontWeight: 600 }}>source</td>
+        </tr>
+        <tr style={{ borderBottom: '1px solid #d8cca8' }}>
+          <td style={{ padding: '10px 10px 10px 0', fontWeight: 600 }}>Hero portrait</td>
+          <td style={{ padding: '10px' }}>Plant detail hero, AddPlant splash</td>
+          <td style={{ padding: '10px', fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }}>1200×900 PNG @ 2×, line art + flat shading</td>
+          <td style={{ padding: '10px 0 10px 10px', color: '#3e6b3a', fontWeight: 600 }}>source</td>
+        </tr>
+        <tr style={{ borderBottom: '1px solid #d8cca8', background: 'rgba(0,0,0,0.02)' }}>
+          <td style={{ padding: '10px 10px 10px 0', fontWeight: 600 }}>TRMNL X dither</td>
+          <td style={{ padding: '10px' }}>TRMNL X templates</td>
+          <td style={{ padding: '10px', fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }}>1872×1404, 16-grey, FS-dither</td>
+          <td style={{ padding: '10px 0 10px 10px', color: '#7a6e55' }}>derived (from hero)</td>
+        </tr>
+        <tr style={{ background: 'rgba(0,0,0,0.02)' }}>
+          <td style={{ padding: '10px 10px 10px 0', fontWeight: 600 }}>TRMNL OG dither</td>
+          <td style={{ padding: '10px' }}>TRMNL OG templates</td>
+          <td style={{ padding: '10px', fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }}>800×480, 4-grey, stronger silhouette</td>
+          <td style={{ padding: '10px 0 10px 10px', color: '#7a6e55' }}>derived (from hero)</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style={{ fontSize: 13, lineHeight: 1.55, marginTop: 18, color: '#3a3a36',
+                    borderLeft: '3px solid #3e6b3a', paddingLeft: 14 }}>
+      <strong>Total:</strong> 444 species × 2 source assets = <strong>888 generations</strong>.
+      TRMNL renditions are 1,776 PNGs but they're free — <code style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }}>sharp</code> turns them out at build time.
+      <br/><strong>Style lock-in (per #138):</strong> line art + flat shading, neutral background, single subject,
+      strong silhouette. Same visual style across all 888 — consistency over per-plant fidelity.
+      <br/><strong>Generator decision deferred</strong> to a later session: paid API (Replicate flux-dev w/ LoRA, ≈$3 total),
+      self-hosted SDXL, hand-commissioned hero set + AI-fill long tail, or full LLM-SVG.
+    </div>
+    <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'rgba(60,50,40,0.6)',
+                    letterSpacing: 1, textTransform: 'uppercase', marginTop: 18 }}>
+      4 derivatives · 2 sources per species · 888 to make · 1,776 free
+    </div>
+  </div>
+);
+
+const App = () => (
+  <DesignCanvas>
+    <DCSection id="intro" title="Read me first" subtitle="What's in this canvas">
+      <DCArtboard id="intro-card" label="" width={920} height={300}>
+        <Intro />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="logos" title="Logo concepts — 8 directions"
+               subtitle="Single typeface per logo. The 7 is the variable. Pick one (or hybrid two) to carry forward.">
+      <DCArtboard id="logo-1" label="01 · Serif Classical" width={420} height={280}>
+        <Logo1 />
+      </DCArtboard>
+      <DCArtboard id="logo-2" label="02 · Mono Operator" width={420} height={280}>
+        <Logo2 />
+      </DCArtboard>
+      <DCArtboard id="logo-3" label="03 · Sprout 7" width={420} height={280}>
+        <Logo3 />
+      </DCArtboard>
+      <DCArtboard id="logo-4" label="04 · Pixel 7" width={420} height={280}>
+        <Logo4 />
+      </DCArtboard>
+      <DCArtboard id="logo-5" label="05 · Seed Packet" width={420} height={280}>
+        <Logo5 />
+      </DCArtboard>
+      <DCArtboard id="logo-6" label="06 · Hairline" width={420} height={280}>
+        <Logo6 />
+      </DCArtboard>
+      <DCArtboard id="logo-7" label="07 · Apothecary Stamp" width={420} height={280}>
+        <Logo7 />
+      </DCArtboard>
+      <DCArtboard id="logo-8" label="08 · Equation" width={420} height={280}>
+        <Logo8 />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="image-audit" title="Image asset audit"
+               subtitle="What art we need to generate to cover SPA + TRMNL X + TRMNL OG for 444 species.">
+      <DCArtboard id="image-audit-card" label="" width={920} height={620}>
+        <ImageAudit />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="dir-a-brand" title="A · Field Guide — brand"
+               subtitle="Refined herbarium aesthetic. Source Serif 4 + Inter Tight + IBM Plex Mono.">
+      <DCArtboard id="a-logo" label="A · Logo system" width={520} height={360}>
+        <A_Logo />
+      </DCArtboard>
+      <DCArtboard id="a-palette" label="A · Palette" width={620} height={360}>
+        <A_Palette />
+      </DCArtboard>
+      <DCArtboard id="a-type" label="A · Type" width={680} height={480}>
+        <A_Type />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="dir-a-spa" title="A · Field Guide — SPA"
+               subtitle="Mobile-first kitchen-sink check. Herbarium plant cards, calibration question, mobile home.">
+      <DCArtboard id="a-mobile" label="A · Mobile home" width={375} height={812}>
+        <A_MobileHome />
+      </DCArtboard>
+      <DCArtboard id="a-cards" label="A · Plant cards (herbarium labels)" width={780} height={460}>
+        <A_PlantCards />
+      </DCArtboard>
+      <DCArtboard id="a-calibration" label="A · Calibration question" width={620} height={360}>
+        <A_Calibration />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="dir-a-trmnl" title="A · Field Guide — TRMNL"
+               subtitle="To-spec renders: TRMNL X 1872×1404 / TRMNL OG 800×480. Pure ink, paper-white, no color.">
+      <DCArtboard id="a-trmnl-x-water" label="A · TRMNL X · watering day · 1872×1404" width={780} height={585}>
+        <Eink w={1872} h={1404} displayW={780}><A_TrmnlX_Watering /></Eink>
+      </DCArtboard>
+      <DCArtboard id="a-trmnl-x-rest" label="A · TRMNL X · rest day · 1872×1404" width={780} height={585}>
+        <Eink w={1872} h={1404} displayW={780}><A_TrmnlX_Rest /></Eink>
+      </DCArtboard>
+      <DCArtboard id="a-trmnl-og-water" label="A · TRMNL OG · watering · 800×480" width={520} height={312}>
+        <Eink w={800} h={480} displayW={520}><A_TrmnlOG_Watering /></Eink>
+      </DCArtboard>
+      <DCArtboard id="a-trmnl-og-rest" label="A · TRMNL OG · rest · 800×480" width={520} height={312}>
+        <Eink w={800} h={480} displayW={520}><A_TrmnlOG_Rest /></Eink>
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="dir-b-brand" title="B · Operator — brand"
+               subtitle="Instrumentation panel + Dutch-graphic energy. Fraunces + IBM Plex Sans + JetBrains Mono.">
+      <DCArtboard id="b-logo" label="B · Logo system" width={520} height={360}>
+        <B_Logo />
+      </DCArtboard>
+      <DCArtboard id="b-palette" label="B · Palette" width={620} height={360}>
+        <B_Palette />
+      </DCArtboard>
+      <DCArtboard id="b-type" label="B · Type" width={680} height={480}>
+        <B_Type />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="dir-b-spa" title="B · Operator — SPA"
+               subtitle="Plant operator dashboard. Drift sparklines, mono numerals, dark header.">
+      <DCArtboard id="b-mobile" label="B · Mobile home" width={375} height={812}>
+        <B_MobileHome />
+      </DCArtboard>
+      <DCArtboard id="b-cards" label="B · Operator panels" width={780} height={460}>
+        <B_PlantCards />
+      </DCArtboard>
+      <DCArtboard id="b-calibration" label="B · Calibration (operator)" width={620} height={360}>
+        <B_Calibration />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="dir-b-trmnl" title="B · Operator — TRMNL"
+               subtitle="Same specs, instrumentation aesthetic. Heavy header, dithered backdrops on rest screens.">
+      <DCArtboard id="b-trmnl-x-water" label="B · TRMNL X · watering · 1872×1404" width={780} height={585}>
+        <Eink w={1872} h={1404} displayW={780}><B_TrmnlX_Watering /></Eink>
+      </DCArtboard>
+      <DCArtboard id="b-trmnl-x-rest" label="B · TRMNL X · rest · 1872×1404" width={780} height={585}>
+        <Eink w={1872} h={1404} displayW={780}><B_TrmnlX_Rest /></Eink>
+      </DCArtboard>
+      <DCArtboard id="b-trmnl-og-water" label="B · TRMNL OG · watering · 800×480" width={520} height={312}>
+        <Eink w={800} h={480} displayW={520}><B_TrmnlOG_Watering /></Eink>
+      </DCArtboard>
+      <DCArtboard id="b-trmnl-og-rest" label="B · TRMNL OG · rest · 800×480" width={520} height={312}>
+        <Eink w={800} h={480} displayW={520}><B_TrmnlOG_Rest /></Eink>
+      </DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+})();
+
+</script>
+</body>
+</html>

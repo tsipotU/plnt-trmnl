@@ -1,0 +1,2051 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>p7l · mobile prototype v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --paper:#f5f1e8; --paper-2:#ebe5d4; --paper-3:#ddd3ba;
+  --card:#fbf8f0; --card-edge:#d6cdb6;
+  --ink:#131210; --ink-2:#4a463e; --ink-3:#8a8377; --ink-4:#b6ad97;
+  --rule:#131210; --rule-3:#b6ad97; --rule-4:#d6cdb6;
+  --accent:#5c7a3a; --accent-soft:#d6dcc4;
+  --warn:#a14b2c; --warn-soft:#e8d3c5;
+  --info:#4d6479; --info-soft:#c9d2dc;
+  --crit:#8a2c1c;
+  --font-display:"Inter Tight","Helvetica Neue",system-ui,sans-serif;
+  --font-serif:"Source Serif 4",Georgia,serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body { background:#e9e3d2; font-family:var(--font-display); color:var(--ink); -webkit-font-smoothing:antialiased; }
+.stage { min-height:100vh; width:100%; display:flex; align-items:center; justify-content:center; padding:24px; }
+
+.m-app { height:100%; width:100%; background:var(--paper); color:var(--ink); font-family:var(--font-display); font-size:14px; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+.m-screen { flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+.m-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:80px; }
+.m-scroll::-webkit-scrollbar { width:0; }
+
+.m-top { padding:54px 18px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid var(--ink); background:var(--paper); position:relative; z-index:5; }
+.m-top-brand { display:flex; align-items:flex-end; gap:10px; }
+.m-top-mark { font-family:var(--font-display); font-weight:600; font-size:18px; letter-spacing:-0.01em; }
+.m-top-tag { font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-3); padding-bottom:2px; }
+.m-top-meta { font-family:var(--font-mono); font-size:10px; letter-spacing:0.14em; color:var(--ink-2); display:flex; gap:8px; align-items:center; }
+.m-top-dot { width:6px; height:6px; background:var(--accent); border-radius:50%; }
+.m-burger { width:32px; height:32px; border:0.5px solid var(--ink); background:var(--paper); display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; }
+.m-burger svg { display:block; }
+
+.m-tabs { display:flex; border-bottom:0.5px solid var(--ink); background:var(--paper); }
+.m-tab { flex:1; background:transparent; border:none; padding:11px 4px 10px; font-family:var(--font-display); font-size:10.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-3); font-weight:500; border-right:0.5px solid var(--rule-4); border-bottom:2px solid transparent; cursor:pointer; }
+.m-tab:last-child { border-right:none; }
+.m-tab.active { color:var(--ink); border-bottom-color:var(--ink); }
+
+.m-page-head { padding:16px 18px 14px; border-bottom:0.5px solid var(--ink); }
+.m-page-head.solo { padding-top:64px; }
+.m-back-bar { padding:54px 18px 10px; display:flex; align-items:center; gap:12px; border-bottom:0.5px solid var(--ink); background:var(--paper); }
+.m-back-btn { background:transparent; border:0.5px solid var(--ink); padding:6px 10px; font-family:var(--font-display); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; color:var(--ink); }
+.m-eyebrow { font-family:var(--font-display); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-2); font-weight:500; }
+.m-h1 { font-family:var(--font-display); font-weight:500; font-size:30px; line-height:1.0; letter-spacing:-0.02em; margin:6px 0 4px; }
+.m-h1.s { font-size:24px; }
+.m-subtitle { font-family:var(--font-serif); font-style:italic; font-size:13px; color:var(--ink-2); }
+.m-h2 { font-family:var(--font-display); font-weight:500; font-size:14px; letter-spacing:0.02em; margin:0; }
+
+.m-section-head { display:flex; align-items:center; justify-content:space-between; padding:18px 18px 8px; }
+.m-section-head .label { font-family:var(--font-display); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-2); }
+
+.m-stat-row { display:grid; grid-template-columns:repeat(3, 1fr); border-top:0.5px solid var(--rule-3); border-bottom:0.5px solid var(--rule-3); }
+.m-stat { padding:12px 14px; border-right:0.5px solid var(--rule-3); }
+.m-stat:last-child { border-right:none; }
+.m-stat-num { font-family:var(--font-display); font-weight:500; font-size:24px; line-height:1; letter-spacing:-0.02em; }
+.m-stat-label { font-family:var(--font-display); font-size:9.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-2); margin-top:5px; }
+
+.m-row { display:grid; grid-template-columns:48px 1fr auto; gap:14px; align-items:center; padding:14px 18px; border-bottom:0.5px solid var(--rule-4); background:transparent; width:100%; text-align:left; border-left:none; border-right:none; border-top:none; cursor:pointer; font-family:inherit; font-size:inherit; color:inherit; }
+.m-row:active { background:var(--paper-2); }
+.m-row-pic { width:48px; height:48px; border:0.5px solid var(--ink); background:var(--card); color:var(--ink); display:flex; align-items:center; justify-content:center; }
+.m-row-title { font-family:var(--font-display); font-weight:500; font-size:15px; letter-spacing:-0.01em; }
+.m-row-species { font-family:var(--font-serif); font-style:italic; font-size:12px; color:var(--ink-2); margin-top:2px; }
+.m-row-meta { font-family:var(--font-mono); font-size:10px; letter-spacing:0.06em; color:var(--ink-2); text-transform:uppercase; }
+.m-row-state { font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; padding:3px 6px; border:0.5px solid var(--ink); white-space:nowrap; }
+.m-row-state.due-today { background:var(--ink); color:var(--paper); }
+.m-row-state.overdue { background:var(--warn); color:var(--paper); border-color:var(--warn); }
+.m-row-state.comfortable { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+.m-row-state.calibrating { background:var(--info-soft); border-color:var(--info); color:var(--info); }
+.m-row-state.dormant { background:var(--paper-2); }
+.m-row-state.just-added { background:var(--paper); }
+.m-row-state.vacation { background:var(--info); color:var(--paper); border-color:var(--info); }
+
+.m-search { padding:14px 18px; border-bottom:0.5px solid var(--rule-3); display:flex; gap:10px; align-items:center; }
+.m-search input { flex:1; background:var(--card); border:0.5px solid var(--ink); border-radius:0; padding:10px 12px; font-family:var(--font-display); font-size:14px; color:var(--ink); }
+.m-search input:focus { outline:1px solid var(--accent); outline-offset:-1px; }
+
+.m-filters { display:flex; gap:6px; padding:10px 18px 14px; overflow-x:auto; -webkit-overflow-scrolling:touch; border-bottom:0.5px solid var(--rule-3); }
+.m-filters::-webkit-scrollbar { display:none; }
+.m-chip { flex-shrink:0; font-family:var(--font-display); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; padding:5px 10px; border:0.5px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; }
+.m-chip.active { background:var(--ink); color:var(--paper); }
+
+.m-detail-hero { padding:18px; border-bottom:0.5px solid var(--ink); display:flex; gap:16px; align-items:flex-start; }
+.m-detail-pic { width:96px; height:96px; border:0.5px solid var(--ink); background:var(--card); flex-shrink:0; }
+.m-detail-name { font-family:var(--font-display); font-weight:500; font-size:24px; letter-spacing:-0.02em; line-height:1.0; }
+.m-detail-species { font-family:var(--font-serif); font-style:italic; font-size:14px; color:var(--ink-2); margin-top:4px; }
+.m-detail-data { display:grid; grid-template-columns:1fr 1fr; border-bottom:0.5px solid var(--ink); }
+.m-data-cell { padding:11px 14px; border-right:0.5px solid var(--rule-3); border-bottom:0.5px solid var(--rule-3); }
+.m-data-cell:nth-child(2n) { border-right:none; }
+.m-data-cell:nth-last-child(-n+2) { border-bottom:none; }
+.m-data-label { font-family:var(--font-display); font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-2); }
+.m-data-val { font-family:var(--font-mono); font-size:13px; color:var(--ink); margin-top:3px; letter-spacing:0.02em; }
+.m-data-val.editable { border-bottom:1px dashed var(--rule-3); cursor:text; padding-bottom:1px; }
+
+.m-actions { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:0.5px solid var(--ink); }
+.m-action { padding:14px; border:none; border-right:0.5px solid var(--ink); background:var(--ink); color:var(--paper); font-family:var(--font-display); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+.m-action:last-child { border-right:none; }
+.m-action.ghost { background:var(--paper); color:var(--ink); }
+.m-action.accent { background:var(--accent); border-color:var(--accent); color:var(--paper); }
+.m-action.done { background:var(--accent-soft); color:var(--accent); }
+.m-action:disabled { opacity:0.5; cursor:not-allowed; }
+
+.m-quick { display:grid; grid-template-columns:repeat(5, 1fr); border-bottom:0.5px solid var(--ink); }
+.m-quick-btn { padding:12px 4px; background:var(--paper); border:none; border-right:0.5px solid var(--rule-3); font-family:var(--font-display); font-size:8.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-2); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.m-quick-btn:last-child { border-right:none; }
+.m-quick-btn:active { background:var(--paper-2); }
+.m-quick-btn svg { display:block; }
+
+.m-log { padding:0 18px; }
+.m-log-entry { display:grid; grid-template-columns:74px 1fr; gap:12px; padding:11px 0; border-bottom:0.5px solid var(--rule-4); font-size:13px; }
+.m-log-date { font-family:var(--font-mono); font-size:11px; letter-spacing:0.04em; color:var(--ink-2); }
+.m-log-type { font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.1em; font-size:11px; }
+.m-log-note { font-family:var(--font-serif); font-style:italic; font-size:13px; color:var(--ink-2); margin-top:3px; }
+
+.m-cal-month { padding:14px 18px; border-bottom:0.5px solid var(--rule-3); display:flex; align-items:center; justify-content:space-between; }
+.m-cal-month .label { font-family:var(--font-display); font-weight:500; font-size:18px; letter-spacing:-0.01em; }
+.m-cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); border-bottom:0.5px solid var(--ink); }
+.m-cal-dow { padding:8px 0; text-align:center; font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em; color:var(--ink-3); border-bottom:0.5px solid var(--rule-3); border-right:0.5px solid var(--rule-3); }
+.m-cal-dow:last-child { border-right:none; }
+.m-cal-day { aspect-ratio:1; border-right:0.5px solid var(--rule-3); border-bottom:0.5px solid var(--rule-3); padding:5px 6px; font-family:var(--font-mono); font-size:11px; display:flex; flex-direction:column; align-items:flex-start; position:relative; background:transparent; cursor:pointer; }
+.m-cal-day:nth-child(7n) { border-right:none; }
+.m-cal-day.muted { color:var(--ink-3); background:var(--paper-2); }
+.m-cal-day.today { background:var(--ink); color:var(--paper); }
+.m-cal-day.has-events::after { content:''; position:absolute; bottom:5px; left:50%; transform:translateX(-50%); width:4px; height:4px; background:var(--accent); border-radius:50%; }
+.m-cal-day.today.has-events::after { background:var(--paper); }
+.m-cal-day.due-day { background:var(--warn-soft); }
+.m-cal-day.due-day.today { background:var(--ink); }
+.m-cal-day.selected { outline:1.5px solid var(--ink); outline-offset:-1px; }
+
+.m-form { padding:0; }
+.m-step { padding:16px 18px; border-bottom:0.5px solid var(--rule-3); }
+.m-step-num { font-family:var(--font-mono); font-size:10px; letter-spacing:0.14em; color:var(--ink-3); }
+.m-step-title { font-family:var(--font-display); font-weight:500; font-size:18px; letter-spacing:-0.01em; margin:4px 0 10px; }
+.m-field { margin-bottom:12px; }
+.m-field label { display:block; font-family:var(--font-display); font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-2); margin-bottom:5px; font-weight:500; }
+.m-field input, .m-field select, .m-field textarea { width:100%; background:var(--card); border:0.5px solid var(--ink); border-radius:0; padding:10px 12px; font-family:var(--font-display); font-size:14px; color:var(--ink); resize:vertical; }
+.m-field input:focus, .m-field select:focus, .m-field textarea:focus { outline:1px solid var(--accent); outline-offset:-1px; }
+.m-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+.m-cat-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; }
+.m-cat-cell { background:var(--card); border:0.5px solid var(--ink); padding:6px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+.m-cat-cell.active { background:var(--ink); color:var(--paper); }
+.m-cat-cell.active svg { color:var(--paper); }
+.m-cat-cell-label { font-family:var(--font-display); font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; }
+.m-cat-cell-pic { width:34px; height:34px; }
+
+.m-submit { padding:14px 18px; border-top:0.5px solid var(--ink); display:flex; gap:10px; background:var(--paper); }
+.m-btn { flex:1; background:var(--ink); color:var(--paper); border:0.5px solid var(--ink); padding:12px 14px; font-family:var(--font-display); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; font-weight:500; cursor:pointer; }
+.m-btn.ghost { background:transparent; color:var(--ink); }
+.m-btn.accent { background:var(--accent); border-color:var(--accent); color:var(--paper); }
+.m-btn.danger { background:var(--warn); border-color:var(--warn); color:var(--paper); }
+.m-btn.full { width:100%; }
+.m-btn.sm { padding:7px 10px; font-size:10px; flex:none; }
+
+.m-arch-card { padding:14px 18px; border-bottom:0.5px solid var(--rule-3); cursor:pointer; }
+.m-arch-name { font-family:var(--font-display); font-weight:500; font-size:16px; }
+.m-arch-species { font-family:var(--font-serif); font-style:italic; font-size:12px; color:var(--ink-2); }
+.m-arch-stamp { display:inline-block; padding:3px 8px; border:0.5px solid var(--ink); font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; }
+.m-arch-stamp.memorial { background:var(--ink); color:var(--paper); }
+.m-arch-note { font-family:var(--font-serif); font-style:italic; font-size:13px; color:var(--ink-2); margin-top:8px; }
+
+.m-onb { flex:1; display:flex; flex-direction:column; background:var(--paper); padding:90px 28px 40px; position:relative; overflow:hidden; }
+.m-onb-mark { font-family:var(--font-display); font-weight:600; font-size:22px; letter-spacing:-0.01em; }
+.m-onb-tag { font-family:var(--font-mono); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-3); margin-top:4px; }
+.m-onb-h { font-family:var(--font-display); font-weight:500; font-size:32px; line-height:1.0; letter-spacing:-0.02em; margin:50px 0 16px; }
+.m-onb-body { font-family:var(--font-serif); font-size:16px; line-height:1.5; color:var(--ink-2); text-wrap:pretty; }
+.m-onb-body em { color:var(--ink); font-style:italic; }
+.m-onb-spec { margin-top:24px; border-top:0.5px solid var(--ink); padding-top:14px; font-family:var(--font-mono); font-size:11px; color:var(--ink-2); letter-spacing:0.04em; line-height:1.7; }
+.m-onb-foot { margin-top:auto; display:flex; align-items:center; justify-content:space-between; padding-bottom:30px; }
+.m-onb-dots { display:flex; gap:6px; }
+.m-onb-dot { width:6px; height:6px; border:0.5px solid var(--ink); }
+.m-onb-dot.active { background:var(--ink); }
+.m-onb-next { background:var(--ink); color:var(--paper); border:0.5px solid var(--ink); padding:11px 22px; font-family:var(--font-display); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; font-weight:500; cursor:pointer; }
+.m-onb-skip { background:transparent; color:var(--ink-3); border:none; font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; padding:0; }
+
+.m-toast { position:absolute; left:50%; bottom:54px; transform:translateX(-50%); background:var(--ink); color:var(--paper); font-family:var(--font-display); font-size:12px; letter-spacing:0.06em; padding:10px 16px; z-index:80; animation:toastIn 0.3s ease; max-width:340px; text-align:center; display:flex; gap:14px; align-items:center; }
+.m-toast .undo { background:transparent; color:var(--paper); border:0.5px solid var(--paper); padding:4px 8px; font-family:var(--font-display); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; }
+@keyframes toastIn { from { opacity:0; transform:translate(-50%, 8px); } to { opacity:1; transform:translate(-50%, 0); } }
+
+.m-set-row { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:0.5px solid var(--rule-4); cursor:pointer; }
+.m-set-row:active { background:var(--paper-2); }
+.m-set-name { font-size:14px; }
+.m-set-val { font-family:var(--font-mono); font-size:11px; color:var(--ink-2); letter-spacing:0.04em; }
+.m-set-desc { font-size:12px; color:var(--ink-3); margin-top:3px; max-width:240px; line-height:1.4; }
+
+.m-fab { position:absolute; right:16px; bottom:34px; width:48px; height:48px; border-radius:50%; background:var(--ink); color:var(--paper); border:none; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:300; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.18); z-index:30; }
+
+.m-empty { padding:40px 24px; text-align:center; color:var(--ink-3); font-family:var(--font-serif); font-style:italic; font-size:13px; }
+
+.m-card { background:var(--card); border:0.5px solid var(--ink); padding:14px; margin:12px 18px; }
+.m-card.warn { border-color:var(--warn); background:var(--warn-soft); }
+.m-card.info { border-color:var(--info); background:var(--info-soft); }
+.m-card.accent { border-color:var(--accent); background:var(--accent-soft); }
+.m-card-h { font-family:var(--font-display); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-2); margin-bottom:8px; font-weight:500; }
+.m-card-body { font-family:var(--font-serif); font-size:13px; line-height:1.5; color:var(--ink); }
+
+.m-cond { padding:12px 18px; border-bottom:0.5px solid var(--rule-4); display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:start; }
+.m-cond-sev { padding:2px 6px; font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; }
+.m-cond-sev.info { background:var(--info-soft); color:var(--info); border:0.5px solid var(--info); }
+.m-cond-sev.warning { background:var(--warn-soft); color:var(--warn); border:0.5px solid var(--warn); }
+.m-cond-sev.critical { background:var(--crit); color:var(--paper); border:0.5px solid var(--crit); }
+.m-cond-name { font-family:var(--font-display); font-weight:500; font-size:14px; }
+.m-cond-sym { font-family:var(--font-serif); font-size:12px; color:var(--ink-2); margin-top:3px; line-height:1.45; font-style:italic; }
+.m-cond-rem { font-size:12px; color:var(--ink-2); margin-top:5px; line-height:1.4; }
+
+.m-drawer-bg { position:absolute; inset:0; background:rgba(0,0,0,0.35); z-index:90; }
+.m-drawer { position:absolute; top:0; right:0; bottom:0; width:78%; max-width:300px; background:var(--paper); border-left:0.5px solid var(--ink); z-index:91; padding:54px 0 0; display:flex; flex-direction:column; }
+.m-drawer-h { padding:14px 18px; font-family:var(--font-mono); font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-3); border-bottom:0.5px solid var(--ink); }
+.m-drawer-link { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border:none; background:transparent; width:100%; font-family:var(--font-display); font-size:14px; color:var(--ink); text-align:left; cursor:pointer; border-bottom:0.5px solid var(--rule-4); }
+.m-drawer-link:active { background:var(--paper-2); }
+.m-drawer-link.active { background:var(--paper-2); border-left:3px solid var(--ink); padding-left:15px; }
+.m-drawer-link .m-row-meta { font-size:9.5px; }
+.m-drawer-foot { margin-top:auto; padding:14px 18px; border-top:0.5px solid var(--ink); display:flex; flex-direction:column; gap:8px; }
+
+.m-modal-bg { position:absolute; inset:0; background:rgba(0,0,0,0.55); z-index:100; display:flex; align-items:flex-end; justify-content:center; }
+.m-modal { background:var(--paper); width:100%; max-height:88%; border-top:0.5px solid var(--ink); display:flex; flex-direction:column; animation:slideUp 0.25s ease; }
+@keyframes slideUp { from { transform:translateY(40px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+.m-modal-h { padding:48px 18px 14px; border-bottom:0.5px solid var(--ink); display:flex; align-items:center; justify-content:space-between; }
+.m-modal-h .title { font-family:var(--font-display); font-weight:500; font-size:18px; letter-spacing:-0.01em; }
+.m-modal-h .close { background:transparent; border:none; font-size:22px; color:var(--ink); cursor:pointer; padding:0 4px; line-height:1; }
+.m-modal-body { flex:1; overflow-y:auto; padding:14px 0; }
+.m-modal-foot { padding:12px 18px; border-top:0.5px solid var(--ink); display:flex; gap:10px; }
+
+.m-radio-row { padding:12px 18px; border-bottom:0.5px solid var(--rule-4); display:flex; gap:10px; align-items:start; cursor:pointer; }
+.m-radio-row:active { background:var(--paper-2); }
+.m-radio-circle { width:18px; height:18px; border:1px solid var(--ink); border-radius:50%; flex-shrink:0; margin-top:2px; position:relative; }
+.m-radio-row.active .m-radio-circle::after { content:''; position:absolute; inset:3px; background:var(--ink); border-radius:50%; }
+.m-radio-label { font-size:14px; }
+.m-radio-desc { font-family:var(--font-serif); font-size:12px; color:var(--ink-2); margin-top:3px; line-height:1.4; }
+
+.m-toggle { width:42px; height:24px; border:1px solid var(--ink); background:var(--paper); position:relative; cursor:pointer; flex-shrink:0; }
+.m-toggle::after { content:''; position:absolute; top:1px; left:1px; width:20px; height:20px; background:var(--ink); transition:transform 0.15s ease; }
+.m-toggle.on { background:var(--ink); }
+.m-toggle.on::after { background:var(--paper); transform:translateX(18px); }
+
+.m-photo-strip { display:flex; gap:8px; padding:10px 18px 16px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.m-photo-strip::-webkit-scrollbar { display:none; }
+.m-photo { flex-shrink:0; width:88px; height:110px; border:0.5px solid var(--ink); background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; position:relative; cursor:pointer; }
+.m-photo-add { background:var(--paper); border:0.5px dashed var(--ink); }
+.m-photo-date { position:absolute; bottom:4px; left:4px; font-family:var(--font-mono); font-size:8.5px; letter-spacing:0.05em; color:var(--ink-2); background:rgba(245, 241, 232, 0.85); padding:1px 4px; }
+.m-photo svg { color:var(--ink-3); }
+.m-photo.has-img { background:var(--paper-2); }
+
+.m-feedback-row { padding:14px 18px; border-bottom:0.5px solid var(--rule-4); cursor:pointer; }
+.m-feedback-meta { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+.m-feedback-type { font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; padding:2px 6px; border:0.5px solid var(--ink); }
+.m-feedback-type.bug { background:var(--warn-soft); color:var(--warn); border-color:var(--warn); }
+.m-feedback-type.idea { background:var(--info-soft); color:var(--info); border-color:var(--info); }
+.m-feedback-type.praise { background:var(--accent-soft); color:var(--accent); border-color:var(--accent); }
+.m-feedback-status { font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-3); }
+.m-feedback-title { font-family:var(--font-display); font-weight:500; font-size:14px; line-height:1.3; }
+.m-feedback-snippet { font-family:var(--font-serif); font-size:12px; color:var(--ink-2); margin-top:5px; line-height:1.45; }
+
+.m-roadmap-wave { padding:18px; border-bottom:0.5px solid var(--rule-3); }
+.m-roadmap-wave-h { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+.m-roadmap-wave-h .num { font-family:var(--font-mono); font-size:10px; letter-spacing:0.16em; color:var(--ink-3); }
+.m-roadmap-wave-h .name { font-family:var(--font-display); font-weight:500; font-size:18px; }
+.m-roadmap-wave-h .status { font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; padding:2px 6px; border:0.5px solid var(--ink); }
+.m-roadmap-wave-h .status.shipped { background:var(--ink); color:var(--paper); }
+.m-roadmap-wave-h .status.shipping { background:var(--accent-soft); color:var(--accent); border-color:var(--accent); }
+.m-roadmap-wave-h .status.next { background:var(--paper); }
+.m-roadmap-wave-h .status.future { background:var(--paper-2); color:var(--ink-3); }
+.m-roadmap-item { display:grid; grid-template-columns:auto 1fr; gap:10px; padding:6px 0; font-size:13px; line-height:1.4; }
+.m-roadmap-item .dot { width:14px; height:14px; border:1px solid var(--ink); margin-top:2px; flex-shrink:0; }
+.m-roadmap-item.done .dot { background:var(--ink); }
+.m-roadmap-item.done { color:var(--ink-3); text-decoration:line-through; }
+.m-roadmap-item.wip .dot { background:var(--accent-soft); border-color:var(--accent); }
+
+.m-trmnl-frame { width:280px; height:160px; background:#dad5c4; border:1px solid var(--ink); margin:18px auto; padding:14px; display:flex; flex-direction:column; gap:6px; font-family:var(--font-mono); }
+.m-trmnl-frame .h { font-family:var(--font-display); font-weight:600; font-size:13px; letter-spacing:0.04em; }
+.m-trmnl-frame .ln { font-size:10px; line-height:1.6; color:#333; letter-spacing:0.02em; }
+.m-trmnl-frame .ft { margin-top:auto; display:flex; justify-content:space-between; font-size:8.5px; letter-spacing:0.1em; color:#666; text-transform:uppercase; }
+
+.m-pair-code { font-family:var(--font-mono); font-size:24px; letter-spacing:0.32em; padding:14px 18px; text-align:center; border:0.5px solid var(--ink); margin:14px 18px; background:var(--card); }
+.m-prompt-block { font-family:var(--font-mono); font-size:11px; line-height:1.6; padding:14px; background:var(--card); border:0.5px solid var(--ink); margin:0 18px; max-height:140px; overflow-y:auto; white-space:pre-wrap; color:var(--ink-2); }
+.m-callout { background:var(--card); border-left:3px solid var(--ink); padding:12px 14px; margin:10px 18px; font-family:var(--font-serif); font-size:13px; line-height:1.5; color:var(--ink); }
+.m-callout.warn { border-left-color:var(--warn); background:var(--warn-soft); }
+.m-callout.accent { border-left-color:var(--accent); background:var(--accent-soft); }
+
+.m-banner { padding:10px 18px; background:var(--info-soft); border-bottom:0.5px solid var(--info); display:flex; gap:10px; align-items:center; font-family:var(--font-mono); font-size:11px; letter-spacing:0.04em; color:var(--info); }
+.m-banner.warn { background:var(--warn-soft); border-bottom-color:var(--warn); color:var(--warn); }
+.m-banner.accent { background:var(--accent-soft); border-bottom-color:var(--accent); color:var(--accent); }
+
+.m-sched-line { display:flex; gap:8px; padding:8px 18px; border-bottom:0.5px solid var(--rule-4); align-items:center; font-family:var(--font-mono); font-size:11px; }
+.m-sched-line .day { color:var(--ink-3); width:48px; text-transform:uppercase; letter-spacing:0.1em; }
+.m-sched-line .count { font-weight:600; color:var(--ink); }
+.m-sched-line .names { color:var(--ink-2); flex:1; }
+
+.m-link { color:var(--ink); text-decoration:underline; cursor:pointer; background:transparent; border:none; padding:0; font:inherit; }
+
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#f5f1e8"/><g stroke="#131210" stroke-width="2" fill="none" stroke-linecap="square"><rect x="40" y="20" width="20" height="40" rx="3"/><circle cx="50" cy="55" r="2" fill="#131210"/></g></svg></template>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useRef, useMemo } = React;
+
+/* =========== DATA =========== */
+const today = new Date('2026-05-04T09:30:00');
+const dayMs = 86400000;
+const fmtDate = (d) => d.toISOString().slice(0, 10);
+const offsetDate = (n) => fmtDate(new Date(today.getTime() + n * dayMs));
+const todayStr = fmtDate(today);
+
+const PLANTS = [
+  { id: 1, slug: 'mona', nickname: 'Mona', species: 'Monstera deliciosa', common: 'Swiss cheese plant', identifier: 'tall pot', category: 'foliage', location: 'Living room', state: 'due-today', last_watered: offsetDate(-6), next_water: offsetDate(0), interval: 7, base_interval: 9, pot_cm: 24, pot_cat: 'Large', light: 'bright_indirect', plant_size: 'large', origin_type: 'purchased', origin_source: 'Plantenwinkel Amsterdam', notes: 3, calibration: 4, converged: true, enrichment: 'complete', vacation: false, photos: [{ date: offsetDate(-90) }, { date: offsetDate(-30) }, { date: offsetDate(-2) }],
+    log: [
+      { type: 'watered', date: offsetDate(-6) }, { type: 'fertilized', date: offsetDate(-21), note: 'Spring feed — diluted Pokon' },
+      { type: 'watered', date: offsetDate(-13) }, { type: 'note', date: offsetDate(-15), note: 'New aerial root pushing out near the trellis.' },
+      { type: 'watered', date: offsetDate(-20) }, { type: 'photo', date: offsetDate(-30) },
+      { type: 'calibration', date: offsetDate(-26), note: 'Soil dry: cycle from 9d → 7d.' },
+    ],
+    conditions: [],
+    about: { common_en: ['Swiss cheese plant', 'Split-leaf philodendron'], common_nl: ['Gatenplant'], origin: 'Tropical rainforests of southern Mexico and Panama. Climbs trees by aerial roots; fenestrations evolved to let wind through.', toxicity: 'Mildly toxic to cats and dogs (calcium oxalates). Causes mouth irritation if chewed.', lore: 'Named "deliciosa" for its edible fruit, which only ripens after a year on the plant. Smells of pineapple and banana.' }
+  },
+  { id: 2, slug: 'frank', nickname: 'Big Frank', species: 'Ficus lyrata', common: 'Fiddle leaf fig', identifier: null, category: 'indoor_trees', location: 'Studio', state: 'overdue', last_watered: offsetDate(-9), next_water: offsetDate(-1), interval: 8, base_interval: 8, pot_cm: 30, pot_cat: 'Extra Large', light: 'bright_indirect', plant_size: 'large', origin_type: 'received', origin_source: 'mom', notes: 7, calibration: 6, converged: true, enrichment: 'complete', vacation: false, photos: [{ date: offsetDate(-120) }],
+    log: [{ type: 'watered', date: offsetDate(-9) }, { type: 'note', date: offsetDate(-12), note: 'Two new leaves unfurling at the top.' }, { type: 'watered', date: offsetDate(-17) }, { type: 'pruned', date: offsetDate(-40), note: 'Cut three brown bottom leaves.' }],
+    conditions: [{ id: 101, name: 'Brown leaf edges', symptoms: 'Tips of older leaves turning crispy brown.', remedy: 'Likely low humidity or overwatering. Mist + check drainage.', severity: 'warning' }],
+    about: { common_en: ['Fiddle leaf fig'], common_nl: ['Vioolbladplant'], origin: 'Lowland tropical rainforests of West Africa.', toxicity: 'Mildly toxic. Sap can irritate skin and stomach.', lore: 'Notoriously dramatic. Drops leaves at the slightest disturbance — moving, repotting, even rotating it.' }
+  },
+  { id: 3, slug: 'eddie', nickname: 'Cousin Eddie', species: 'Sansevieria trifasciata', common: 'Snake plant', identifier: null, category: 'succulents', location: 'Bedroom', state: 'comfortable', last_watered: offsetDate(-12), next_water: offsetDate(2), interval: 14, base_interval: 14, pot_cm: 18, pot_cat: 'Medium', light: 'low', plant_size: 'medium', origin_type: 'unknown', notes: 0, calibration: 8, converged: true, enrichment: 'complete', vacation: false, photos: [], log: [{ type: 'watered', date: offsetDate(-12) }], conditions: [],
+    about: { common_en: ['Snake plant', "Mother-in-law's tongue"], common_nl: ['Vrouwentong'], origin: 'West African dry rocky terrain.', toxicity: 'Mildly toxic to pets if chewed.', lore: 'NASA Clean Air Study favorite — produces oxygen at night, unusual for houseplants.' }
+  },
+  { id: 4, slug: 'drama', nickname: 'Drama Queen', species: 'Calathea orbifolia', common: 'Round-leaf calathea', identifier: 'kitchen tile', category: 'foliage', location: 'Bathroom', state: 'calibrating', last_watered: offsetDate(-3), next_water: offsetDate(2), interval: 5, base_interval: 6, pot_cm: 16, pot_cat: 'Small', light: 'medium', plant_size: 'medium', origin_type: 'purchased', origin_source: 'Intratuin', notes: 2, calibration: 2, converged: false, enrichment: 'complete', vacation: false, photos: [{ date: offsetDate(-15) }],
+    log: [{ type: 'watered', date: offsetDate(-3) }, { type: 'misted', date: offsetDate(-2) }],
+    conditions: [{ id: 102, name: 'Crispy leaf edges', symptoms: 'Edges browning and curling slightly.', remedy: 'Calatheas hate tap water. Try filtered or rainwater + raise humidity above 60%.', severity: 'info' }],
+    about: { common_en: ['Round-leaf calathea', 'Prayer plant relative'], common_nl: ['Pauwenplant'], origin: 'Bolivian rainforest understorey.', toxicity: 'Non-toxic to cats and dogs.', lore: 'Leaves fold up at night ("nyctinasty"). The clearest live demo of plants having a circadian rhythm.' }
+  },
+  { id: 5, slug: 'henry', nickname: 'Henry', species: 'Echinocactus grusonii', common: 'Golden barrel cactus', identifier: null, category: 'cacti', location: 'Window sill', state: 'dormant', last_watered: offsetDate(-18), next_water: offsetDate(10), interval: 28, base_interval: 21, pot_cm: 14, pot_cat: 'Small', light: 'direct', plant_size: 'small', origin_type: 'purchased', notes: 0, calibration: 5, converged: true, enrichment: 'complete', vacation: false, photos: [],
+    log: [{ type: 'watered', date: offsetDate(-18) }, { type: 'note', date: offsetDate(-30), note: 'Winter rest — backed off to 4w cycle.' }],
+    conditions: [],
+    about: { common_en: ['Golden barrel cactus', "Mother-in-law's cushion"], common_nl: ['Schoonmoederskussen'], origin: 'Central Mexican highlands. Endangered in the wild.', toxicity: 'Non-toxic. Spines aside.', lore: 'Can live a century. The "mother-in-law\'s cushion" name is darker than it sounds.' }
+  },
+  { id: 6, slug: 'iris', nickname: 'Iris', species: 'Phalaenopsis amabilis', common: 'Moth orchid', identifier: 'white bloom', category: 'orchids', location: 'Kitchen', state: 'comfortable', last_watered: offsetDate(-5), next_water: offsetDate(2), interval: 7, base_interval: 7, pot_cm: 12, pot_cat: 'Extra Small', light: 'bright_indirect', plant_size: 'small', origin_type: 'received', origin_source: 'birthday gift', notes: 1, calibration: 3, converged: false, enrichment: 'complete', vacation: false, photos: [{ date: offsetDate(-7) }],
+    log: [{ type: 'watered', date: offsetDate(-5) }, { type: 'note', date: offsetDate(-7), note: 'First spike forming!' }],
+    conditions: [],
+    about: { common_en: ['Moth orchid', 'Phal'], common_nl: ['Vlinderorchidee'], origin: 'Indonesian rainforests, epiphytic on tree bark.', toxicity: 'Non-toxic to cats and dogs.' }
+  },
+  { id: 7, slug: 'fernie', nickname: 'Fernie', species: 'Nephrolepis exaltata', common: 'Boston fern', identifier: null, category: 'ferns', location: 'Bathroom', state: 'just-added', last_watered: offsetDate(-2), next_water: offsetDate(1), interval: 3, base_interval: 3, pot_cm: 18, pot_cat: 'Medium', light: 'medium', plant_size: 'medium', origin_type: 'purchased', notes: 0, calibration: 1, converged: false, enrichment: 'complete', vacation: false, photos: [],
+    log: [{ type: 'added', date: offsetDate(-2) }, { type: 'watered', date: offsetDate(-2) }], conditions: [],
+    about: { common_en: ['Boston fern', 'Sword fern'], common_nl: ['Krulvaren'], origin: 'Tropical Americas, Africa, Polynesia.', toxicity: 'Non-toxic to pets.' }
+  },
+  { id: 8, slug: 'tilly', nickname: 'Tilly', species: 'Tillandsia xerographica', common: 'Air plant', identifier: null, category: 'air_plants', location: 'Living room', state: 'comfortable', last_watered: offsetDate(-4), next_water: offsetDate(3), interval: 7, base_interval: 7, pot_cm: 0, pot_cat: 'Other', light: 'bright_indirect', plant_size: 'small', origin_type: 'unknown', notes: 0, calibration: 4, converged: true, enrichment: 'complete', vacation: false, photos: [],
+    log: [{ type: 'misted', date: offsetDate(-4) }, { type: 'watered', date: offsetDate(-4) }], conditions: [],
+    about: { common_en: ['Air plant', 'Xerographic tillandsia'], common_nl: ['Luchtplant'], origin: 'Mexican and Central American cloud forests.', toxicity: 'Non-toxic.' }
+  },
+  { id: 9, slug: 'hoya', nickname: 'Sweetheart', species: 'Hoya kerrii', common: 'Sweetheart hoya', identifier: 'one leaf', category: 'succulents', location: 'Desk', state: 'just-added', last_watered: offsetDate(0), next_water: offsetDate(21), interval: 21, base_interval: 21, pot_cm: 8, pot_cat: 'Extra Small', light: 'bright_indirect', plant_size: 'small', origin_type: 'received', origin_source: "valentine's", notes: 0, calibration: 0, converged: false, enrichment: 'pending', vacation: false, photos: [],
+    log: [{ type: 'added', date: offsetDate(0) }, { type: 'watered', date: offsetDate(0) }], conditions: [],
+    about: null
+  },
+];
+
+const ARCHIVED = [
+  { id: 21, nickname: 'Penny', species: 'Pilea peperomioides', archived_at: offsetDate(-45), archive_reason: 'gave_away', archive_note: 'Gave to Sara when she moved.', joined: offsetDate(-300), days: 255, waterings: 24, offspring: 3, calibration_cycles: 6, location: 'Bookshelf' },
+  { id: 22, nickname: 'Mara', species: 'Maranta leuconeura', archived_at: offsetDate(-92), archive_reason: 'died', archive_note: 'Root rot after the December cold snap. RIP.', joined: offsetDate(-504), days: 412, waterings: 38, offspring: 0, calibration_cycles: 5, location: 'Bedroom' },
+  { id: 23, nickname: 'Vincent', species: 'Aloe vera', archived_at: offsetDate(-180), archive_reason: 'moved', archive_note: 'Left at the old apartment for the new tenants.', joined: offsetDate(-720), days: 540, waterings: 18, offspring: 4, calibration_cycles: 4, location: 'Window sill' },
+];
+
+const FEEDBACK = [
+  { id: 1, type: 'bug', title: 'Calibration modal flickers on submit', status: 'fixed', date: offsetDate(-3), body: 'Tapping "Soil felt damp" sometimes makes the modal vanish then reappear. Happens on iOS Safari maybe 1 in 5 times.', resolution: 'Fixed in v0.9.4 — debounced the state update.' },
+  { id: 2, type: 'idea', title: 'Group watering by room', status: 'planned', date: offsetDate(-12), body: 'When I do my Sunday round I water by location, not by interval. Could "Today" optionally group by room?', resolution: null },
+  { id: 3, type: 'praise', title: 'The "Dialed in" badge feels great', status: 'open', date: offsetDate(-8), body: 'Watching plants graduate from calibrating to dialed in is genuinely satisfying. Wave 4 idea: dialed-in count on home?', resolution: null },
+  { id: 4, type: 'idea', title: 'Photo comparison slider', status: 'next', date: offsetDate(-1), body: 'I have 6 months of Mona photos. Would love a side-by-side or before/after slider on the plant detail page.', resolution: null },
+];
+
+const ROADMAP = [
+  { wave: 1, name: 'Foundation', status: 'shipped', items: [
+    { name: 'Add / view / archive plants', done: true },
+    { name: 'Mark watered (with undo)', done: true },
+    { name: 'Per-plant care log', done: true },
+    { name: 'Hamburger nav + auth gate', done: true },
+  ]},
+  { wave: 2, name: 'Calibration', status: 'shipped', items: [
+    { name: 'Calibration modal (per-water question)', done: true },
+    { name: 'Interval convergence + "Dialed in"', done: true },
+    { name: 'Calendar strip with batch water', done: true },
+    { name: 'Memorial page on archive', done: true },
+  ]},
+  { wave: 3, name: 'Enrichment', status: 'shipping', items: [
+    { name: 'AI tool connection (Claude / GPT)', done: true },
+    { name: 'Auto-fill species → light, conditions, lore', done: true },
+    { name: 'Catalog-sourced "About this plant"', done: true },
+    { name: 'Image briefing for illustrations', done: false },
+    { name: 'Free-text condition picker', done: false },
+  ]},
+  { wave: 4, name: 'Long view', status: 'next', items: [
+    { name: 'Progress photos + before/after', done: false },
+    { name: 'Notifications (opt-in, low-frequency)', done: false },
+    { name: 'Plant scan: identify by photo', done: false },
+    { name: 'Vacation mode behaviour', done: false },
+    { name: 'Seasonal adjustment explainer', done: false },
+  ]},
+  { wave: 5, name: 'Together', status: 'future', items: [
+    { name: 'Multi-user / household instance', done: false },
+    { name: 'Plant lending (track who has what)', done: false },
+    { name: 'Shop integrations (light meter, soil)', done: false },
+  ]},
+];
+
+const GENERIC_CONDITIONS = [
+  { name: 'Yellowing leaves', severity: 'info', symptoms: 'Older or newer leaves turning yellow.', remedy: 'Check watering. Yellow + soggy soil = overwater. Yellow + bone dry = underwater.' },
+  { name: 'Brown leaf edges', severity: 'warning', symptoms: 'Tips and edges going crispy brown.', remedy: 'Usually low humidity or salt buildup. Mist, flush soil, or switch to filtered water.' },
+  { name: 'Spider mites', severity: 'critical', symptoms: 'Fine webbing under leaves, stippled yellow specks.', remedy: 'Isolate the plant. Shower foliage, then spray with neem oil weekly for 3 weeks.' },
+  { name: 'Fungus gnats', severity: 'warning', symptoms: 'Tiny black flies hovering around the soil.', remedy: 'Let top inch of soil dry fully. Sticky traps + BTI mosquito bits in water.' },
+  { name: 'Root rot', severity: 'critical', symptoms: 'Mushy stems, foul smell, leaves dropping at touch.', remedy: 'Unpot, cut black roots, repot in fresh airy mix. Skip watering for two weeks.' },
+  { name: 'Leaf drop', severity: 'info', symptoms: 'Plant shedding lots of leaves at once.', remedy: 'Often a stress response to a move, draft, or watering swing. Stabilise conditions and wait.' },
+  { name: 'Sunburn', severity: 'warning', symptoms: 'Bleached patches on leaves facing the window.', remedy: 'Move 1m back from direct sun, or filter through a sheer curtain.' },
+];
+
+const LIGHT_LABELS = { low: 'Low light', medium: 'Medium', bright_indirect: 'Bright indirect', direct: 'Direct sun' };
+const ORIGIN_LABELS = { purchased: 'Purchased', received: 'Gift', seedling: 'Seedling', unknown: 'Unknown' };
+const POT_CATS = ['Extra Small', 'Small', 'Medium', 'Large', 'Extra Large', 'Other'];
+
+/* =========== PICTOGRAMS =========== */
+const Pic = {
+  foliage: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="square"><path d="M30 50V30"/><path d="M30 30C18 24 11 18 14 10c10 0 18 6 16 20"/><path d="M30 30c12-6 19-12 16-20-10 0-18 6-16 20"/><path d="M22 46l3 8h10l3-8z"/><line x1="21" y1="46" x2="39" y2="46"/></g></svg>,
+  flowering: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="square"><circle cx="30" cy="20" r="3.5"/><ellipse cx="30" cy="14" rx="2.5" ry="3.5"/><ellipse cx="30" cy="26" rx="2.5" ry="3.5"/><ellipse cx="24" cy="20" rx="3.5" ry="2.5"/><ellipse cx="36" cy="20" rx="3.5" ry="2.5"/><line x1="30" y1="26" x2="30" y2="46"/><path d="M22 46l3 8h10l3-8z"/><line x1="21" y1="46" x2="39" y2="46"/></g></svg>,
+  succulents: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="square"><ellipse cx="30" cy="29" rx="2.5" ry="9"/><ellipse cx="30" cy="29" rx="2.5" ry="9" transform="rotate(45 30 29)"/><ellipse cx="30" cy="29" rx="2.5" ry="9" transform="rotate(-45 30 29)"/><ellipse cx="30" cy="29" rx="2.5" ry="9" transform="rotate(90 30 29)"/><path d="M22 46l3 8h10l3-8z"/><line x1="21" y1="46" x2="39" y2="46"/></g></svg>,
+  cacti: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="square"><rect x="26" y="18" width="8" height="28" rx="4"/><path d="M22 30c0-4 1-7 4-7"/><path d="M38 26c0-3-1-5-4-5"/><line x1="28" y1="22" x2="28" y2="24"/><line x1="32" y1="28" x2="32" y2="30"/><line x1="28" y1="34" x2="28" y2="36"/><path d="M22 46l3 8h10l3-8z"/><line x1="21" y1="46" x2="39" y2="46"/></g></svg>,
+  indoor_trees: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="square"><path d="M30 46V18"/><path d="M30 28l-8-6"/><path d="M30 30l8-4"/><path d="M30 36l-8-2"/><path d="M30 22l-6-8"/><path d="M30 22l6-6"/><circle cx="20" cy="14" r="3"/><circle cx="38" cy="14" r="3"/><circle cx="22" cy="22" r="2.5"/><circle cx="40" cy="26" r="3"/><path d="M22 46l3 8h10l3-8z"/><line x1="21" y1="46" x2="39" y2="46"/></g></svg>,
+  ferns: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="square"><path d="M30 46c-2-12-8-20-12-22"/><path d="M30 46c2-12 8-20 12-22"/><path d="M30 46c0-12-2-22-2-26"/><path d="M22 32l-3-2"/><path d="M22 36l-4-2"/><path d="M38 32l3-2"/><path d="M38 36l4-2"/><path d="M28 30l-2-3"/><path d="M28 36l-3-2"/><path d="M22 46l3 8h10l3-8z"/><line x1="21" y1="46" x2="39" y2="46"/></g></svg>,
+  air_plants: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="square"><path d="M30 40c-8-4-14-12-14-20"/><path d="M30 40c8-4 14-12 14-20"/><path d="M30 40v-22"/><path d="M30 38c-6-2-10-8-10-14"/><path d="M30 38c6-2 10-8 10-14"/><circle cx="30" cy="44" r="3"/></g></svg>,
+  orchids: () => <svg viewBox="0 0 60 60" width="100%"><g stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="square"><path d="M30 16c-4 0-7 3-7 7s3 7 7 7 7-3 7-7-3-7-7-7z"/><circle cx="30" cy="23" r="2"/><line x1="30" y1="30" x2="30" y2="46"/><path d="M28 36c-4 0-6 2-6 4"/><path d="M22 46l3 8h10l3-8z"/><line x1="21" y1="46" x2="39" y2="46"/></g></svg>,
+};
+const picFor = (cat) => Pic[cat] || Pic.foliage;
+
+/* =========== HELPERS =========== */
+const stateLabel = (p, today_) => {
+  const t = today_.getTime();
+  const nw = new Date(p.next_water + 'T00:00').getTime();
+  if (p.vacation) return 'Vacation';
+  if (p.state === 'overdue' || nw < t - dayMs/2) return 'Overdue';
+  if (nw < t + dayMs) return 'Due today';
+  if (p.state === 'calibrating') return 'Calibrating';
+  if (p.state === 'dormant') return 'Dormant';
+  if (p.state === 'just-added') return 'New';
+  const days = Math.round((nw - t) / dayMs);
+  return `In ${days}d`;
+};
+const stateClass = (p) => p.vacation ? 'vacation' : p.state;
+const eventIcon = (t) => ({ watered:'💧', misted:'💨', fertilized:'🌿', repotted:'🪴', pruned:'✂️', photo:'📷', note:'✎', calibration:'📊', added:'+', archived:'⊘', vacation_start:'✈️', vacation_end:'🏠' }[t] || '·');
+
+/* =========== ATOMS =========== */
+const Toggle = ({ on, onChange }) => (
+  <button className={'m-toggle' + (on ? ' on' : '')} onClick={() => onChange(!on)} role="switch" aria-checked={on}/>
+);
+
+const PlantRow = ({ p, onOpen }) => {
+  const Picto = picFor(p.category);
+  const cls = stateClass(p);
+  return (
+    <button className="m-row" onClick={() => onOpen(p.id)}>
+      <div className="m-row-pic"><Picto/></div>
+      <div>
+        <div className="m-row-title">{p.nickname}</div>
+        <div className="m-row-species">{p.species}</div>
+        <div className="m-row-meta">{p.location} · {p.interval}d cycle{p.converged ? ' · dialed in' : ''}</div>
+      </div>
+      <div className={'m-row-state ' + cls}>{stateLabel(p, today)}</div>
+    </button>
+  );
+};
+
+const Banner = ({ kind = '', children, action, onAction }) => (
+  <div className={'m-banner ' + kind}>
+    <span style={{flex:1}}>{children}</span>
+    {action && <button className="m-link" style={{color:'inherit'}} onClick={onAction}>{action}</button>}
+  </div>
+);
+
+/* =========== ONBOARDING =========== */
+const Onboarding = ({ slide, setSlide, onDone, onSkip }) => {
+  const slides = [
+    { h: 'A registry, not a babysitter.', body: <>p7l keeps a quiet record of every plant in your care. <em>Watering, repotting, the occasional funeral.</em> No streaks. No nags. No notifications you'll learn to dismiss.</>, spec: ['private instance · self-hosted', 'no telemetry · no account', 'one user · one shelf'] },
+    { h: 'It learns your watering rhythm.', body: <>Each time you water, p7l asks one calibration question. After a few cycles, it converges on an interval that fits <em>your</em> light, your pots, your apartment. Not the internet's average.</>, spec: ['median converge · 4–8 cycles', 'seasonal adjustment · automatic', 'vacation mode · pauses calibration'] },
+    { h: 'It remembers what you forget.', body: <>Notes, photos, repottings, that one time you almost killed a fern with cold tap water. Every plant has a quiet timeline you can scroll. <em>Your archive even keeps the ones that didn't make it.</em></>, spec: ['care log · per plant', 'photos · before / after', 'memorial · for the ones lost'] },
+    { h: "Let's add your first plant.", body: <>Just the nickname and species — p7l infers light, conditions, and care notes from a connected AI tool. <em>You can always edit later.</em></>, spec: ['next: add plant', 'or skip · explore the demo shelf'] },
+  ];
+  const s = slides[slide];
+  return (
+    <div className="m-onb">
+      <div className="m-onb-mark">p7l</div>
+      <div className="m-onb-tag">plant registry · v1·0·0</div>
+      <div className="m-onb-h">{s.h}</div>
+      <div className="m-onb-body">{s.body}</div>
+      <div className="m-onb-spec">{s.spec.map((l, i) => <div key={i}>· {l}</div>)}</div>
+      <div className="m-onb-foot">
+        <div className="m-onb-dots">{slides.map((_, i) => <div key={i} className={'m-onb-dot' + (i === slide ? ' active' : '')}/>)}</div>
+        <div style={{display:'flex', gap:14, alignItems:'center'}}>
+          {slide === 0 && <button className="m-onb-skip" onClick={onSkip}>Skip</button>}
+          <button className="m-onb-next" onClick={() => slide < slides.length - 1 ? setSlide(slide + 1) : onDone()}>{slide < slides.length - 1 ? 'Next →' : 'Enter →'}</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* =========== TODAY =========== */
+const Today = ({ plants, careLog, onOpen, onWaterAll, onAdd }) => {
+  const due = plants.filter(p => !p.vacation && (p.state === 'due-today' || p.state === 'overdue') && !careLog[p.id]?.watered_today);
+  const wateredToday = plants.filter(p => careLog[p.id]?.watered_today);
+  const upcoming = plants.filter(p => p.state === 'comfortable' || p.state === 'calibrating' || p.state === 'just-added').slice(0, 5);
+  const dateStr = todayStr.replaceAll('-', '·');
+  const onVacation = plants.filter(p => p.vacation);
+
+  // Upcoming 7 days schedule
+  const schedule = [];
+  for (let i = 0; i < 7; i++) {
+    const d = offsetDate(i);
+    const ps = plants.filter(p => !p.vacation && p.next_water === d && !careLog[p.id]?.watered_today);
+    schedule.push({ date: d, day: new Date(d + 'T00:00').toLocaleDateString('en-US', { weekday:'short' }), plants: ps });
+  }
+
+  return (
+    <div className="m-screen">
+      <div className="m-page-head">
+        <div className="m-eyebrow">{dateStr} · Mon</div>
+        <div className="m-h1">Today</div>
+        <div className="m-subtitle">{due.length === 0 ? 'Everyone is comfortable.' : `${due.length} thirsty, ${plants.length} total.`}</div>
+      </div>
+      <div className="m-scroll">
+        <div className="m-stat-row">
+          <div className="m-stat"><div className="m-stat-num">{due.length}</div><div className="m-stat-label">Due</div></div>
+          <div className="m-stat"><div className="m-stat-num">{plants.filter(p => p.converged).length}</div><div className="m-stat-label">Dialed in</div></div>
+          <div className="m-stat"><div className="m-stat-num">{wateredToday.length}</div><div className="m-stat-label">Watered</div></div>
+        </div>
+
+        {onVacation.length > 0 && <Banner kind="info">✈️ {onVacation.length} {onVacation.length === 1 ? 'plant' : 'plants'} on vacation</Banner>}
+
+        {due.length > 0 && (
+          <>
+            <div className="m-section-head">
+              <div className="label">Today's water</div>
+              {due.length >= 2 && <button className="m-chip" onClick={onWaterAll}>Water all ({due.length})</button>}
+            </div>
+            {due.map(p => <PlantRow key={p.id} p={p} onOpen={onOpen}/>)}
+          </>
+        )}
+
+        {wateredToday.length > 0 && (
+          <>
+            <div className="m-section-head"><div className="label">Watered today</div></div>
+            {wateredToday.map(p => <PlantRow key={p.id} p={p} onOpen={onOpen}/>)}
+          </>
+        )}
+
+        <div className="m-section-head"><div className="label">Next 7 days</div></div>
+        {schedule.map(s => (
+          <div key={s.date} className="m-sched-line">
+            <div className="day">{s.day}</div>
+            <div className="count" style={{width:24}}>{s.plants.length || '·'}</div>
+            <div className="names">{s.plants.length === 0 ? '—' : s.plants.map(p => p.nickname).join(', ')}</div>
+          </div>
+        ))}
+
+        <div className="m-section-head"><div className="label">Resting</div></div>
+        {upcoming.map(p => <PlantRow key={p.id} p={p} onOpen={onOpen}/>)}
+      </div>
+    </div>
+  );
+};
+
+/* =========== PLANTS LIST =========== */
+const PlantsList = ({ plants, onOpen, onAdd }) => {
+  const [q, setQ] = useState('');
+  const [stateFilter, setStateFilter] = useState('all');
+  const [catFilter, setCatFilter] = useState('all');
+
+  const ql = q.toLowerCase();
+  const filtered = plants.filter(p => {
+    if (stateFilter !== 'all') {
+      if (stateFilter === 'due' && !(p.state === 'due-today' || p.state === 'overdue')) return false;
+      if (stateFilter === 'calibrating' && p.state !== 'calibrating') return false;
+      if (stateFilter === 'dialed' && !p.converged) return false;
+      if (stateFilter === 'vacation' && !p.vacation) return false;
+    }
+    if (catFilter !== 'all' && p.category !== catFilter) return false;
+    if (ql && !(p.nickname.toLowerCase().includes(ql) || p.species.toLowerCase().includes(ql) || (p.location||'').toLowerCase().includes(ql))) return false;
+    return true;
+  });
+
+  return (
+    <div className="m-screen">
+      <div className="m-page-head">
+        <div className="m-eyebrow">Registry · {plants.length} active</div>
+        <div className="m-h1">Plants</div>
+      </div>
+      <div className="m-search"><input type="search" placeholder="Search by name, species, room…" value={q} onChange={e => setQ(e.target.value)}/></div>
+      <div className="m-filters">
+        {[['all','All'],['due','Due'],['calibrating','Calibrating'],['dialed','Dialed in'],['vacation','Vacation']].map(([k,l]) => (
+          <button key={k} className={'m-chip' + (stateFilter === k ? ' active' : '')} onClick={() => setStateFilter(k)}>{l}</button>
+        ))}
+      </div>
+      <div className="m-filters" style={{paddingTop:0}}>
+        {[['all','All cats'],['foliage','Foliage'],['succulents','Succulents'],['cacti','Cacti'],['indoor_trees','Trees'],['ferns','Ferns'],['orchids','Orchids'],['air_plants','Air']].map(([k,l]) => (
+          <button key={k} className={'m-chip' + (catFilter === k ? ' active' : '')} onClick={() => setCatFilter(k)}>{l}</button>
+        ))}
+      </div>
+      <div className="m-scroll">
+        {filtered.length === 0 && <div className="m-empty">No plants match.</div>}
+        {filtered.map(p => <PlantRow key={p.id} p={p} onOpen={onOpen}/>)}
+      </div>
+    </div>
+  );
+};
+
+/* =========== PLANT DETAIL =========== */
+const PlantDetail = ({ plant, careLog, onWater, onMist, onLog, onUpdate, onArchive, onBack, onOpenCalibration, onOpenConditions, onOpenPhotos, onOpenNote, onToggleVacation }) => {
+  const Picto = picFor(plant.category);
+  const watered = careLog[plant.id]?.watered_today;
+  const misted = careLog[plant.id]?.misted_today;
+  const log = (careLog[plant.id]?.extra || []).concat(plant.log).sort((a, b) => b.date.localeCompare(a.date));
+  const conditions = plant.conditions || [];
+  const lightMismatch = plant.light !== plant.idealLight && plant.idealLight;
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(plant.nickname);
+  const [editingSpecies, setEditingSpecies] = useState(false);
+  const [speciesDraft, setSpeciesDraft] = useState(plant.species);
+  const [aboutOpen, setAboutOpen] = useState(false);
+
+  return (
+    <div className="m-screen">
+      <div className="m-back-bar">
+        <button className="m-back-btn" onClick={onBack}>← Back</button>
+        <div className="m-eyebrow">{plant.location || 'No location'}</div>
+        <div style={{flex:1}}/>
+        <button className="m-back-btn" onClick={() => onArchive(plant.id)} title="Archive">⊘</button>
+      </div>
+      <div className="m-scroll">
+        {plant.enrichment === 'pending' && (
+          <Banner kind="warn" action="Connect AI →" onAction={() => {}}>✨ Enrichment pending — connect AI to fill care details</Banner>
+        )}
+        {plant.vacation && <Banner kind="info">✈️ On vacation — calibration & schedule paused</Banner>}
+        {lightMismatch && <Banner kind="warn">⚠ Light mismatch: catalog says {LIGHT_LABELS[plant.idealLight]}, this plant is set to {LIGHT_LABELS[plant.light]}</Banner>}
+
+        <div className="m-detail-hero">
+          <div className="m-detail-pic"><Picto/></div>
+          <div style={{flex:1, minWidth:0}}>
+            {editingName ? (
+              <input autoFocus value={nameDraft} onChange={e => setNameDraft(e.target.value)} onBlur={() => { onUpdate(plant.id, { nickname: nameDraft }); setEditingName(false); }} onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }} style={{width:'100%', fontSize:24, fontWeight:500, fontFamily:'var(--font-display)', border:'0.5px solid var(--ink)', padding:'2px 6px'}}/>
+            ) : (
+              <div className="m-detail-name" onClick={() => { setNameDraft(plant.nickname); setEditingName(true); }} style={{cursor:'text', borderBottom:'1px dashed var(--rule-3)', paddingBottom:1, display:'inline-block'}}>{plant.nickname}</div>
+            )}
+            {editingSpecies ? (
+              <input autoFocus value={speciesDraft} onChange={e => setSpeciesDraft(e.target.value)} onBlur={() => { onUpdate(plant.id, { species: speciesDraft }); setEditingSpecies(false); }} onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }} style={{marginTop:6, width:'100%', fontSize:14, fontStyle:'italic', fontFamily:'var(--font-serif)', border:'0.5px solid var(--ink)', padding:'2px 6px'}}/>
+            ) : (
+              <div className="m-detail-species" onClick={() => { setSpeciesDraft(plant.species); setEditingSpecies(true); }} style={{cursor:'text'}}>{plant.species}</div>
+            )}
+            {plant.identifier && <div className="m-row-meta" style={{marginTop:6}}>“{plant.identifier}”</div>}
+            <div className="m-row-meta" style={{marginTop:6}}>{plant.common}</div>
+            <div className={'m-row-state ' + stateClass(plant)} style={{marginTop:10, display:'inline-block'}}>{stateLabel(plant, today)}</div>
+          </div>
+        </div>
+
+        <div className="m-detail-data">
+          <div className="m-data-cell"><div className="m-data-label">Last watered</div><div className="m-data-val">{plant.last_watered}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Next water</div><div className="m-data-val">{plant.next_water}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Cycle</div><div className="m-data-val">{plant.interval}d {plant.base_interval && plant.base_interval !== plant.interval ? `(base ${plant.base_interval})` : ''}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Pot</div><div className="m-data-val">{plant.pot_cm}cm · {plant.pot_cat}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Light</div><div className="m-data-val" style={{fontSize:11}}>{LIGHT_LABELS[plant.light]}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Calibration</div><div className="m-data-val">{plant.calibration} cyc {plant.converged ? '· conv' : '· cal'}</div></div>
+        </div>
+
+        <div className="m-actions">
+          <button className={'m-action ' + (watered ? 'done' : '')} onClick={() => onWater(plant.id)} disabled={watered}>{watered ? '✓ Watered' : '💧 Water'}</button>
+          <button className={'m-action ghost ' + (misted ? 'done' : '')} onClick={() => onMist(plant.id)} disabled={misted}>{misted ? '✓ Misted' : '💨 Mist'}</button>
+        </div>
+
+        <div className="m-quick">
+          <button className="m-quick-btn" onClick={() => onLog(plant.id, 'fertilized')}><span style={{fontSize:18}}>🌿</span>Feed</button>
+          <button className="m-quick-btn" onClick={() => onLog(plant.id, 'pruned')}><span style={{fontSize:18}}>✂️</span>Prune</button>
+          <button className="m-quick-btn" onClick={() => onLog(plant.id, 'repotted')}><span style={{fontSize:18}}>🪴</span>Repot</button>
+          <button className="m-quick-btn" onClick={() => onOpenPhotos(plant.id)}><span style={{fontSize:18}}>📷</span>Photo</button>
+          <button className="m-quick-btn" onClick={() => onOpenNote(plant.id)}><span style={{fontSize:18}}>✎</span>Note</button>
+        </div>
+
+        {/* Conditions */}
+        <div className="m-section-head">
+          <div className="label">Conditions ({conditions.length})</div>
+          <button className="m-chip" onClick={() => onOpenConditions(plant.id)}>+ Add</button>
+        </div>
+        {conditions.length === 0 ? (
+          <div className="m-empty" style={{padding:'14px 18px', textAlign:'left'}}>No active conditions. Tap + to flag one.</div>
+        ) : conditions.map(c => (
+          <div key={c.id} className="m-cond">
+            <div className={'m-cond-sev ' + c.severity}>{c.severity}</div>
+            <div>
+              <div className="m-cond-name">{c.name}</div>
+              <div className="m-cond-sym">{c.symptoms}</div>
+              <div className="m-cond-rem">{c.remedy}</div>
+            </div>
+            <button className="m-btn ghost sm" onClick={() => onUpdate(plant.id, { conditions: conditions.filter(x => x.id !== c.id) })}>Resolve</button>
+          </div>
+        ))}
+
+        {/* Calibration */}
+        <div className="m-section-head"><div className="label">Calibration</div></div>
+        <div className="m-card">
+          <div className="m-card-h">Watering rhythm</div>
+          <div className="m-card-body">
+            {plant.converged
+              ? <>Dialed in at <strong>{plant.interval} days</strong> after {plant.calibration} cycles. p7l will keep this rhythm and adjust seasonally.</>
+              : plant.calibration === 0
+                ? <>Just started. Next time you water, p7l will ask one quick question to begin calibration.</>
+                : <>Calibrating: <strong>{plant.calibration} of ~5</strong> cycles done. Currently watering every {plant.interval} days. The next watering will refine this.</>
+            }
+          </div>
+          {!plant.converged && plant.calibration > 0 && (
+            <button className="m-btn ghost sm" style={{marginTop:10}} onClick={() => onOpenCalibration(plant.id)}>Preview calibration question</button>
+          )}
+        </div>
+
+        {/* Photos */}
+        <div className="m-section-head">
+          <div className="label">Progress photos ({plant.photos?.length || 0})</div>
+          <button className="m-chip" onClick={() => onOpenPhotos(plant.id)}>+ Add</button>
+        </div>
+        <div className="m-photo-strip">
+          <button className="m-photo m-photo-add" onClick={() => onOpenPhotos(plant.id)}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1"><path d="M10 4v12M4 10h12"/></svg>
+            <div className="m-row-meta" style={{fontSize:8.5}}>Add photo</div>
+          </button>
+          {(plant.photos || []).map((ph, i) => (
+            <div key={i} className="m-photo has-img">
+              <Picto/>
+              <div className="m-photo-date">{ph.date}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* About */}
+        {plant.about && (
+          <>
+            <div className="m-section-head" onClick={() => setAboutOpen(!aboutOpen)} style={{cursor:'pointer'}}>
+              <div className="label">About this plant</div>
+              <div className="m-row-meta">{aboutOpen ? '−' : '+'}</div>
+            </div>
+            {aboutOpen && (
+              <div className="m-card">
+                {plant.about.common_en?.length > 0 && <><div className="m-card-h">Also known as</div><div className="m-card-body" style={{marginBottom:10}}>{plant.about.common_en.join(', ')}</div></>}
+                {plant.about.common_nl?.length > 0 && <><div className="m-card-h">In Dutch</div><div className="m-card-body" style={{marginBottom:10}}>{plant.about.common_nl.join(', ')}</div></>}
+                {plant.about.origin && <><div className="m-card-h">Origin</div><div className="m-card-body" style={{marginBottom:10}}>{plant.about.origin}</div></>}
+                {plant.about.toxicity && <><div className="m-card-h">Toxicity</div><div className="m-card-body" style={{marginBottom:10}}>{plant.about.toxicity}</div></>}
+                {plant.about.lore && <><div className="m-card-h">Lore</div><div className="m-card-body">{plant.about.lore}</div></>}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Properties (editable) */}
+        <div className="m-section-head"><div className="label">Properties</div></div>
+        <div className="m-detail-data">
+          <div className="m-data-cell">
+            <div className="m-data-label">Location</div>
+            <select value={plant.location} onChange={e => onUpdate(plant.id, { location: e.target.value })} style={{background:'transparent', border:'none', font:'inherit', color:'inherit', padding:0, fontFamily:'var(--font-mono)', fontSize:13, marginTop:3, width:'100%'}}>
+              {['Living room','Studio','Bedroom','Bathroom','Kitchen','Window sill','Desk','Office','Hallway'].map(l => <option key={l}>{l}</option>)}
+            </select>
+          </div>
+          <div className="m-data-cell">
+            <div className="m-data-label">Light</div>
+            <select value={plant.light} onChange={e => onUpdate(plant.id, { light: e.target.value })} style={{background:'transparent', border:'none', font:'inherit', color:'inherit', padding:0, fontFamily:'var(--font-mono)', fontSize:11, marginTop:3, width:'100%'}}>
+              {Object.entries(LIGHT_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </div>
+          <div className="m-data-cell">
+            <div className="m-data-label">Pot category</div>
+            <select value={plant.pot_cat} onChange={e => onUpdate(plant.id, { pot_cat: e.target.value })} style={{background:'transparent', border:'none', font:'inherit', color:'inherit', padding:0, fontFamily:'var(--font-mono)', fontSize:13, marginTop:3, width:'100%'}}>
+              {POT_CATS.map(c => <option key={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="m-data-cell">
+            <div className="m-data-label">Origin</div>
+            <select value={plant.origin_type || 'unknown'} onChange={e => onUpdate(plant.id, { origin_type: e.target.value })} style={{background:'transparent', border:'none', font:'inherit', color:'inherit', padding:0, fontFamily:'var(--font-mono)', fontSize:13, marginTop:3, width:'100%'}}>
+              {Object.entries(ORIGIN_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="m-section-head"><div className="label">Vacation mode</div></div>
+        <div className="m-set-row" onClick={() => onToggleVacation(plant.id)}>
+          <div>
+            <div className="m-set-name">{plant.vacation ? 'On vacation' : 'Plant is at home'}</div>
+            <div className="m-set-desc">{plant.vacation ? 'Schedule frozen, calibration paused' : 'Tap to pause schedule + calibration while you\'re away'}</div>
+          </div>
+          <Toggle on={plant.vacation} onChange={() => onToggleVacation(plant.id)}/>
+        </div>
+
+        {/* Care log */}
+        <div className="m-section-head">
+          <div className="label">Care log</div>
+          <div className="m-row-meta">{log.length} entries</div>
+        </div>
+        <div className="m-log">
+          {log.slice(0, 20).map((e, i) => (
+            <div key={i} className="m-log-entry">
+              <div className="m-log-date">{e.date}</div>
+              <div>
+                <div className="m-log-type">{eventIcon(e.type)} {e.type}</div>
+                {e.note && <div className="m-log-note">{e.note}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Danger zone */}
+        <div className="m-section-head"><div className="label">Danger zone</div></div>
+        <div style={{padding:'0 18px 24px'}}>
+          <button className="m-btn danger full" onClick={() => onArchive(plant.id)}>Archive plant</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* =========== ADD PLANT =========== */
+const AddPlant = ({ onSubmit, onCancel, onScan }) => {
+  const [form, setForm] = useState({ nickname: '', species: '', category: 'foliage', location: 'Living room', pot_cm: 18, pot_cat: 'Medium', light: 'bright_indirect', plant_size: 'medium', origin_type: 'purchased', origin_source: '', identifier: '' });
+  const upd = (k, v) => setForm({ ...form, [k]: v });
+  const cats = [['foliage','Foliage'],['succulents','Succulents'],['cacti','Cacti'],['indoor_trees','Trees'],['ferns','Ferns'],['orchids','Orchids'],['air_plants','Air'],['flowering','Flowering']];
+
+  return (
+    <div className="m-screen">
+      <div className="m-back-bar">
+        <button className="m-back-btn" onClick={onCancel}>← Cancel</button>
+        <div className="m-eyebrow">New plant</div>
+      </div>
+      <div className="m-scroll" style={{paddingBottom:120}}>
+        <div className="m-step">
+          <div className="m-step-num">01 · Name</div>
+          <div className="m-step-title">What's it called?</div>
+          <div className="m-field"><label>Nickname</label><input value={form.nickname} onChange={e => upd('nickname', e.target.value)} placeholder="Mona, Big Frank, …" autoFocus/></div>
+          <div className="m-field"><label>Identifier (optional — if duplicates)</label><input value={form.identifier} onChange={e => upd('identifier', e.target.value)} placeholder="blue pot, kitchen tile…"/></div>
+        </div>
+
+        <div className="m-step">
+          <div className="m-step-num">02 · Species</div>
+          <div className="m-step-title">Species</div>
+          <div className="m-field"><label>Latin or common name</label><input value={form.species} onChange={e => upd('species', e.target.value)} placeholder="Monstera deliciosa, snake plant…"/></div>
+          <button className="m-btn ghost full" onClick={onScan}>📷 Or scan a photo to identify</button>
+          <div className="m-callout accent" style={{marginTop:14, marginLeft:0, marginRight:0}}>
+            ✨ When you save, p7l will auto-fill light, conditions, and care notes from a connected AI tool.
+          </div>
+        </div>
+
+        <div className="m-step">
+          <div className="m-step-num">03 · Category</div>
+          <div className="m-step-title">What kind of plant?</div>
+          <div className="m-cat-grid">
+            {cats.map(([k,l]) => {
+              const Picto = picFor(k);
+              return (
+                <div key={k} className={'m-cat-cell' + (form.category === k ? ' active' : '')} onClick={() => upd('category', k)}>
+                  <div className="m-cat-cell-pic"><Picto/></div>
+                  <div className="m-cat-cell-label">{l}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="m-step">
+          <div className="m-step-num">04 · Home</div>
+          <div className="m-step-title">Where does it live?</div>
+          <div className="m-grid-2">
+            <div className="m-field"><label>Room</label>
+              <select value={form.location} onChange={e => upd('location', e.target.value)}>
+                {['Living room','Studio','Bedroom','Bathroom','Kitchen','Window sill','Desk','Office','Hallway'].map(l => <option key={l}>{l}</option>)}
+              </select>
+            </div>
+            <div className="m-field"><label>Light</label>
+              <select value={form.light} onChange={e => upd('light', e.target.value)}>
+                {Object.entries(LIGHT_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+            <div className="m-field"><label>Pot</label>
+              <select value={form.pot_cat} onChange={e => upd('pot_cat', e.target.value)}>
+                {POT_CATS.map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="m-field"><label>Plant size</label>
+              <select value={form.plant_size} onChange={e => upd('plant_size', e.target.value)}>
+                <option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="m-step">
+          <div className="m-step-num">05 · Provenance</div>
+          <div className="m-step-title">Where's it from?</div>
+          <div className="m-field"><label>Origin</label>
+            <select value={form.origin_type} onChange={e => upd('origin_type', e.target.value)}>
+              {Object.entries(ORIGIN_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </div>
+          {(form.origin_type === 'purchased' || form.origin_type === 'received') && (
+            <div className="m-field"><label>{form.origin_type === 'purchased' ? 'Shop' : 'From whom'}</label><input value={form.origin_source} onChange={e => upd('origin_source', e.target.value)} placeholder={form.origin_type === 'purchased' ? 'Plantenwinkel…' : 'mom, friend…'}/></div>
+          )}
+        </div>
+      </div>
+      <div className="m-submit">
+        <button className="m-btn ghost" onClick={onCancel}>Cancel</button>
+        <button className="m-btn accent" onClick={() => onSubmit(form)}>Add plant</button>
+      </div>
+    </div>
+  );
+};
+
+/* =========== CALENDAR =========== */
+const Calendar = ({ plants, careLog, onOpen }) => {
+  const year = today.getFullYear();
+  const [m, setM] = useState(today.getMonth());
+  const monthName = new Date(year, m, 1).toLocaleString('en-US', { month: 'long' });
+  const first = new Date(year, m, 1);
+  const startDow = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, m + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < startDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7) cells.push(null);
+
+  const eventMap = {};
+  plants.forEach(p => {
+    if (p.vacation) return;
+    if (!eventMap[p.next_water]) eventMap[p.next_water] = [];
+    eventMap[p.next_water].push(p);
+  });
+
+  const [selected, setSelected] = useState(todayStr);
+  const dayEvents = eventMap[selected] || [];
+  const dateFmt = (d) => `${year}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+  return (
+    <div className="m-screen">
+      <div className="m-page-head">
+        <div className="m-eyebrow">Care schedule</div>
+        <div className="m-h1">Calendar</div>
+      </div>
+      <div className="m-cal-month">
+        <button className="m-link" onClick={() => setM(Math.max(0, m - 1))} style={{fontFamily:'var(--font-mono)', fontSize:11, letterSpacing:'0.1em', textTransform:'uppercase'}}>← prev</button>
+        <div className="label">{monthName} {year}</div>
+        <button className="m-link" onClick={() => setM(Math.min(11, m + 1))} style={{fontFamily:'var(--font-mono)', fontSize:11, letterSpacing:'0.1em', textTransform:'uppercase'}}>next →</button>
+      </div>
+      <div className="m-scroll">
+        <div className="m-cal-grid">
+          {['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => <div key={d} className="m-cal-dow">{d}</div>)}
+          {cells.map((d, i) => {
+            if (!d) return <div key={i} className="m-cal-day muted"/>;
+            const date = dateFmt(d);
+            const isToday = date === todayStr;
+            const events = eventMap[date] || [];
+            const overdue = events.some(p => p.next_water < todayStr);
+            const isSel = date === selected;
+            return (
+              <button key={i} className={'m-cal-day' + (isToday ? ' today' : '') + (events.length > 0 ? ' has-events' : '') + (overdue ? ' due-day' : '') + (isSel ? ' selected' : '')} onClick={() => setSelected(date)}>{d}</button>
+            );
+          })}
+        </div>
+        <div className="m-section-head">
+          <div className="label">{selected}</div>
+          <div className="m-row-meta">{dayEvents.length} {dayEvents.length === 1 ? 'event' : 'events'}</div>
+        </div>
+        {dayEvents.length === 0 ? <div className="m-empty">Nothing scheduled.</div> : dayEvents.map(p => <PlantRow key={p.id} p={p} onOpen={onOpen}/>)}
+      </div>
+    </div>
+  );
+};
+
+/* =========== ARCHIVE LIST =========== */
+const Archive = ({ archived, onOpen }) => {
+  const [filter, setFilter] = useState('all');
+  const visible = filter === 'all' ? archived : archived.filter(p => p.archive_reason === filter);
+  const counts = archived.reduce((a, p) => { a[p.archive_reason] = (a[p.archive_reason]||0)+1; return a; }, {});
+  const reasonLabel = { died: '🕊️ Died', gave_away: '🎁 Gave away', moved: '📦 Moved', other: '📝 Other' };
+
+  return (
+    <div className="m-screen">
+      <div className="m-page-head">
+        <div className="m-eyebrow">{archived.length} entries</div>
+        <div className="m-h1">Archive</div>
+        <div className="m-subtitle">Plants that left, were given away, or didn't make it.</div>
+      </div>
+      <div className="m-filters">
+        <button className={'m-chip' + (filter==='all' ? ' active' : '')} onClick={() => setFilter('all')}>All ({archived.length})</button>
+        {['died','gave_away','moved','other'].map(r => counts[r] ? (
+          <button key={r} className={'m-chip' + (filter===r ? ' active' : '')} onClick={() => setFilter(r)}>{reasonLabel[r]} ({counts[r]})</button>
+        ) : null)}
+      </div>
+      <div className="m-scroll">
+        {visible.map(p => (
+          <div key={p.id} className="m-arch-card" onClick={() => onOpen(p.id)}>
+            <div style={{display:'flex', alignItems:'flex-start', gap:12}}>
+              <div style={{fontSize:24, lineHeight:1}}>{reasonLabel[p.archive_reason]?.split(' ')[0]}</div>
+              <div style={{flex:1}}>
+                <div className="m-arch-name">{p.nickname}</div>
+                <div className="m-arch-species">{p.species}</div>
+                <div style={{marginTop:8, display:'flex', gap:6, flexWrap:'wrap'}}>
+                  <span className={'m-arch-stamp' + (p.archive_reason === 'died' ? ' memorial' : '')}>{reasonLabel[p.archive_reason]?.replace(/^[^\s]+\s/, '')}</span>
+                  <span className="m-arch-stamp">{p.archived_at}</span>
+                  <span className="m-arch-stamp">{p.days}d alive</span>
+                </div>
+                {p.archive_note && <div className="m-arch-note">"{p.archive_note}"</div>}
+              </div>
+              <div style={{color:'var(--ink-3)', fontSize:18}}>›</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* =========== MEMORIAL =========== */
+const Memorial = ({ plant, onBack, onRestore }) => {
+  const reasonLabel = { died: '🕊️ It died', gave_away: '🎁 Given away', moved: '📦 Moved away', other: '📝 Other' };
+  return (
+    <div className="m-screen">
+      <div className="m-back-bar">
+        <button className="m-back-btn" onClick={onBack}>← Archive</button>
+        <div className="m-eyebrow">{reasonLabel[plant.archive_reason]}</div>
+      </div>
+      <div className="m-scroll">
+        <div style={{textAlign:'center', padding:'30px 18px 20px'}}>
+          <div style={{width:120, height:120, border:'0.5px solid var(--ink)', background:'var(--card)', margin:'0 auto 16px', filter:'grayscale(0.6)', opacity:0.7, display:'flex', alignItems:'center', justifyContent:'center'}}>
+            <div style={{width:80, height:80}}><Pic.foliage/></div>
+          </div>
+          <div className="m-eyebrow">In memoriam</div>
+          <div className="m-h1 s" style={{margin:'8px 0 6px'}}>{plant.nickname}</div>
+          <div className="m-subtitle">lived in your home for {plant.days} days</div>
+        </div>
+        <div className="m-detail-data">
+          <div className="m-data-cell"><div className="m-data-label">Joined</div><div className="m-data-val">{plant.joined}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Archived</div><div className="m-data-val">{plant.archived_at}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Waterings</div><div className="m-data-val">{plant.waterings}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Offspring</div><div className="m-data-val">{plant.offspring}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Calibration cyc</div><div className="m-data-val">{plant.calibration_cycles}</div></div>
+          <div className="m-data-cell"><div className="m-data-label">Lived in</div><div className="m-data-val" style={{fontSize:11}}>{plant.location}</div></div>
+        </div>
+        {plant.archive_note && (
+          <div className="m-card">
+            <div className="m-card-h">Note</div>
+            <div className="m-card-body" style={{fontStyle:'italic'}}>"{plant.archive_note}"</div>
+          </div>
+        )}
+        <div className="m-section-head"><div className="label">Restore</div></div>
+        <div style={{padding:'0 18px 24px'}}>
+          <button className="m-btn ghost full" onClick={() => onRestore(plant.id)}>Restore plant to active</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* =========== FEEDBACK LIST + DETAIL =========== */
+const FeedbackList = ({ items, onOpen, onNew }) => {
+  const [filter, setFilter] = useState('all');
+  const visible = filter === 'all' ? items : items.filter(f => f.type === filter);
+  return (
+    <div className="m-screen">
+      <div className="m-page-head">
+        <div className="m-eyebrow">Bugs · ideas · praise</div>
+        <div className="m-h1">Feedback</div>
+        <div className="m-subtitle">All feedback is public to all instance users.</div>
+      </div>
+      <div className="m-filters">
+        {[['all','All'],['bug','Bugs'],['idea','Ideas'],['praise','Praise']].map(([k,l]) => (
+          <button key={k} className={'m-chip' + (filter === k ? ' active' : '')} onClick={() => setFilter(k)}>{l}</button>
+        ))}
+      </div>
+      <div className="m-scroll">
+        {visible.map(f => (
+          <div key={f.id} className="m-feedback-row" onClick={() => onOpen(f.id)}>
+            <div className="m-feedback-meta">
+              <span className={'m-feedback-type ' + f.type}>{f.type}</span>
+              <span className="m-feedback-status">{f.status}</span>
+              <span className="m-feedback-status">· {f.date}</span>
+            </div>
+            <div className="m-feedback-title">{f.title}</div>
+            <div className="m-feedback-snippet">{f.body.slice(0, 120)}{f.body.length > 120 ? '…' : ''}</div>
+          </div>
+        ))}
+      </div>
+      <div className="m-submit">
+        <button className="m-btn full accent" onClick={onNew}>+ New feedback</button>
+      </div>
+    </div>
+  );
+};
+
+const FeedbackDetail = ({ item, onBack }) => (
+  <div className="m-screen">
+    <div className="m-back-bar">
+      <button className="m-back-btn" onClick={onBack}>← Feedback</button>
+      <div className="m-eyebrow">{item.status}</div>
+    </div>
+    <div className="m-scroll">
+      <div className="m-page-head">
+        <div className="m-feedback-meta">
+          <span className={'m-feedback-type ' + item.type}>{item.type}</span>
+          <span className="m-feedback-status">· {item.date}</span>
+        </div>
+        <div className="m-h1 s" style={{marginTop:6}}>{item.title}</div>
+      </div>
+      <div className="m-card">
+        <div className="m-card-h">Report</div>
+        <div className="m-card-body">{item.body}</div>
+      </div>
+      {item.resolution && (
+        <div className="m-card accent">
+          <div className="m-card-h">Resolution</div>
+          <div className="m-card-body">{item.resolution}</div>
+        </div>
+      )}
+      <div className="m-section-head"><div className="label">Replies (0)</div></div>
+      <div className="m-empty">No replies yet.</div>
+    </div>
+  </div>
+);
+
+const FeedbackNew = ({ onSubmit, onCancel }) => {
+  const [type, setType] = useState('bug');
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  return (
+    <div className="m-screen">
+      <div className="m-back-bar">
+        <button className="m-back-btn" onClick={onCancel}>← Cancel</button>
+        <div className="m-eyebrow">New feedback</div>
+      </div>
+      <div className="m-scroll">
+        <div className="m-step">
+          <div className="m-step-num">01 · Type</div>
+          <div className="m-step-title">What kind of feedback?</div>
+          <div style={{display:'flex', gap:8}}>
+            {[['bug','🐛 Bug'],['idea','💡 Idea'],['praise','✨ Praise']].map(([k,l]) => (
+              <button key={k} className={'m-chip' + (type === k ? ' active' : '')} onClick={() => setType(k)} style={{flex:1, padding:'10px'}}>{l}</button>
+            ))}
+          </div>
+        </div>
+        <div className="m-step">
+          <div className="m-step-num">02 · Detail</div>
+          <div className="m-field"><label>Title</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="One-line summary" autoFocus/></div>
+          <div className="m-field"><label>What happened?</label><textarea value={body} onChange={e => setBody(e.target.value)} rows={6} placeholder={type === 'bug' ? "What did you expect, what actually happened, steps to repro" : type === 'idea' ? "Describe the idea — what problem does it solve?" : "What's working well?"}/></div>
+        </div>
+      </div>
+      <div className="m-submit">
+        <button className="m-btn ghost" onClick={onCancel}>Cancel</button>
+        <button className="m-btn accent" onClick={() => onSubmit({ type, title, body })}>Submit</button>
+      </div>
+    </div>
+  );
+};
+
+/* =========== SETTINGS =========== */
+const Settings = ({ onShowOnboarding, onOpen, settings, setSettings }) => (
+  <div className="m-screen">
+    <div className="m-page-head">
+      <div className="m-eyebrow">Instance · v1·0·0</div>
+      <div className="m-h1">Settings</div>
+    </div>
+    <div className="m-scroll">
+      <div className="m-section-head"><div className="label">AI tool connection</div></div>
+      <div className="m-set-row" onClick={() => onOpen('ai-prompt')}>
+        <div>
+          <div className="m-set-name">{settings.aiConnected ? '✨ AI tool connected' : 'Connect AI tool'}</div>
+          <div className="m-set-desc">{settings.aiConnected ? 'Last seen 2h ago · 1 plant pending' : 'Copy a setup prompt for Claude, ChatGPT, Cursor…'}</div>
+        </div>
+        <div className="m-row-meta">›</div>
+      </div>
+      <div className="m-set-row">
+        <div>
+          <div className="m-set-name">Auto-enrich on add</div>
+          <div className="m-set-desc">Auto-fill light, conditions, lore from species name</div>
+        </div>
+        <Toggle on={settings.autoEnrich} onChange={v => setSettings({...settings, autoEnrich: v})}/>
+      </div>
+
+      <div className="m-section-head"><div className="label">TRMNL device</div></div>
+      <div className="m-set-row" onClick={() => onOpen('trmnl')}>
+        <div>
+          <div className="m-set-name">{settings.trmnlPaired ? `Paired · ${settings.trmnlSerial}` : 'Pair TRMNL'}</div>
+          <div className="m-set-desc">{settings.trmnlPaired ? 'Showing today\'s waterings' : 'Pair an e-ink device to display today on your shelf'}</div>
+        </div>
+        <div className="m-row-meta">›</div>
+      </div>
+      {settings.trmnlPaired && (
+        <div className="m-set-row" onClick={() => onOpen('trmnl-preview')}>
+          <div><div className="m-set-name">Preview screen</div><div className="m-set-desc">See what's currently rendered</div></div>
+          <div className="m-row-meta">›</div>
+        </div>
+      )}
+
+      <div className="m-section-head"><div className="label">Schedule</div></div>
+      <div className="m-set-row">
+        <div>
+          <div className="m-set-name">Seasonal adjustment</div>
+          <div className="m-set-desc">Stretch intervals in winter, tighten in summer</div>
+        </div>
+        <Toggle on={settings.seasonal} onChange={v => setSettings({...settings, seasonal: v})}/>
+      </div>
+      <div className="m-set-row">
+        <div>
+          <div className="m-set-name">Notifications</div>
+          <div className="m-set-desc">Daily 9 AM digest if anything's due (off by default)</div>
+        </div>
+        <Toggle on={settings.notifications} onChange={v => setSettings({...settings, notifications: v})}/>
+      </div>
+
+      <div className="m-section-head"><div className="label">Display</div></div>
+      <div className="m-set-row">
+        <div>
+          <div className="m-set-name">Show developer info</div>
+          <div className="m-set-desc">Reveal raw intervals, timestamps, enrichment source</div>
+        </div>
+        <Toggle on={settings.devInfo} onChange={v => setSettings({...settings, devInfo: v})}/>
+      </div>
+      <div className="m-set-row">
+        <div>
+          <div className="m-set-name">Compact list</div>
+          <div className="m-set-desc">Denser plant rows on small screens</div>
+        </div>
+        <Toggle on={settings.compact} onChange={v => setSettings({...settings, compact: v})}/>
+      </div>
+
+      <div className="m-section-head"><div className="label">Account</div></div>
+      <div className="m-set-row" onClick={() => onShowOnboarding()}>
+        <div><div className="m-set-name">Replay onboarding</div></div>
+        <div className="m-row-meta">›</div>
+      </div>
+      <div className="m-set-row" onClick={() => onOpen('about')}>
+        <div><div className="m-set-name">About p7l</div><div className="m-set-desc">Mission, version, credits</div></div>
+        <div className="m-row-meta">›</div>
+      </div>
+      <div className="m-set-row" onClick={() => onOpen('roadmap')}>
+        <div><div className="m-set-name">Roadmap</div><div className="m-set-desc">5 waves · what's shipped, shipping, next</div></div>
+        <div className="m-row-meta">›</div>
+      </div>
+      <div className="m-set-row">
+        <div><div className="m-set-name">Log out</div><div className="m-set-desc">Clear local session</div></div>
+        <div className="m-row-meta">›</div>
+      </div>
+    </div>
+  </div>
+);
+
+/* =========== AI SETUP PROMPT =========== */
+const AiPromptScreen = ({ onBack, onCopy }) => {
+  const promptText = `You are p7l's enrichment helper for ${window.location.origin}.
+
+Every 2 hours, fetch:
+  GET ${window.location.origin}/api/plants?enrichment=pending
+  GET ${window.location.origin}/api/conditions?care_update=pending
+
+For each plant, look up:
+  - Latin name + 3-5 common names (en, nl)
+  - Ideal light: low | medium | bright_indirect | direct
+  - Origin habitat (1-2 sentences)
+  - Toxicity to pets
+  - Lore (1-2 evocative sentences)
+  - 5-8 most common conditions
+
+POST results back to:
+  POST ${window.location.origin}/api/plants/{id}/enrich
+  Body: { common_names, light, origin, toxicity, lore, conditions }
+
+Be skeptical of internet averages. Prefer specialist sources.`;
+  return (
+    <div className="m-screen">
+      <div className="m-back-bar">
+        <button className="m-back-btn" onClick={onBack}>← Settings</button>
+        <div className="m-eyebrow">AI tool</div>
+      </div>
+      <div className="m-scroll">
+        <div className="m-page-head">
+          <div className="m-eyebrow">Connect any AI</div>
+          <div className="m-h1 s">AI setup prompt</div>
+          <div className="m-subtitle">Copy this prompt into a scheduled task in Claude, ChatGPT, Cursor, n8n, etc. p7l doesn't ship its own AI — bring your own.</div>
+        </div>
+        <div className="m-section-head"><div className="label">Status</div></div>
+        <div className="m-set-row">
+          <div><div className="m-set-name">✨ Connected</div><div className="m-set-desc">Last enrichment 2h ago</div></div>
+          <div className="m-row-meta">●</div>
+        </div>
+        <div className="m-set-row">
+          <div><div className="m-set-name">Pending</div><div className="m-set-desc">1 plant awaiting enrichment (Hoya kerrii)</div></div>
+        </div>
+        <div className="m-section-head"><div className="label">Setup prompt</div></div>
+        <div className="m-prompt-block">{promptText}</div>
+        <div style={{padding:'14px 18px'}}>
+          <button className="m-btn full accent" onClick={() => onCopy(promptText)}>Copy prompt</button>
+        </div>
+        <div className="m-callout">
+          <strong>Why this design?</strong> p7l never sees your AI key. You paste the prompt into your tool of choice and it pings p7l on a schedule. Privacy and flexibility, both.
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* =========== TRMNL =========== */
+const TrmnlSetup = ({ onBack, paired, onPair }) => (
+  <div className="m-screen">
+    <div className="m-back-bar">
+      <button className="m-back-btn" onClick={onBack}>← Settings</button>
+      <div className="m-eyebrow">TRMNL</div>
+    </div>
+    <div className="m-scroll">
+      <div className="m-page-head">
+        <div className="m-eyebrow">e-ink display</div>
+        <div className="m-h1 s">{paired ? 'TRMNL paired' : 'Pair your TRMNL'}</div>
+        <div className="m-subtitle">A small e-ink frame on your shelf showing today's plants. No backlight, no notifications. Updates 4× daily.</div>
+      </div>
+      {paired ? (
+        <>
+          <div className="m-set-row">
+            <div><div className="m-set-name">Serial</div></div>
+            <div className="m-set-val">TRMNL-7C2A-4F19</div>
+          </div>
+          <div className="m-set-row">
+            <div><div className="m-set-name">Last sync</div></div>
+            <div className="m-set-val">2h ago</div>
+          </div>
+          <div className="m-set-row">
+            <div><div className="m-set-name">Battery</div></div>
+            <div className="m-set-val">76%</div>
+          </div>
+          <div className="m-section-head"><div className="label">Live preview</div></div>
+          <div className="m-trmnl-frame">
+            <div className="h">p7l · 2026-05-04</div>
+            <div className="ln">DUE TODAY (2)</div>
+            <div className="ln">· Mona — Monstera deliciosa</div>
+            <div className="ln">· Big Frank — Ficus lyrata · -1d</div>
+            <div className="ln">DIALED IN: 5 / 9 plants</div>
+            <div className="ft"><span>76%</span><span>sync 11:30</span></div>
+          </div>
+          <div style={{padding:'0 18px 18px'}}>
+            <button className="m-btn ghost full">Unpair device</button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="m-section-head"><div className="label">Pairing code</div></div>
+          <div className="m-pair-code">A4 7K Q9</div>
+          <div className="m-callout">Enter this code on your TRMNL device. The pairing window stays open for 10 minutes.</div>
+          <div style={{padding:'0 18px 18px'}}>
+            <button className="m-btn full accent" onClick={onPair}>I've entered the code</button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+);
+
+const TrmnlPreview = ({ onBack }) => (
+  <div className="m-screen">
+    <div className="m-back-bar"><button className="m-back-btn" onClick={onBack}>← Settings</button><div className="m-eyebrow">TRMNL preview</div></div>
+    <div className="m-scroll">
+      <div className="m-page-head"><div className="m-h1 s">Live preview</div><div className="m-subtitle">What's on your shelf right now.</div></div>
+      <div className="m-trmnl-frame" style={{width:320, height:200}}>
+        <div className="h">p7l · 2026-05-04</div>
+        <div className="ln">DUE TODAY (2)</div>
+        <div className="ln">· Mona — Monstera deliciosa</div>
+        <div className="ln">· Big Frank — Ficus lyrata · -1d</div>
+        <div className="ln" style={{marginTop:4}}>NEXT 3 DAYS</div>
+        <div className="ln">Wed: Eddie, Iris</div>
+        <div className="ln">Thu: Drama Queen, Tilly</div>
+        <div className="ft"><span>76%</span><span>sync 11:30</span></div>
+      </div>
+      <div className="m-section-head"><div className="label">Refresh schedule</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">07:00</div></div><div className="m-set-val">morning</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">11:30</div></div><div className="m-set-val">midday · just now</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">17:00</div></div><div className="m-set-val">evening</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">22:00</div></div><div className="m-set-val">night</div></div>
+    </div>
+  </div>
+);
+
+/* =========== ABOUT =========== */
+const About = ({ onBack }) => (
+  <div className="m-screen">
+    <div className="m-back-bar"><button className="m-back-btn" onClick={onBack}>← Settings</button><div className="m-eyebrow">About</div></div>
+    <div className="m-scroll">
+      <div className="m-page-head">
+        <div className="m-eyebrow">v1·0·0 · self-hosted</div>
+        <div className="m-h1 s">About p7l</div>
+      </div>
+      <div className="m-card">
+        <div className="m-card-body" style={{fontSize:14, lineHeight:1.6}}>
+          p7l is a private plant registry. It keeps a quiet record of every plant in your care — watering, repotting, the occasional funeral.
+        </div>
+      </div>
+      <div className="m-card">
+        <div className="m-card-h">Principles</div>
+        <div className="m-card-body" style={{fontSize:13, lineHeight:1.7}}>
+          · No streaks. No nags. No notifications you'll learn to dismiss.<br/>
+          · It learns <em>your</em> rhythm, not the internet's average.<br/>
+          · You own the data. Self-hosted. Single user.<br/>
+          · The archive remembers everything — including what you lost.
+        </div>
+      </div>
+      <div className="m-section-head"><div className="label">Build</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Version</div></div><div className="m-set-val">1.0.0 · 2026-05-04</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Source</div></div><div className="m-set-val">github · plnt-trmnl</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">License</div></div><div className="m-set-val">AGPL-3.0</div></div>
+    </div>
+  </div>
+);
+
+/* =========== ROADMAP =========== */
+const Roadmap = ({ onBack }) => (
+  <div className="m-screen">
+    <div className="m-back-bar"><button className="m-back-btn" onClick={onBack}>← Settings</button><div className="m-eyebrow">Roadmap</div></div>
+    <div className="m-scroll">
+      <div className="m-page-head">
+        <div className="m-eyebrow">5 waves</div>
+        <div className="m-h1 s">Roadmap</div>
+        <div className="m-subtitle">Where we are. Where we're going.</div>
+      </div>
+      {ROADMAP.map(w => (
+        <div key={w.wave} className="m-roadmap-wave">
+          <div className="m-roadmap-wave-h">
+            <div><div className="num">Wave {w.wave}</div><div className="name">{w.name}</div></div>
+            <div className={'status ' + w.status}>{w.status}</div>
+          </div>
+          {w.items.map((item, i) => (
+            <div key={i} className={'m-roadmap-item' + (item.done ? ' done' : item.status === 'shipping' ? ' wip' : '')}>
+              <div className="dot"/><div>{item.name}</div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/* =========== ENRICHMENT QUEUE =========== */
+const EnrichmentQueue = ({ plants, onBack, onOpen }) => {
+  const pending = plants.filter(p => p.enrichment === 'pending');
+  const recent = plants.filter(p => p.enrichment === 'complete' && p.calibration <= 1).slice(0, 3);
+  return (
+    <div className="m-screen">
+      <div className="m-back-bar"><button className="m-back-btn" onClick={onBack}>← Back</button><div className="m-eyebrow">AI queue</div></div>
+      <div className="m-scroll">
+        <div className="m-page-head">
+          <div className="m-eyebrow">{pending.length} pending</div>
+          <div className="m-h1 s">Enrichment queue</div>
+          <div className="m-subtitle">Plants awaiting AI care-data fill.</div>
+        </div>
+        {pending.length === 0 ? (
+          <div className="m-empty">All caught up.</div>
+        ) : pending.map(p => (
+          <div key={p.id} className="m-row" onClick={() => onOpen(p.id)} style={{cursor:'pointer'}}>
+            <div className="m-row-pic"><Pic.foliage/></div>
+            <div>
+              <div className="m-row-title">{p.nickname}</div>
+              <div className="m-row-species">{p.species}</div>
+              <div className="m-row-meta">queued {today.toISOString().slice(0,10)}</div>
+            </div>
+            <div className="m-row-state calibrating">PENDING</div>
+          </div>
+        ))}
+        <div className="m-section-head"><div className="label">Recently enriched</div></div>
+        {recent.map(p => (
+          <div key={p.id} className="m-row" onClick={() => onOpen(p.id)} style={{cursor:'pointer'}}>
+            <div className="m-row-pic"><Pic.foliage/></div>
+            <div>
+              <div className="m-row-title">{p.nickname}</div>
+              <div className="m-row-species">{p.species}</div>
+              <div className="m-row-meta">complete · {p.about?.lore ? 'with lore' : 'basic'}</div>
+            </div>
+            <div className="m-row-state comfortable">DONE</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* =========== IMAGE BRIEFING =========== */
+const ImageBriefing = ({ onBack }) => (
+  <div className="m-screen">
+    <div className="m-back-bar"><button className="m-back-btn" onClick={onBack}>← Back</button><div className="m-eyebrow">Image briefing</div></div>
+    <div className="m-scroll">
+      <div className="m-page-head">
+        <div className="m-eyebrow">Wave 3 preview</div>
+        <div className="m-h1 s">Illustration brief</div>
+        <div className="m-subtitle">Generates per-plant illustration prompts in p7l's house style.</div>
+      </div>
+      <div className="m-card">
+        <div className="m-card-h">Style spec</div>
+        <div className="m-card-body" style={{fontSize:13, lineHeight:1.6}}>
+          1px line drawing, no fill, on warm paper. Front-elevation specimen pose. Pot included. No background. Approx 60×80 viewBox.
+        </div>
+      </div>
+      <div className="m-card">
+        <div className="m-card-h">Per-plant brief: Mona</div>
+        <div className="m-prompt-block" style={{margin:0}}>{`Subject: Monstera deliciosa "Mona", mature
+Pose: front elevation, slight 3/4 turn
+Pot: 24cm cylindrical terracotta
+Notable: 8-10 fenestrated leaves on aerial trellis
+Style: 1px black line on f5f1e8 paper
+Format: SVG, viewBox 60x80, no fill`}</div>
+      </div>
+      <div className="m-section-head"><div className="label">Briefs sent</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Mona</div><div className="m-set-desc">Monstera · sent 2d ago</div></div><div className="m-set-val">draft</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Big Frank</div><div className="m-set-desc">Ficus · sent 5d ago</div></div><div className="m-set-val">approved</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Sweetheart</div><div className="m-set-desc">Hoya · pending</div></div><div className="m-set-val">queued</div></div>
+    </div>
+  </div>
+);
+
+/* =========== PLANT SCAN =========== */
+const PlantScan = ({ onBack, onPick }) => {
+  const [scanning, setScanning] = useState(true);
+  const [results, setResults] = useState(null);
+  useEffect(() => {
+    if (scanning) {
+      const t = setTimeout(() => {
+        setScanning(false);
+        setResults([
+          { species: 'Monstera deliciosa', common: 'Swiss cheese plant', confidence: 94 },
+          { species: 'Monstera adansonii', common: 'Swiss cheese vine', confidence: 67 },
+          { species: 'Philodendron pertusum', common: 'Older synonym', confidence: 41 },
+        ]);
+      }, 2200);
+      return () => clearTimeout(t);
+    }
+  }, [scanning]);
+  return (
+    <div className="m-screen">
+      <div className="m-back-bar"><button className="m-back-btn" onClick={onBack}>← Back</button><div className="m-eyebrow">Plant scan</div></div>
+      <div className="m-scroll">
+        <div className="m-page-head">
+          <div className="m-eyebrow">Identify by photo</div>
+          <div className="m-h1 s">Scan a plant</div>
+          <div className="m-subtitle">Wave 4 preview · runs locally on-device</div>
+        </div>
+        <div style={{padding:'18px', display:'flex', justifyContent:'center'}}>
+          <div style={{width:240, height:300, border:'0.5px solid var(--ink)', background:'var(--paper-2)', display:'flex', alignItems:'center', justifyContent:'center', position:'relative'}}>
+            {scanning ? (
+              <>
+                <div style={{width:140, height:140, opacity:0.6}}><Pic.foliage/></div>
+                <div style={{position:'absolute', left:0, right:0, height:2, background:'var(--accent)', top:'50%', animation:'scanLine 1.6s infinite linear'}}/>
+                <style>{`@keyframes scanLine { 0% { top: 10%; } 50% { top: 90%; } 100% { top: 10%; } }`}</style>
+              </>
+            ) : (
+              <div style={{width:140, height:140}}><Pic.foliage/></div>
+            )}
+          </div>
+        </div>
+        {scanning ? (
+          <div className="m-empty">Identifying<span style={{display:'inline-block', width:'2ch'}}>···</span></div>
+        ) : (
+          <>
+            <div className="m-section-head"><div className="label">Best matches</div></div>
+            {results.map((r, i) => (
+              <div key={i} className="m-row" onClick={() => onPick(r)} style={{gridTemplateColumns:'1fr auto'}}>
+                <div>
+                  <div className="m-row-title" style={{fontStyle:'italic'}}>{r.species}</div>
+                  <div className="m-row-species" style={{fontStyle:'normal'}}>{r.common}</div>
+                </div>
+                <div className="m-row-state comfortable">{r.confidence}%</div>
+              </div>
+            ))}
+            <div style={{padding:'14px 18px'}}>
+              <button className="m-btn ghost full" onClick={() => setScanning(true)}>Try another photo</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* =========== NOTIFICATIONS PREVIEW =========== */
+const NotificationsPreview = ({ onBack, settings }) => (
+  <div className="m-screen">
+    <div className="m-back-bar"><button className="m-back-btn" onClick={onBack}>← Back</button><div className="m-eyebrow">Notifications</div></div>
+    <div className="m-scroll">
+      <div className="m-page-head">
+        <div className="m-eyebrow">Wave 4 preview</div>
+        <div className="m-h1 s">Notifications</div>
+        <div className="m-subtitle">One quiet daily digest. Off by default.</div>
+      </div>
+      <div className="m-card">
+        <div className="m-card-h">Sample · 9:00 Mon</div>
+        <div className="m-card-body" style={{fontFamily:'var(--font-display)', fontSize:13}}>
+          <div style={{fontWeight:600, marginBottom:4}}>p7l</div>
+          <div style={{color:'var(--ink-2)'}}>Mona's thirsty. Big Frank is a day late.</div>
+        </div>
+      </div>
+      <div className="m-callout">
+        That's it. No streaks, no badges, no "you're doing great!". If you ignore the digest, p7l won't escalate.
+      </div>
+      <div className="m-section-head"><div className="label">Schedule</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Time</div></div><div className="m-set-val">9:00 local</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Frequency</div></div><div className="m-set-val">daily, only if due</div></div>
+      <div className="m-set-row"><div><div className="m-set-name">Channels</div></div><div className="m-set-val">push only</div></div>
+    </div>
+  </div>
+);
+
+/* =========== MODALS =========== */
+const CalibrationModal = ({ plant, onClose, onAnswer }) => {
+  if (!plant) return null;
+  return (
+    <div className="m-modal-bg" onClick={onClose}>
+      <div className="m-modal" onClick={e => e.stopPropagation()}>
+        <div className="m-modal-h">
+          <div className="title">How was the soil?</div>
+          <button className="close" onClick={onClose}>×</button>
+        </div>
+        <div className="m-modal-body">
+          <div className="m-page-head" style={{borderBottom:'none', paddingTop:8}}>
+            <div className="m-eyebrow">{plant.nickname} · cycle {plant.calibration + 1} / 5</div>
+            <div className="m-subtitle">Before you water, check the top inch of soil. This tunes the next interval.</div>
+          </div>
+          <div className="m-radio-row" onClick={() => onAnswer('dry')}><div className="m-radio-circle"/><div><div className="m-radio-label">Bone dry</div><div className="m-radio-desc">Cracked, pulling away from the pot. Should have watered sooner.</div></div></div>
+          <div className="m-radio-row" onClick={() => onAnswer('just-right')}><div className="m-radio-circle"/><div><div className="m-radio-label">Just right</div><div className="m-radio-desc">Top inch dry, slightly damp underneath. Perfect timing.</div></div></div>
+          <div className="m-radio-row" onClick={() => onAnswer('damp')}><div className="m-radio-circle"/><div><div className="m-radio-label">Still damp</div><div className="m-radio-desc">Wet to the touch. Could have waited a few days.</div></div></div>
+          <div className="m-radio-row" onClick={() => onAnswer('skip')}><div className="m-radio-circle"/><div><div className="m-radio-label">Skip this question</div><div className="m-radio-desc">Just log the watering, don't recalibrate.</div></div></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ConditionsModal = ({ plant, onClose, onAdd }) => {
+  const [tab, setTab] = useState('common');
+  const [custom, setCustom] = useState('');
+  if (!plant) return null;
+  return (
+    <div className="m-modal-bg" onClick={onClose}>
+      <div className="m-modal" onClick={e => e.stopPropagation()}>
+        <div className="m-modal-h"><div className="title">Add condition</div><button className="close" onClick={onClose}>×</button></div>
+        <div className="m-tabs" style={{borderTop:'0.5px solid var(--rule-3)'}}>
+          <button className={'m-tab' + (tab==='common' ? ' active' : '')} onClick={() => setTab('common')}>Common</button>
+          <button className={'m-tab' + (tab==='custom' ? ' active' : '')} onClick={() => setTab('custom')}>Custom</button>
+        </div>
+        <div className="m-modal-body">
+          {tab === 'common' ? GENERIC_CONDITIONS.map((c, i) => (
+            <div key={i} className="m-cond" onClick={() => onAdd(plant.id, c)} style={{cursor:'pointer'}}>
+              <div className={'m-cond-sev ' + c.severity}>{c.severity}</div>
+              <div>
+                <div className="m-cond-name">{c.name}</div>
+                <div className="m-cond-sym">{c.symptoms}</div>
+              </div>
+              <div className="m-row-meta">+</div>
+            </div>
+          )) : (
+            <div style={{padding:'18px'}}>
+              <div className="m-field"><label>Condition name</label><input value={custom} onChange={e => setCustom(e.target.value)} placeholder="e.g. Cold draft damage"/></div>
+              <button className="m-btn full" onClick={() => { if (custom) { onAdd(plant.id, { name: custom, severity: 'info', symptoms: '', remedy: '' }); setCustom(''); } }}>Add condition</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const NoteModal = ({ plant, onClose, onSave }) => {
+  const [text, setText] = useState('');
+  if (!plant) return null;
+  return (
+    <div className="m-modal-bg" onClick={onClose}>
+      <div className="m-modal" onClick={e => e.stopPropagation()} style={{maxHeight:'60%'}}>
+        <div className="m-modal-h"><div className="title">Note · {plant.nickname}</div><button className="close" onClick={onClose}>×</button></div>
+        <div className="m-modal-body">
+          <div style={{padding:'18px'}}>
+            <textarea autoFocus value={text} onChange={e => setText(e.target.value)} rows={6} placeholder="What did you notice?" style={{width:'100%', background:'var(--card)', border:'0.5px solid var(--ink)', padding:12, fontFamily:'var(--font-serif)', fontSize:14, resize:'vertical'}}/>
+          </div>
+        </div>
+        <div className="m-modal-foot">
+          <button className="m-btn ghost" onClick={onClose}>Cancel</button>
+          <button className="m-btn accent" onClick={() => { if (text) { onSave(plant.id, text); setText(''); } }}>Save note</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PhotoModal = ({ plant, onClose, onAdd }) => {
+  if (!plant) return null;
+  const photos = plant.photos || [];
+  return (
+    <div className="m-modal-bg" onClick={onClose}>
+      <div className="m-modal" onClick={e => e.stopPropagation()}>
+        <div className="m-modal-h"><div className="title">Photos · {plant.nickname}</div><button className="close" onClick={onClose}>×</button></div>
+        <div className="m-modal-body">
+          <div style={{padding:'18px', textAlign:'center'}}>
+            <button className="m-btn full accent" onClick={() => onAdd(plant.id)}>📷 Take new photo</button>
+          </div>
+          <div className="m-section-head"><div className="label">Timeline ({photos.length})</div></div>
+          {photos.length === 0 ? <div className="m-empty">No photos yet. Add one to start a visual timeline.</div> : (
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:1, padding:'0 18px 18px'}}>
+              {photos.map((ph, i) => {
+                const Picto = picFor(plant.category);
+                return (
+                  <div key={i} style={{aspectRatio:'3/4', border:'0.5px solid var(--ink)', background:'var(--paper-2)', position:'relative', display:'flex', alignItems:'center', justifyContent:'center', padding:14}}>
+                    <Picto/>
+                    <div className="m-photo-date">{ph.date}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {photos.length >= 2 && (
+            <>
+              <div className="m-section-head"><div className="label">Compare</div></div>
+              <div className="m-callout accent">
+                Slider comparison view → wave 4 preview. Drag the divider to see {photos[0].date} vs {photos[photos.length-1].date}.
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ArchiveModal = ({ plant, onClose, onConfirm }) => {
+  const [reason, setReason] = useState('died');
+  const [note, setNote] = useState('');
+  if (!plant) return null;
+  return (
+    <div className="m-modal-bg" onClick={onClose}>
+      <div className="m-modal" onClick={e => e.stopPropagation()}>
+        <div className="m-modal-h"><div className="title">Archive {plant.nickname}</div><button className="close" onClick={onClose}>×</button></div>
+        <div className="m-modal-body">
+          <div className="m-page-head" style={{borderBottom:'none', paddingTop:8}}>
+            <div className="m-subtitle">What happened? p7l keeps the record either way.</div>
+          </div>
+          {[
+            ['died', '🕊️ It died', 'Saved to memorial. We\'ll keep its stats.'],
+            ['gave_away', '🎁 Gave it away', 'Mark as gifted to a friend or family.'],
+            ['moved', '📦 Moved away', 'Plant is at a different home now.'],
+            ['other', '📝 Other', 'Something else.'],
+          ].map(([k, l, d]) => (
+            <div key={k} className={'m-radio-row' + (reason === k ? ' active' : '')} onClick={() => setReason(k)}>
+              <div className="m-radio-circle"/>
+              <div><div className="m-radio-label">{l}</div><div className="m-radio-desc">{d}</div></div>
+            </div>
+          ))}
+          <div style={{padding:'18px'}}>
+            <div className="m-field"><label>Note (optional)</label><textarea value={note} onChange={e => setNote(e.target.value)} rows={3} placeholder={reason === 'died' ? "What happened? RIP." : "Any context."}/></div>
+          </div>
+        </div>
+        <div className="m-modal-foot">
+          <button className="m-btn ghost" onClick={onClose}>Cancel</button>
+          <button className="m-btn danger" onClick={() => onConfirm(plant.id, reason, note)}>Archive</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* =========== APP SHELL =========== */
+function App() {
+  const [view, setView] = useState({ kind: 'onboarding', slide: 0 });
+  const [tab, setTab] = useState('today');
+  const [plants, setPlants] = useState(PLANTS);
+  const [archived, setArchived] = useState(ARCHIVED);
+  const [feedback, setFeedback] = useState(FEEDBACK);
+  const [careLog, setCareLog] = useState({});
+  const [toast, setToast] = useState(null);
+  const [drawer, setDrawer] = useState(false);
+  const [modal, setModal] = useState(null);
+  const [settings, setSettings] = useState({ aiConnected: true, autoEnrich: true, trmnlPaired: true, trmnlSerial: 'TRMNL-7C2A-4F19', seasonal: true, notifications: false, devInfo: false, compact: false });
+
+  const showToast = (msg, undoFn) => {
+    setToast({ msg, undo: undoFn });
+    setTimeout(() => setToast(null), undoFn ? 5000 : 1800);
+  };
+
+  const onWater = (id) => {
+    const p = plants.find(x => x.id === id);
+    setCareLog(prev => ({ ...prev, [id]: { ...prev[id], watered_today: true, extra: [{ type:'watered', date: todayStr }, ...(prev[id]?.extra || [])] } }));
+    setPlants(prev => prev.map(x => x.id === id ? { ...x, state: 'comfortable', last_watered: todayStr, next_water: offsetDate(x.interval), calibration: x.converged ? x.calibration : x.calibration + 1 } : x));
+    if (p && !p.converged && p.calibration < 4) {
+      setTimeout(() => setModal({ kind: 'calibration', plantId: id }), 400);
+    } else {
+      showToast('✓ Watered', () => {
+        setCareLog(prev => { const next = {...prev}; if (next[id]) { next[id] = {...next[id], watered_today: false, extra: (next[id].extra||[]).slice(1)}; } return next; });
+        setPlants(prev => prev.map(x => x.id === id ? { ...p } : x));
+      });
+    }
+  };
+  const onMist = (id) => {
+    setCareLog(prev => ({ ...prev, [id]: { ...prev[id], misted_today: true, extra: [{ type:'misted', date: todayStr }, ...(prev[id]?.extra || [])] } }));
+    showToast('✓ Misted');
+  };
+  const onLogAction = (id, type) => {
+    setCareLog(prev => ({ ...prev, [id]: { ...prev[id], extra: [{ type, date: todayStr }, ...(prev[id]?.extra || [])] } }));
+    showToast(`✓ Logged: ${type}`);
+  };
+  const onWaterAll = () => {
+    const due = plants.filter(p => !p.vacation && (p.state === 'due-today' || p.state === 'overdue') && !careLog[p.id]?.watered_today);
+    setCareLog(prev => {
+      const next = {...prev};
+      due.forEach(p => { next[p.id] = { ...next[p.id], watered_today: true, extra: [{ type:'watered', date: todayStr }, ...(next[p.id]?.extra || [])] }; });
+      return next;
+    });
+    setPlants(prev => prev.map(x => due.find(d => d.id === x.id) ? { ...x, state: 'comfortable', last_watered: todayStr, next_water: offsetDate(x.interval) } : x));
+    showToast(`✓ Watered ${due.length}`, () => { setCareLog({}); setPlants(PLANTS); });
+  };
+  const onUpdate = (id, fields) => {
+    setPlants(prev => prev.map(x => x.id === id ? { ...x, ...fields } : x));
+  };
+  const onToggleVacation = (id) => {
+    setPlants(prev => prev.map(x => x.id === id ? { ...x, vacation: !x.vacation } : x));
+    showToast('Vacation toggled');
+  };
+  const onArchiveStart = (id) => setModal({ kind: 'archive', plantId: id });
+  const onArchiveConfirm = (id, reason, note) => {
+    const p = plants.find(x => x.id === id);
+    if (!p) return;
+    const arch = { id, nickname: p.nickname, species: p.species, archived_at: todayStr, archive_reason: reason, archive_note: note, joined: offsetDate(-200), days: 200, waterings: 18 + (careLog[id]?.extra?.length || 0), offspring: 0, calibration_cycles: p.calibration, location: p.location };
+    setArchived(prev => [arch, ...prev]);
+    setPlants(prev => prev.filter(x => x.id !== id));
+    setModal(null);
+    setView({ kind: 'memorial', id });
+    showToast(`Archived: ${p.nickname}`);
+  };
+  const onRestore = (id) => {
+    const a = archived.find(x => x.id === id);
+    if (!a) return;
+    const restored = { id, nickname: a.nickname, species: a.species, common: '', identifier: null, category: 'foliage', location: a.location, state: 'just-added', last_watered: todayStr, next_water: offsetDate(7), interval: 7, base_interval: 7, pot_cm: 18, pot_cat: 'Medium', light: 'medium', plant_size: 'medium', origin_type: 'unknown', notes: 0, calibration: 0, converged: false, enrichment: 'pending', vacation: false, photos: [], log: [{ type: 'added', date: todayStr }], conditions: [], about: null };
+    setPlants(prev => [restored, ...prev]);
+    setArchived(prev => prev.filter(x => x.id !== id));
+    setView({ kind: 'main' });
+    setTab('plants');
+    showToast(`Restored: ${a.nickname}`);
+  };
+  const onAddSubmit = (form) => {
+    if (!form.nickname || !form.species) { showToast('Nickname & species required'); return; }
+    const newP = { id: Date.now(), slug: form.nickname.toLowerCase(), nickname: form.nickname, species: form.species, common: '', identifier: form.identifier, category: form.category, location: form.location, state: 'just-added', last_watered: todayStr, next_water: offsetDate(7), interval: 7, base_interval: 7, pot_cm: 18, pot_cat: form.pot_cat, light: form.light, plant_size: form.plant_size, origin_type: form.origin_type, origin_source: form.origin_source, notes: 0, calibration: 0, converged: false, enrichment: 'pending', vacation: false, photos: [], log: [{ type: 'added', date: todayStr }], conditions: [], about: null };
+    setPlants(prev => [newP, ...prev]);
+    showToast(`Added: ${form.nickname} ✨ enriching`);
+    setView({ kind: 'detail', id: newP.id });
+    setTab('plants');
+  };
+  const onFeedbackSubmit = (f) => {
+    const newF = { id: Date.now(), ...f, status: 'open', date: todayStr, resolution: null };
+    setFeedback(prev => [newF, ...prev]);
+    setView({ kind: 'feedback' });
+    showToast('Feedback submitted');
+  };
+  const onCalibrationAnswer = (answer) => {
+    if (answer !== 'skip' && modal) {
+      const id = modal.plantId;
+      setPlants(prev => prev.map(x => {
+        if (x.id !== id) return x;
+        const adj = answer === 'dry' ? -1 : answer === 'damp' ? 1 : 0;
+        const newInterval = Math.max(2, x.interval + adj);
+        const newCalibration = x.calibration + 1;
+        const converged = newCalibration >= 5;
+        return { ...x, interval: newInterval, calibration: newCalibration, converged, next_water: offsetDate(newInterval) };
+      }));
+      const labels = { dry: 'Tightening interval', 'just-right': 'Holding interval', damp: 'Stretching interval', skip: '' };
+      showToast(labels[answer] || '✓');
+    }
+    setModal(null);
+  };
+  const onConditionAdd = (id, c) => {
+    setPlants(prev => prev.map(x => x.id === id ? { ...x, conditions: [...(x.conditions||[]), { ...c, id: Date.now() }] } : x));
+    setModal(null);
+    showToast(`Flagged: ${c.name}`);
+  };
+  const onNoteSave = (id, text) => {
+    setCareLog(prev => ({ ...prev, [id]: { ...prev[id], extra: [{ type:'note', date: todayStr, note: text }, ...(prev[id]?.extra || [])] } }));
+    setModal(null);
+    showToast('Note saved');
+  };
+  const onPhotoAdd = (id) => {
+    setPlants(prev => prev.map(x => x.id === id ? { ...x, photos: [...(x.photos||[]), { date: todayStr }] } : x));
+    setCareLog(prev => ({ ...prev, [id]: { ...prev[id], extra: [{ type:'photo', date: todayStr }, ...(prev[id]?.extra || [])] } }));
+    setModal(null);
+    showToast('📷 Photo added');
+  };
+
+  let body;
+  if (view.kind === 'onboarding') {
+    body = <Onboarding slide={view.slide} setSlide={s => setView({ kind: 'onboarding', slide: s })} onDone={() => setView({ kind: 'main' })} onSkip={() => setView({ kind: 'main' })}/>;
+  } else if (view.kind === 'detail') {
+    const plant = plants.find(p => p.id === view.id);
+    body = plant
+      ? <PlantDetail plant={plant} careLog={careLog} onWater={onWater} onMist={onMist} onLog={onLogAction} onUpdate={onUpdate} onArchive={onArchiveStart} onBack={() => setView({ kind: 'main' })} onOpenCalibration={(id) => setModal({ kind:'calibration', plantId: id })} onOpenConditions={(id) => setModal({ kind:'conditions', plantId: id })} onOpenPhotos={(id) => setModal({ kind:'photos', plantId: id })} onOpenNote={(id) => setModal({ kind:'note', plantId: id })} onToggleVacation={onToggleVacation}/>
+      : <div className="m-empty">Plant not found.</div>;
+  } else if (view.kind === 'add') {
+    body = <AddPlant onSubmit={onAddSubmit} onCancel={() => setView({ kind: 'main' })} onScan={() => setView({ kind: 'scan' })}/>;
+  } else if (view.kind === 'scan') {
+    body = <PlantScan onBack={() => setView({ kind: 'add' })} onPick={(r) => { setView({ kind: 'add' }); showToast(`Identified: ${r.species}`); }}/>;
+  } else if (view.kind === 'memorial') {
+    const a = archived.find(x => x.id === view.id);
+    body = a ? <Memorial plant={a} onBack={() => setView({ kind: 'main' })} onRestore={onRestore}/> : <div className="m-empty">Not found.</div>;
+  } else if (view.kind === 'feedback-detail') {
+    const f = feedback.find(x => x.id === view.id);
+    body = f ? <FeedbackDetail item={f} onBack={() => setView({ kind: 'feedback' })}/> : <div className="m-empty">Not found.</div>;
+  } else if (view.kind === 'feedback-new') {
+    body = <FeedbackNew onSubmit={onFeedbackSubmit} onCancel={() => setView({ kind: 'feedback' })}/>;
+  } else if (view.kind === 'feedback') {
+    body = <FeedbackList items={feedback} onOpen={(id) => setView({ kind: 'feedback-detail', id })} onNew={() => setView({ kind: 'feedback-new' })}/>;
+  } else if (view.kind === 'ai-prompt') {
+    body = <AiPromptScreen onBack={() => setView({ kind: 'main' })} onCopy={() => showToast('Copied to clipboard')}/>;
+  } else if (view.kind === 'trmnl') {
+    body = <TrmnlSetup onBack={() => setView({ kind: 'main' })} paired={settings.trmnlPaired} onPair={() => { setSettings({...settings, trmnlPaired: true}); showToast('Paired ✓'); }}/>;
+  } else if (view.kind === 'trmnl-preview') {
+    body = <TrmnlPreview onBack={() => setView({ kind: 'main' })}/>;
+  } else if (view.kind === 'about') {
+    body = <About onBack={() => setView({ kind: 'main' })}/>;
+  } else if (view.kind === 'roadmap') {
+    body = <Roadmap onBack={() => setView({ kind: 'main' })}/>;
+  } else if (view.kind === 'enrichment') {
+    body = <EnrichmentQueue plants={plants} onBack={() => setView({ kind: 'main' })} onOpen={(id) => setView({ kind: 'detail', id })}/>;
+  } else if (view.kind === 'images') {
+    body = <ImageBriefing onBack={() => setView({ kind: 'main' })}/>;
+  } else if (view.kind === 'notifications') {
+    body = <NotificationsPreview onBack={() => setView({ kind: 'main' })} settings={settings}/>;
+  } else {
+    if (tab === 'today') body = <Today plants={plants} careLog={careLog} onOpen={id => setView({ kind: 'detail', id })} onWaterAll={onWaterAll} onAdd={() => setView({ kind: 'add' })}/>;
+    else if (tab === 'plants') body = <PlantsList plants={plants} onOpen={id => setView({ kind: 'detail', id })} onAdd={() => setView({ kind: 'add' })}/>;
+    else if (tab === 'calendar') body = <Calendar plants={plants} careLog={careLog} onOpen={id => setView({ kind: 'detail', id })}/>;
+    else if (tab === 'archive') body = <Archive archived={archived} onOpen={id => setView({ kind: 'memorial', id })}/>;
+    else if (tab === 'settings') body = <Settings onShowOnboarding={() => setView({ kind: 'onboarding', slide: 0 })} onOpen={(k) => setView({ kind: k })} settings={settings} setSettings={setSettings}/>;
+  }
+
+  const showChrome = view.kind === 'main';
+  const showFab = view.kind === 'main' && (tab === 'today' || tab === 'plants');
+  const pendingCount = plants.filter(p => p.enrichment === 'pending').length;
+
+  const drawerLinks = [
+    ['add', 'Add plant', 'New +'],
+    ['feedback', 'Feedback', `${feedback.length}`],
+    ['enrichment', 'Enrichment queue', pendingCount > 0 ? `${pendingCount} pending` : 'all done'],
+    ['images', 'Image briefing', 'wave 3'],
+    ['scan', 'Scan a plant', 'wave 4'],
+    ['notifications', 'Notifications', 'wave 4'],
+    ['trmnl', 'TRMNL device', settings.trmnlPaired ? 'paired' : 'pair'],
+    ['ai-prompt', 'AI tool', settings.aiConnected ? 'connected' : 'connect'],
+    ['roadmap', 'Roadmap', '5 waves'],
+    ['about', 'About p7l', 'v1·0·0'],
+  ];
+
+  return (
+    <div className="m-app">
+      {showChrome && (
+        <>
+          <div className="m-top">
+            <div className="m-top-brand">
+              <div className="m-top-mark">p7l</div>
+              <div className="m-top-tag">private · {plants.length} active</div>
+            </div>
+            <button className="m-burger" onClick={() => setDrawer(true)} aria-label="Menu">
+              <svg width="14" height="10" viewBox="0 0 14 10" stroke="currentColor" strokeWidth="1.2">
+                <line x1="0" y1="1" x2="14" y2="1"/><line x1="0" y1="5" x2="14" y2="5"/><line x1="0" y1="9" x2="14" y2="9"/>
+              </svg>
+            </button>
+          </div>
+          <div className="m-tabs">
+            {[['today','Today'],['plants','Plants'],['calendar','Cal'],['archive','Archive'],['settings','Set']].map(([k,l]) => (
+              <button key={k} className={'m-tab' + (tab === k ? ' active' : '')} onClick={() => setTab(k)}>{l}</button>
+            ))}
+          </div>
+        </>
+      )}
+      {body}
+      {showFab && <button className="m-fab" onClick={() => setView({ kind: 'add' })}>+</button>}
+
+      {drawer && (
+        <>
+          <div className="m-drawer-bg" onClick={() => setDrawer(false)}/>
+          <div className="m-drawer">
+            <div className="m-drawer-h">Navigate</div>
+            {drawerLinks.map(([k, l, meta]) => (
+              <button key={k} className="m-drawer-link" onClick={() => { setView({ kind: k }); setDrawer(false); }}>
+                <span>{l}</span>
+                <span className="m-row-meta">{meta}</span>
+              </button>
+            ))}
+            <div className="m-drawer-foot">
+              <div className="m-row-meta">{plants.length} active · {archived.length} archived</div>
+              <div className="m-row-meta">{settings.aiConnected ? '✨ ai connected' : '· ai offline'}</div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {modal?.kind === 'calibration' && <CalibrationModal plant={plants.find(p => p.id === modal.plantId)} onClose={() => setModal(null)} onAnswer={onCalibrationAnswer}/>}
+      {modal?.kind === 'conditions' && <ConditionsModal plant={plants.find(p => p.id === modal.plantId)} onClose={() => setModal(null)} onAdd={onConditionAdd}/>}
+      {modal?.kind === 'note' && <NoteModal plant={plants.find(p => p.id === modal.plantId)} onClose={() => setModal(null)} onSave={onNoteSave}/>}
+      {modal?.kind === 'photos' && <PhotoModal plant={plants.find(p => p.id === modal.plantId)} onClose={() => setModal(null)} onAdd={onPhotoAdd}/>}
+      {modal?.kind === 'archive' && <ArchiveModal plant={plants.find(p => p.id === modal.plantId)} onClose={() => setModal(null)} onConfirm={onArchiveConfirm}/>}
+
+      {toast && (
+        <div className="m-toast">
+          <span>{toast.msg}</span>
+          {toast.undo && <button className="undo" onClick={() => { toast.undo(); setToast(null); }}>Undo</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========== iOS PHONE FRAME =========== */
+function Phone({ children }) {
+  return (
+    <div style={{ width:402, height:874, borderRadius:48, overflow:'hidden', position:'relative', background:'#000', boxShadow:'0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)' }}>
+      <div style={{ position:'absolute', top:11, left:'50%', transform:'translateX(-50%)', width:126, height:37, borderRadius:24, background:'#000', zIndex:50 }}/>
+      <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'21px 38px 0', fontFamily:'-apple-system, "SF Pro", system-ui' }}>
+        <span style={{fontWeight:590, fontSize:17, color:'#000'}}>9:41</span>
+        <div style={{display:'flex', gap:7, alignItems:'center'}}>
+          <svg width="19" height="12" viewBox="0 0 19 12">
+            <rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill="#000"/>
+            <rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill="#000"/>
+            <rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill="#000"/>
+            <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill="#000"/>
+          </svg>
+          <svg width="27" height="13" viewBox="0 0 27 13">
+            <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke="#000" strokeOpacity="0.35" fill="none"/>
+            <rect x="2" y="2" width="20" height="9" rx="2" fill="#000"/>
+            <path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill="#000" fillOpacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+      {children}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:60, height:34, display:'flex', justifyContent:'center', alignItems:'flex-end', paddingBottom:8, pointerEvents:'none' }}>
+        <div style={{ width:139, height:5, borderRadius:100, background:'rgba(0,0,0,0.25)' }}/>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <div className="stage"><Phone><App/></Phone></div>
+);
+</script>
+</body>
+</html>

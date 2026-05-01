@@ -36,3 +36,6 @@ packages/api/feedback-uploads/
 # Claude Code worktrees + local
 .claude/
 .wip-catalog-expand/
+
+*storybook.log
+storybook-static
