@@ -38,8 +38,8 @@
 .p7l-chip--due .p7l-chip__dot { background: var(--status-due); }
 
 .p7l-chip--overdue {
-  background: rgba(176, 74, 53, 0.10);
-  color: var(--rust-400);
+  background: var(--overdue-soft);
+  color: var(--status-overdue);
 }
 .p7l-chip--overdue .p7l-chip__dot { background: var(--status-overdue); }
 
@@ -50,13 +50,13 @@
 .p7l-chip--healthy .p7l-chip__dot { background: var(--status-healthy); }
 
 .p7l-chip--dormant {
-  background: rgba(198, 154, 59, 0.12);
+  background: var(--dormant-soft);
   color: var(--copper-500);
 }
 .p7l-chip--dormant .p7l-chip__dot { background: var(--status-dormant); }
 
-/* Dark-mode tweaks for the rgba() tints that don't theme-flip via tokens. */
-[data-theme="dark"] .p7l-chip--overdue { color: #d76952; background: rgba(215, 105, 82, 0.14); }
-[data-theme="dark"] .p7l-chip--dormant { color: #d9b35d; background: rgba(217, 179, 93, 0.14); }
+/* Dark-mode foreground overrides for tones whose ink isn't already a
+   theme-flipping token. Backgrounds come from --*-soft tokens above. */
 [data-theme="dark"] .p7l-chip--due     { color: var(--copper-300); }
 [data-theme="dark"] .p7l-chip--healthy { color: var(--sage-200); }
+[data-theme="dark"] .p7l-chip--dormant { color: #d9b35d; }

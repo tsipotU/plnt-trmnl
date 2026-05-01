@@ -100,6 +100,11 @@
   --status-dormant: var(--mustard-400);
   --status-healthy: var(--sage-500);
 
+  /* Soft tints for the two status families that don't have a -50/-100 scale.
+     Pair with --status-overdue / --status-dormant for foregrounds. */
+  --overdue-soft:  rgba(176, 74, 53, 0.10);
+  --dormant-soft:  rgba(198, 154, 59, 0.12);
+
   /* === SPACING (4-step) === */
   --sp-1:  4px;
   --sp-2:  8px;
@@ -187,6 +192,9 @@
   --status-overdue: #d76952;
   --status-dormant: #d9b35d;
   --status-healthy: var(--sage-300);
+
+  --overdue-soft:  rgba(215, 105, 82, 0.14);
+  --dormant-soft:  rgba(217, 179, 93, 0.14);
 
   --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.5);
   --shadow-2: 0 1px 0 rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.5);
