@@ -1,0 +1,28 @@
+.p7l-callout {
+  background: var(--bg-elevated);
+  border-left: 3px solid var(--ink);
+  padding: 12px 14px;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.p7l-callout--neutral {}
+
+.p7l-callout--info {
+  border-left-color: var(--info);
+  background: var(--info-soft);
+}
+
+.p7l-callout--warn {
+  border-left-color: var(--status-overdue);
+  background: var(--overdue-soft);
+}
+
+.p7l-callout--accent {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.p7l-callout strong { color: var(--ink); font-weight: 600; }

@@ -1,0 +1,17 @@
+.p7l-filterrail {
+  display: flex;
+  gap: 6px;
+  padding: 10px 18px 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+}
+
+.p7l-filterrail::-webkit-scrollbar { display: none; }
+.p7l-filterrail { scrollbar-width: none; }
+
+.p7l-filterrail--bordered { border-bottom: var(--hairline-thin) solid var(--border-strong); }
+.p7l-filterrail--compact { padding-top: 0; }
+
+/* Chips inside don't shrink; let them keep their natural width and scroll. */
+.p7l-filterrail > * { flex-shrink: 0; }

@@ -1,0 +1,54 @@
+.p7l-infocard {
+  background: var(--bg-elevated);
+  border: var(--hairline-thin) solid var(--ink);
+  padding: 14px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+
+.p7l-infocard__title {
+  font-family: var(--font-sans);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.p7l-infocard__body {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* === TONES === */
+.p7l-infocard--neutral {}
+
+.p7l-infocard--info {
+  border-color: var(--info);
+  background: var(--info-soft);
+}
+.p7l-infocard--info .p7l-infocard__title { color: var(--info); }
+
+.p7l-infocard--warn {
+  border-color: var(--status-overdue);
+  background: var(--overdue-soft);
+}
+.p7l-infocard--warn .p7l-infocard__title { color: var(--status-overdue); }
+
+.p7l-infocard--accent {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.p7l-infocard--accent .p7l-infocard__title { color: var(--sage-700); }
+
+.p7l-infocard--success {
+  border-color: var(--status-healthy);
+  background: var(--accent-soft);
+}
+.p7l-infocard--success .p7l-infocard__title { color: var(--sage-700); }
+
+[data-theme="dark"] .p7l-infocard--accent .p7l-infocard__title,
+[data-theme="dark"] .p7l-infocard--success .p7l-infocard__title { color: var(--sage-200); }
