@@ -280,6 +280,26 @@ applied to view-shape transforms.
 
 ---
 
+## Testing through molecules
+
+Molecules that expose proper accessible names (`FieldLabel` with `htmlFor`,
+`Banner` with `role` + `aria-label`, `BackBar` with explicit button labels,
+`SearchBar` with placeholder, `Toggle` with `label`) make consumer tests
+survive page rebuilds untouched.
+
+When a page is rebuilt and its tests query by accessible name —
+`getByLabelText(/Plant species/i)`, `getByRole('button', { name: /Add plant/i })`,
+`getByRole('alert', { name: /Light mismatch/i })` — they target the contract,
+not the layout. Substantial DOM reshuffling (new `FormStep` wrappers, sticky
+footers, `BackBar` swaps) doesn't move the contract, so tests don't budge.
+
+The canonical example is the **Add plant rebuild**: 382 lines added, 497
+deleted, dozens of inputs reorganized into four `FormStep` blocks with new
+chrome — and **zero test query updates**. That outcome is the headline
+feature of every well-built molecule layer.
+
+---
+
 ## Cross-references
 
 - [Atoms / RowState](?path=/docs/atoms-rowstate--docs) — used as the state slot in PlantRow
