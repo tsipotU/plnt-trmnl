@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Chip } from './Chip';
 import { Pictogram } from '../Pictogram/Pictogram';
@@ -105,4 +106,43 @@ export const InCardChrome: Story = {
       </div>
     </div>
   ),
+};
+
+export const ToggleableFilter: Story = {
+  parameters: {
+    controls: { hideNoControlsWarning: true },
+    docs: {
+      description: {
+        story:
+          'When `toggleable` is true, the chip becomes a rectangular filter selector. Sans uppercase 10px tracked, 0.5px border, ink-on-paper inverts to paper-on-ink when `active`. Renders as a `<button>` with `aria-pressed`. Used by **FilterRail**.',
+      },
+    },
+  },
+  render: () => {
+    const ToggleDemo = () => {
+      const [filter, setFilter] = useState('all');
+      const opts: Array<[string, string]> = [
+        ['all', 'All'],
+        ['due', 'Due'],
+        ['calibrating', 'Calibrating'],
+        ['dialed', 'Dialed in'],
+        ['vacation', 'Vacation'],
+      ];
+      return (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
+          {opts.map(([k, l]) => (
+            <Chip
+              key={k}
+              toggleable
+              active={filter === k}
+              onClick={() => setFilter(k)}
+            >
+              {l}
+            </Chip>
+          ))}
+        </div>
+      );
+    };
+    return <ToggleDemo />;
+  },
 };

@@ -105,6 +105,15 @@
   --overdue-soft:  rgba(176, 74, 53, 0.10);
   --dormant-soft:  rgba(198, 154, 59, 0.12);
 
+  /* Info — slate-blue semantic for calibrating / informational states.
+     Used by RowState calibrating, info Banner, info condition severity. */
+  --info:      var(--slate-500);
+  --info-soft: var(--slate-100);
+
+  /* Critical — deeper red than overdue, reserved for severity = critical.
+     Solid background usage (e.g. condition severity badge) — no soft variant. */
+  --crit:      #8a2c1c;
+
   /* === SPACING (4-step) === */
   --sp-1:  4px;
   --sp-2:  8px;
@@ -195,6 +204,10 @@
 
   --overdue-soft:  rgba(215, 105, 82, 0.14);
   --dormant-soft:  rgba(217, 179, 93, 0.14);
+
+  --info:      var(--slate-300);
+  --info-soft: rgba(142, 157, 167, 0.14);
+  --crit:      #c45040;
 
   --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.5);
   --shadow-2: 0 1px 0 rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.5);
