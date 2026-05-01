@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useDialogContext } from '../context/DialogContext';
+import { FAB } from './molecules/FAB/FAB';
+import { Sheet } from './molecules/Sheet/Sheet';
+import { FormStep } from './molecules/FormStep/FormStep';
+import { Chip } from './atoms/Chip/Chip';
+import { Button } from './atoms/Button/Button';
+import { FieldLabel } from './atoms/FieldLabel/FieldLabel';
+import './FeedbackButton.css';
 
 type Category = 'bug' | 'feature' | 'improvement' | 'other';
 
@@ -18,33 +25,17 @@ export function FeedbackButton() {
   const [open, setOpen] = useState(false);
   const { isArchiveDialogOpen } = useDialogContext();
 
-  // Hide the FAB while the archive dialog is open
-  if (isArchiveDialogOpen) {
-    return null;
-  }
+  if (isArchiveDialogOpen) return null;
 
   return (
     <>
-      <button
+      <FAB
+        label="Send feedback"
+        icon="✚"
+        position="static"
         onClick={() => setOpen(true)}
-        aria-label="Send feedback"
-        style={{
-          position: 'fixed',
-          right: 16,
-          bottom: 88,
-          width: 56,
-          height: 56,
-          borderRadius: '50%',
-          background: 'var(--accent)',
-          color: 'white',
-          fontSize: 22,
-          padding: 0,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-          zIndex: 90,
-        }}
-      >
-        💬
-      </button>
+        className="p7l-feedback-fab"
+      />
       {open && <FeedbackSheet onClose={() => setOpen(false)} />}
     </>
   );
@@ -74,7 +65,7 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
 
   function handlePickImages(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = Array.from(e.target.files ?? []);
-    e.target.value = ''; // allow re-picking same file later
+    e.target.value = '';
     if (picked.length === 0) return;
 
     const next = [...images];
@@ -102,12 +93,7 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     titleRef.current?.focus();
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -145,218 +131,94 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.6)',
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Send feedback"
+    <Sheet
+      open
+      onClose={onClose}
+      title="Send feedback"
+      footer={
+        sent ? null : (
+          <>
+            <Button variant="ghost" onClick={onClose} type="button">
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="feedback-form"
+              disabled={submitting}
+              loading={submitting}
+              style={{ marginLeft: 'auto' }}
+            >
+              Send feedback
+            </Button>
+          </>
+        )
+      }
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--bg-primary)',
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
-          width: '100%',
-          maxWidth: 430,
-          maxHeight: '85dvh',
-          overflowY: 'auto',
-          padding: '20px 16px 24px',
-          borderTop: '1px solid var(--border)',
-        }}
-      >
-        {/* Handle */}
-        <div
-          style={{
-            width: 40,
-            height: 4,
-            background: 'var(--border)',
-            borderRadius: 2,
-            margin: '0 auto 16px',
-          }}
-        />
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 16,
-          }}
-        >
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>Send feedback</h2>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              fontSize: 20,
-              padding: 8,
-              minWidth: 0,
-              minHeight: 0,
-            }}
-          >
-            ✕
-          </button>
+      {sent ? (
+        <div className="p7l-feedback-sent" role="status">
+          Thanks — feedback saved
         </div>
-
-        {sent ? (
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              borderRadius: 'var(--radius)',
-              padding: '24px 16px',
-              textAlign: 'center',
-              color: 'var(--accent)',
-              fontSize: 18,
-              fontWeight: 600,
-            }}
-          >
-            Thanks — feedback saved
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: 13,
-                color: 'var(--text-secondary)',
-                marginBottom: 6,
-              }}
-            >
-              Category
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              style={{ marginBottom: 14 }}
-            >
+      ) : (
+        <form id="feedback-form" onSubmit={handleSubmit} className="p7l-feedback-form">
+          <FormStep num="01 · Type" title="What kind of feedback?">
+            <div className="p7l-feedback-form__chips" role="radiogroup" aria-label="Category">
               {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
+                <Chip
+                  key={opt.value}
+                  toggleable
+                  active={category === opt.value}
+                  onClick={() => setCategory(opt.value)}
+                >
                   {opt.label}
-                </option>
+                </Chip>
               ))}
-            </select>
+            </div>
+          </FormStep>
 
-            <label
-              style={{
-                display: 'block',
-                fontSize: 13,
-                color: 'var(--text-secondary)',
-                marginBottom: 6,
-              }}
-            >
+          <FormStep num="02 · Headline" title="One-line summary">
+            <FieldLabel htmlFor="feedback-title" required>
               Title
-            </label>
+            </FieldLabel>
             <input
               ref={titleRef}
+              id="feedback-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What's up?"
               maxLength={200}
-              style={{ marginBottom: 14 }}
+              className="p7l-feedback-form__input"
             />
+          </FormStep>
 
-            <label
-              style={{
-                display: 'block',
-                fontSize: 13,
-                color: 'var(--text-secondary)',
-                marginBottom: 6,
-              }}
-            >
-              Description <span style={{ opacity: 0.6 }}>(optional)</span>
-            </label>
+          <FormStep num="03 · Details" title="Optional context">
+            <FieldLabel htmlFor="feedback-desc" hint="Repro steps, ideas, anything else.">
+              Description
+            </FieldLabel>
             <textarea
+              id="feedback-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              placeholder="More context, repro steps, ideas…"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border)',
-                padding: 12,
-                borderRadius: 'var(--radius)',
-                fontSize: 16,
-                width: '100%',
-                fontFamily: 'inherit',
-                resize: 'vertical',
-                marginBottom: 14,
-              }}
+              className="p7l-feedback-form__textarea"
             />
+          </FormStep>
 
-            <label
-              style={{
-                display: 'block',
-                fontSize: 13,
-                color: 'var(--text-secondary)',
-                marginBottom: 6,
-              }}
-            >
-              Images <span style={{ opacity: 0.6 }}>(optional, up to {MAX_IMAGES}, max 5MB each)</span>
-            </label>
-            <div style={{ marginBottom: 14 }}>
+          <FormStep
+            num="04 · Images"
+            title={`Attachments · up to ${MAX_IMAGES} · 5MB each`}
+          >
+            <div className="p7l-feedback-form__images">
               {previews.length > 0 && (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: 8,
-                    marginBottom: 10,
-                  }}
-                >
+                <div className="p7l-feedback-form__previews">
                   {previews.map((p, i) => (
-                    <div
-                      key={p.url}
-                      style={{
-                        position: 'relative',
-                        aspectRatio: '1 / 1',
-                        background: 'var(--bg-secondary)',
-                        borderRadius: 'var(--radius)',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <img
-                        src={p.url}
-                        alt={`Attachment ${i + 1} preview`}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block',
-                        }}
-                      />
+                    <div key={p.url} className="p7l-feedback-form__preview">
+                      <img src={p.url} alt={`Attachment ${i + 1} preview`} />
                       <button
                         type="button"
                         onClick={() => removeImage(i)}
                         aria-label={`Remove image ${i + 1}`}
-                        style={{
-                          position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          width: 24,
-                          height: 24,
-                          minWidth: 0,
-                          minHeight: 0,
-                          padding: 0,
-                          borderRadius: '50%',
-                          background: 'rgba(0, 0, 0, 0.65)',
-                          color: 'white',
-                          fontSize: 14,
-                          lineHeight: '24px',
-                        }}
+                        className="p7l-feedback-form__preview-remove"
                       >
                         ×
                       </button>
@@ -365,19 +227,8 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
                 </div>
               )}
               {images.length < MAX_IMAGES && (
-                <label
-                  style={{
-                    display: 'inline-block',
-                    fontSize: 14,
-                    color: 'var(--accent)',
-                    background: 'var(--bg-secondary)',
-                    border: '1px dashed var(--border)',
-                    borderRadius: 'var(--radius)',
-                    padding: '10px 14px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {images.length === 0 ? '📷 Attach image' : '+ Add another'}
+                <label className="p7l-feedback-form__attach">
+                  {images.length === 0 ? 'Attach image' : '+ Add another'}
                   <input
                     type="file"
                     accept="image/*"
@@ -389,47 +240,19 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
                 </label>
               )}
             </div>
+          </FormStep>
 
-            <div
-              style={{
-                fontSize: 12,
-                color: 'var(--text-secondary)',
-                marginBottom: 16,
-                wordBreak: 'break-all',
-              }}
-            >
-              On page: <code>{location.pathname}</code>
+          <div className="p7l-feedback-form__on-page">
+            On page <code>{location.pathname}</code>
+          </div>
+
+          {error && (
+            <div role="alert" className="p7l-feedback-form__error">
+              {error}
             </div>
-
-            {error && (
-              <div
-                role="alert"
-                style={{
-                  color: 'var(--danger)',
-                  fontSize: 14,
-                  marginBottom: 12,
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                width: '100%',
-                fontSize: 16,
-                fontWeight: 700,
-                padding: '14px 24px',
-                opacity: submitting ? 0.7 : 1,
-              }}
-            >
-              {submitting ? 'Sending…' : 'Send feedback'}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+          )}
+        </form>
+      )}
+    </Sheet>
   );
 }
