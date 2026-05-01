@@ -1,0 +1,23 @@
+.p7l-sectionhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 18px 18px 8px;
+  background: var(--bg);
+}
+
+.p7l-sectionhead__label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.p7l-sectionhead__action {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
