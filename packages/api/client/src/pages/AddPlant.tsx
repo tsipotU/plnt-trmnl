@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { LightLevelTooltip } from '../components/LightLevelTooltip';
 import { PotSizeTooltip } from '../components/PotSizeTooltip';
 import { DidYouMeanSplash, type SuggestionOption } from '../components/DidYouMeanSplash';
@@ -8,6 +8,14 @@ import {
   type EnrichmentSplashPreview,
 } from '../components/EnrichmentSplash';
 import { useAiConnection } from '../hooks/useAiConnection';
+
+import { BackBar } from '../components/molecules/BackBar/BackBar.js';
+import { FormStep } from '../components/molecules/FormStep/FormStep.js';
+import { Callout } from '../components/molecules/Callout/Callout.js';
+import { Banner } from '../components/atoms/Banner/Banner.js';
+import { Button } from '../components/atoms/Button/Button.js';
+import { FieldLabel } from '../components/atoms/FieldLabel/FieldLabel.js';
+import './AddPlant.css';
 
 type WateredWhen = 'today' | 'pick' | 'unknown';
 type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
@@ -21,12 +29,9 @@ interface ExistingPlant {
 interface CatalogSearchResult {
   slug: string;
   latin_name: string;
-  category: string;
   primary_common_name: string;
 }
 
-// Common rooms surfaced as tappable chips (#2). Custom locations remain supported
-// via the free-text input — these are just shortcuts.
 const COMMON_ROOMS: string[] = [
   'Living room',
   'Bedroom',
@@ -36,44 +41,39 @@ const COMMON_ROOMS: string[] = [
   'Balcony',
 ];
 
-// Debounce delay for /api/catalog/search-as-you-type lookups. Kept short so the
-// dropdown feels responsive while still coalescing rapid keystrokes.
 const CATALOG_SEARCH_DEBOUNCE_MS = 200;
 
 const SOIL_FEEL_OPTIONS: { value: Exclude<SoilFeel, ''>; label: string }[] = [
-  { value: 'bone_dry', label: 'Bone dry' },
-  { value: 'dry', label: 'Dry' },
-  { value: 'slightly_moist', label: 'Slightly moist' },
-  { value: 'moist', label: 'Moist' },
-  { value: 'wet', label: 'Wet' },
+  { value: 'bone_dry', label: 'Bone dry — pulling away from the pot' },
+  { value: 'dry', label: 'Dry on top, lightly damp underneath' },
+  { value: 'slightly_moist', label: 'Slightly moist throughout' },
+  { value: 'moist', label: 'Moist — recently watered' },
+  { value: 'wet', label: 'Wet / soggy' },
 ];
 
 const POT_SIZE_OPTIONS: { value: string; label: string; cm: number }[] = [
-  { value: 'Extra Small', label: 'Extra Small (5–10 cm)', cm: 8 },
-  { value: 'Small', label: 'Small (10–15 cm)', cm: 13 },
-  { value: 'Medium', label: 'Medium (15–20 cm)', cm: 18 },
-  { value: 'Large', label: 'Large (20–30 cm)', cm: 25 },
-  { value: 'Extra Large', label: 'Extra Large (30–50 cm)', cm: 40 },
-  { value: 'Extra Extra Large', label: 'Extra Extra Large (50–100 cm)', cm: 70 },
+  { value: 'Extra Small', label: 'Extra Small (8 cm)', cm: 8 },
+  { value: 'Small', label: 'Small (12 cm)', cm: 12 },
+  { value: 'Medium', label: 'Medium (18 cm)', cm: 18 },
+  { value: 'Large', label: 'Large (24 cm)', cm: 24 },
+  { value: 'Extra Large', label: 'Extra Large (30 cm)', cm: 30 },
+  { value: 'Other', label: 'Other', cm: 20 },
 ];
 
 function today(): string {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().slice(0, 10);
 }
 
 function yesterday(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0];
+  return d.toISOString().slice(0, 10);
 }
 
 export function AddPlant() {
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
-  // Catalog dropdown state (#2) — when the user picks a suggestion we lock in
-  // the slug so POST /api/plants can apply baselines immediately. Typing after
-  // selection clears the slug (free-text fallback).
   const [catalogSlug, setCatalogSlug] = useState<string | null>(null);
   const [catalogResults, setCatalogResults] = useState<CatalogSearchResult[]>([]);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -94,12 +94,6 @@ export function AddPlant() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Post-add enrichment splash (#72 / #130). Modes:
-  //   - 'enriching'  → waiting on AI tool callback, showing spinner
-  //   - 'success'    → preview with Looks right / Not quite
-  //   - 'correcting' → user typing a correction
-  //   - 'no-match'   → catalog miss + no AI tool active; friendly fallback
-  //   - null         → splash is closed (form visible)
   const [splashMode, setSplashMode] = useState<
     'enriching' | 'success' | 'correcting' | 'no-match' | null
   >(null);
@@ -109,18 +103,14 @@ export function AddPlant() {
     useState<EnrichmentSplashPreview | null>(null);
   const [splashSubmitting, setSplashSubmitting] = useState(false);
 
-  // Did-you-mean fallback state (issue #39). When enrichment fails, we pull
-  // the top fuzzy suggestion from /api/catalog/suggest and offer it here.
   const [fallbackPlantId, setFallbackPlantId] = useState<number | null>(null);
   const [fallbackTypedName, setFallbackTypedName] = useState<string>('');
   const [fallbackSuggestion, setFallbackSuggestion] =
     useState<SuggestionOption | null>(null);
   const [retrying, setRetrying] = useState(false);
 
-  // Track whether this is the first plant (for contextual hints + celebration)
   const [isFirstPlant, setIsFirstPlant] = useState(false);
 
-  // AI-tool connection state — drives the post-add splash flavor (#130)
   const { connected: aiConnected } = useAiConnection();
 
   useEffect(() => {
@@ -137,9 +127,6 @@ export function AddPlant() {
       });
   }, []);
 
-  // Debounced catalog search (#2). Triggers on every name change; skips when
-  // the user has already locked in a selection (catalogSlug set + name matches
-  // a selected entry) or when the query is empty/too short.
   useEffect(() => {
     const query = name.trim();
     if (query.length < 2) {
@@ -147,8 +134,6 @@ export function AddPlant() {
       setCatalogOpen(false);
       return;
     }
-    // If the input still exactly matches the selected catalog entry, don't
-    // re-query — user hasn't typed since selection.
     if (catalogSlug) {
       setCatalogOpen(false);
       return;
@@ -186,7 +171,6 @@ export function AddPlant() {
 
   function handleNameChange(value: string): void {
     setName(value);
-    // Any typing after a selection breaks the lock and reverts to free-text.
     if (catalogSlug) setCatalogSlug(null);
   }
 
@@ -199,15 +183,16 @@ export function AddPlant() {
   const needsSoilFeel = wateredWhen === 'unknown';
   const soilFeelMissing = needsSoilFeel && !soilFeel;
 
+  const submitDisabled =
+    loading || !name.trim() || !potCategory || !location.trim() || !lightLevel || soilFeelMissing;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !potCategory || !location.trim() || !lightLevel) return;
-    if (soilFeelMissing) return;
+    if (submitDisabled) return;
 
     setLoading(true);
     setError(null);
 
-    // Resolve the cm value from the pot category
     const selectedOption = POT_SIZE_OPTIONS.find((o) => o.value === potCategory);
     const potSizeCm = selectedOption?.cm || 20;
 
@@ -251,11 +236,6 @@ export function AddPlant() {
       setSplashPlantId(plant.id);
       setSplashTypedName(name.trim());
 
-      // #130 — choose splash flavor based on what the POST already gave us
-      // and whether an AI tool is active to fill the gap.
-      // Catalog hit (species + illustration_path present) → success immediately.
-      // Catalog miss + AI not connected → no-match fallback (don't fake-loader).
-      // Catalog miss + AI connected → existing 'enriching' poll.
       const hasCatalogPayload = !!(plant.species && plant.illustration_path);
       if (hasCatalogPayload) {
         await showSuccessSplash(plant.id, name.trim());
@@ -273,13 +253,6 @@ export function AddPlant() {
     }
   }
 
-  /**
-   * Poll enrichment status. On success → show the #72 confirmation splash.
-   * On failure → fetch a fuzzy suggestion and show the #39 did-you-mean splash.
-   * On 10s timeout → navigate to plant detail with a "still enriching" badge.
-   *
-   * Polling cadence: 1s to keep network quiet; 10s hard ceiling per issue #72.
-   */
   async function waitForEnrichment(plantId: number, typedName: string): Promise<void> {
     const deadline = Date.now() + 10_000;
     const interval = 1000;
@@ -300,13 +273,10 @@ export function AddPlant() {
           }
         }
       } catch {
-        // Swallow and retry until deadline — transient network blips shouldn't
-        // burn the whole enrichment flow.
+        // Swallow and retry until deadline.
       }
     }
 
-    // Timed out: land on detail with a "still enriching" badge cue. The badge
-    // on the detail page renders when enrichment_status is still 'pending'.
     setSplashMode(null);
     setSplashPlantId(null);
     navigate(`/plants/${plantId}`, {
@@ -314,10 +284,6 @@ export function AddPlant() {
     });
   }
 
-  /**
-   * After enrichment completes, fetch the full plant + (optional) catalog entry
-   * so the splash can show species, illustration, and a one-line care preview.
-   */
   async function showSuccessSplash(plantId: number, typedName: string): Promise<void> {
     let preview: EnrichmentSplashPreview = {
       species: null,
@@ -347,18 +313,13 @@ export function AddPlant() {
           placementHint: null,
         };
 
-        // Best-effort: pull first placement tip from the catalog entry for the
-        // species. A missing or failing catalog lookup just leaves the hint
-        // unset — the splash degrades gracefully.
         if (species) {
           try {
             const c = await fetch(
               `/api/catalog/entry?species=${encodeURIComponent(species)}`,
             );
             if (c.ok) {
-              const entry = (await c.json()) as
-                | { placement_tips?: string[] }
-                | null;
+              const entry = (await c.json()) as { placement_tips?: string[] } | null;
               const tip = entry?.placement_tips?.[0];
               if (typeof tip === 'string' && tip.length > 0) {
                 preview.placementHint = tip;
@@ -375,6 +336,7 @@ export function AddPlant() {
 
     setSplashPreview(preview);
     setSplashMode('success');
+    void typedName;
   }
 
   function handleLooksRight(): void {
@@ -397,14 +359,11 @@ export function AddPlant() {
 
     setSplashSubmitting(true);
     try {
-      const r = await fetch(
-        `/api/plants/${splashPlantId}/retry-enrichment`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: trimmed }),
-        },
-      );
+      const r = await fetch(`/api/plants/${splashPlantId}/retry-enrichment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      });
       if (!r.ok) {
         setSplashSubmitting(false);
         setSplashMode('success');
@@ -439,7 +398,6 @@ export function AddPlant() {
       // Ignore — we'll just offer the edit-name path with no suggestion.
     }
 
-    // Close the splash so did-you-mean can own the viewport (issue #39 handoff).
     setSplashMode(null);
     setSplashPreview(null);
     setFallbackPlantId(plantId);
@@ -469,8 +427,6 @@ export function AddPlant() {
       setFallbackSuggestion(null);
       setFallbackTypedName('');
       setRetrying(false);
-      // Re-enter the #72 splash flow with the corrected name so the user sees
-      // the new match confirmation (or falls into did-you-mean again).
       setSplashPlantId(plantId);
       setSplashTypedName(suggestion.latin_name);
       setSplashPreview(null);
@@ -491,12 +447,13 @@ export function AddPlant() {
     setFallbackSuggestion(null);
     setFallbackTypedName('');
     setRetrying(false);
-    // Return fully to the form — also clears any splash state.
     setSplashMode(null);
     setSplashPlantId(null);
     setSplashPreview(null);
     setSplashTypedName('');
   }
+
+  /* ===== Splash takeovers ===== */
 
   if (fallbackPlantId !== null) {
     return (
@@ -527,200 +484,103 @@ export function AddPlant() {
     );
   }
 
+  /* ===== Main form ===== */
+
   return (
-    <div>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
-        <Link
-          to="/"
-          style={{
-            color: 'var(--text-secondary)',
-            fontSize: 24,
-            lineHeight: 1,
-            minWidth: 44,
-            minHeight: 44,
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          aria-label="Back"
-        >
-          ‹
-        </Link>
-        <h1 style={{ fontSize: 22, fontWeight: 700 }}>Add Plant</h1>
-      </div>
+    <form className="p7l-addplant" onSubmit={handleSubmit} noValidate>
+      <BackBar onBack={() => navigate('/')} backLabel="← Cancel" eyebrow="New plant" />
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* Plant species or type — primary field */}
-        <div>
-          <label
-            htmlFor="name"
-            style={{
-              display: 'block',
-              fontSize: 13,
-              color: 'var(--text-secondary)',
-              marginBottom: 6,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Plant species or type
-          </label>
-          <div style={{ position: 'relative' }}>
-            <input
-              id="name"
-              ref={nameInputRef}
-              type="text"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              onFocus={() => {
-                if (catalogResults.length > 0 && !catalogSlug) setCatalogOpen(true);
-              }}
-              onBlur={() => {
-                // Delay close so mousedown on an option can register before blur.
-                setTimeout(() => setCatalogOpen(false), 120);
-              }}
-              placeholder="Monstera, Ficus, Pothos"
-              autoFocus
-              required
-              autoComplete="off"
-              role="combobox"
-              aria-expanded={catalogOpen}
-              aria-controls="catalog-suggestions"
-              aria-autocomplete="list"
-              style={{ fontSize: 20, fontWeight: 500, width: '100%' }}
-            />
-            {catalogOpen && catalogResults.length > 0 && (
-              <ul
-                id="catalog-suggestions"
-                role="listbox"
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  margin: '4px 0 0 0',
-                  padding: 4,
-                  listStyle: 'none',
-                  background: 'var(--bg-primary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 8,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.18)',
-                  zIndex: 10,
-                  maxHeight: 280,
-                  overflowY: 'auto',
+      <div className="p7l-addplant__form">
+        <FormStep num="01 · Species" title="What kind of plant?">
+          <div>
+            <FieldLabel htmlFor="name" required>
+              Plant species or type
+            </FieldLabel>
+            <div className="p7l-addplant__combobox" style={{ marginTop: 6 }}>
+              <input
+                id="name"
+                ref={nameInputRef}
+                type="text"
+                value={name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                onFocus={() => {
+                  if (catalogResults.length > 0 && !catalogSlug) setCatalogOpen(true);
                 }}
-              >
-                {catalogResults.map((r) => (
-                  <li
-                    key={r.slug}
-                    role="option"
-                    aria-label={r.latin_name}
-                    aria-selected={catalogSlug === r.slug}
-                    onMouseDown={(e) => {
-                      // Prevent blur before click lands.
-                      e.preventDefault();
-                      handleSelectCatalog(r);
-                    }}
-                    style={{
-                      padding: '8px 10px',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                      fontSize: 15,
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.background =
-                        'var(--bg-secondary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'transparent';
-                    }}
-                  >
-                    <div style={{ fontWeight: 500 }}>{r.latin_name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                      {r.primary_common_name}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+                onBlur={() => {
+                  setTimeout(() => setCatalogOpen(false), 120);
+                }}
+                placeholder="Monstera, Ficus, Pothos…"
+                autoFocus
+                required
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={catalogOpen}
+                aria-controls="catalog-suggestions"
+                aria-autocomplete="list"
+              />
+              {catalogOpen && catalogResults.length > 0 && (
+                <ul
+                  id="catalog-suggestions"
+                  role="listbox"
+                  className="p7l-addplant__suggestions"
+                >
+                  {catalogResults.map((r) => (
+                    <li
+                      key={r.slug}
+                      role="option"
+                      aria-label={r.latin_name}
+                      aria-selected={catalogSlug === r.slug}
+                      className="p7l-addplant__suggestion"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectCatalog(r);
+                      }}
+                    >
+                      <div className="p7l-addplant__suggestion-name">
+                        {r.latin_name}
+                      </div>
+                      <div className="p7l-addplant__suggestion-common">
+                        {r.primary_common_name}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <p className="p7l-addplant__hint">
+              {isFirstPlant
+                ? 'Search for your plant by species name. Personal names go in Identifier.'
+                : 'Personal names go in Identifier below.'}
+            </p>
           </div>
-          {isFirstPlant && (
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-              Search for your plant by species name
-            </p>
-          )}
+
           {catalogSlug && (
-            <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4 }}>
-              ✓ Catalog match — care baselines will be applied instantly.
-            </p>
+            <Callout tone="accent">
+              <strong>✓ Catalog match.</strong> Care baselines will be applied
+              instantly when you add this plant.
+            </Callout>
           )}
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-            If you want to give this plant a personal name, use the Identifier field below
-          </p>
-        </div>
 
-        {/* Identifier — helps tell same-species plants apart */}
-        <div>
-          <label
-            htmlFor="identifier"
-            style={{
-              display: 'block',
-              fontSize: 13,
-              color: 'var(--text-secondary)',
-              marginBottom: 6,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Identifier <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>(optional)</span>
-          </label>
-          <input
-            id="identifier"
-            type="text"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="e.g. Hanging basket, Blue pot"
-            style={{ fontSize: 15 }}
-          />
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-            {isFirstPlant
-              ? 'How would you describe this specific plant?'
-              : 'Helps tell similar plants apart at a glance.'}
-          </p>
-        </div>
+          <div>
+            <FieldLabel htmlFor="identifier" hint="Helps tell similar plants apart at a glance.">
+              Identifier (optional)
+            </FieldLabel>
+            <input
+              id="identifier"
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="e.g. Hanging basket, Blue pot"
+              style={{ marginTop: 6 }}
+            />
+          </div>
+        </FormStep>
 
-        {/* When did you last water? */}
-        <div>
-          <label
-            style={{
-              display: 'block',
-              fontSize: 13,
-              color: 'var(--text-secondary)',
-              marginBottom: 8,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            When did you last water?
-          </label>
-
-          {/* Segmented control */}
+        <FormStep num="02 · Last watered" title="When did you last water?">
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              background: 'var(--bg-secondary)',
-              borderRadius: 8,
-              padding: 3,
-              gap: 3,
-            }}
+            className="p7l-addplant__seg"
+            role="group"
+            aria-label="When did you last water"
           >
             {(
               [
@@ -732,143 +592,65 @@ export function AddPlant() {
               <button
                 key={opt.value}
                 type="button"
+                aria-pressed={wateredWhen === opt.value}
                 onClick={() => setWateredWhen(opt.value)}
-                style={{
-                  background: wateredWhen === opt.value ? 'var(--accent)' : 'transparent',
-                  color:
-                    wateredWhen === opt.value ? 'white' : 'var(--text-secondary)',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '8px 4px',
-                  fontSize: 13,
-                  fontWeight: wateredWhen === opt.value ? 600 : 400,
-                  cursor: 'pointer',
-                  minHeight: 44,
-                  transition: 'background 0.15s',
-                }}
               >
                 {opt.label}
               </button>
             ))}
           </div>
 
-          {/* Date picker container — reserve space to prevent jittering */}
-          <div
-            style={{
-              marginTop: 10,
-              minHeight:
-                wateredWhen === 'pick' || wateredWhen === 'unknown' ? 'auto' : 44,
-            }}
-          >
-            {wateredWhen === 'pick' && (
-              <input
-                type="date"
-                value={pickedDate}
-                max={today()}
-                onChange={(e) => setPickedDate(e.target.value)}
-              />
-            )}
-
-            {wateredWhen === 'unknown' && (
-              <div>
-                <label
-                  htmlFor="soilFeel"
-                  style={{
-                    display: 'block',
-                    fontSize: 13,
-                    color: 'var(--text-secondary)',
-                    marginBottom: 6,
-                  }}
-                >
-                  How does the soil feel?{' '}
-                  <span
-                    style={{
-                      textTransform: 'none',
-                      letterSpacing: 0,
-                      fontSize: 12,
-                      opacity: 0.7,
-                    }}
-                  >
-                    *
-                  </span>
-                </label>
-                <select
-                  id="soilFeel"
-                  value={soilFeel}
-                  onChange={(e) => setSoilFeel(e.target.value as SoilFeel)}
-                  required
-                  aria-invalid={soilFeelMissing ? true : undefined}
-                  style={{
-                    width: '100%',
-                    borderColor: soilFeelMissing ? 'var(--danger)' : undefined,
-                  }}
-                >
-                  <option value="">Select soil feel…</option>
-                  {SOIL_FEEL_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--text-secondary)',
-                    marginTop: 4,
-                  }}
-                >
-                  Helps us calibrate the first watering interval.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {isFirstPlant && (
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
-              When did you last water it? Pick &lsquo;Don&rsquo;t know&rsquo; if unsure
-            </p>
+          {wateredWhen === 'pick' && (
+            <input
+              type="date"
+              value={pickedDate}
+              max={today()}
+              onChange={(e) => setPickedDate(e.target.value)}
+              aria-label="Last watered date"
+            />
           )}
-        </div>
 
-        {/* Optional fields */}
-        <div
-          style={{
-            background: 'var(--bg-secondary)',
-            borderRadius: 8,
-            padding: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-          }}
-        >
-          <p
-            style={{
-              fontSize: 12,
-              color: 'var(--text-secondary)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom: -4,
-            }}
-          >
-            Plant details
-          </p>
-
-          {/* Pot size */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 6 }}>
-              <label
-                htmlFor="potSize"
-                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)' }}
+          {wateredWhen === 'unknown' && (
+            <div>
+              <FieldLabel
+                htmlFor="soilFeel"
+                required
+                hint="Helps us calibrate the first watering interval."
               >
-                Pot size <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
-              </label>
+                How does the soil feel?
+              </FieldLabel>
+              <select
+                id="soilFeel"
+                value={soilFeel}
+                onChange={(e) => setSoilFeel(e.target.value as SoilFeel)}
+                required
+                aria-invalid={soilFeelMissing ? true : undefined}
+                style={{
+                  marginTop: 6,
+                  borderColor: soilFeelMissing ? 'var(--status-overdue)' : undefined,
+                }}
+              >
+                <option value="">Select soil feel…</option>
+                {SOIL_FEEL_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </FormStep>
+
+        <FormStep num="03 · Home" title="Where does it live?">
+          <div>
+            <div className="p7l-addplant__label-row">
+              <FieldLabel htmlFor="potSize" required>Pot size</FieldLabel>
               <PotSizeTooltip />
             </div>
             <select
               id="potSize"
               value={potCategory}
               onChange={(e) => setPotCategory(e.target.value)}
-              style={{ width: '100%' }}
               required
             >
               <option value="">Select size…</option>
@@ -878,29 +660,11 @@ export function AddPlant() {
                 </option>
               ))}
             </select>
-            {isFirstPlant && (
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                Pick a size range
-              </p>
-            )}
           </div>
 
-          {/* Location — room picker + free-text (#2) */}
           <div>
-            <label
-              htmlFor="location"
-              style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
-            >
-              Location <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
-            </label>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 6,
-                marginBottom: 8,
-              }}
-            >
+            <FieldLabel htmlFor="location" required>Location</FieldLabel>
+            <div className="p7l-addplant__rooms" style={{ marginTop: 6 }}>
               {COMMON_ROOMS.map((room) => {
                 const active = location.trim().toLowerCase() === room.toLowerCase();
                 return (
@@ -910,17 +674,17 @@ export function AddPlant() {
                     onClick={() => setLocation(room)}
                     aria-pressed={active}
                     style={{
-                      background: active ? 'var(--accent)' : 'var(--bg-primary)',
-                      color: active ? 'white' : 'var(--text-primary)',
-                      border: active
-                        ? '1px solid var(--accent)'
-                        : '1px solid var(--border)',
-                      borderRadius: 999,
-                      padding: '6px 12px',
-                      fontSize: 13,
-                      fontWeight: active ? 600 : 400,
+                      background: active ? 'var(--ink)' : 'var(--bg)',
+                      color: active ? 'var(--bg)' : 'var(--ink)',
+                      border: '0.5px solid var(--ink)',
+                      padding: '5px 10px',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 10,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      fontWeight: 500,
                       cursor: 'pointer',
-                      minHeight: 32,
+                      borderRadius: 0,
                     }}
                   >
                     {room}
@@ -936,25 +700,13 @@ export function AddPlant() {
               placeholder="Or type your own (e.g. Kitchen windowsill)"
               required
             />
-            {isFirstPlant && (
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                Tap a room or type a custom location
-              </p>
-            )}
           </div>
 
-          {/* Light level */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label
-                htmlFor="lightLevel"
-                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 0 }}
-              >
-                Light level <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12, opacity: 0.7 }}>*</span>
-              </label>
+            <div className="p7l-addplant__label-row">
+              <FieldLabel htmlFor="lightLevel" required>Light level</FieldLabel>
               <LightLevelTooltip />
             </div>
-            <div style={{ marginTop: 6 }}></div>
             <select
               id="lightLevel"
               value={lightLevel}
@@ -969,14 +721,8 @@ export function AddPlant() {
             </select>
           </div>
 
-          {/* Plant size */}
           <div>
-            <label
-              htmlFor="plantSize"
-              style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
-            >
-              Plant size
-            </label>
+            <FieldLabel htmlFor="plantSize">Plant size</FieldLabel>
             <select
               id="plantSize"
               value={plantSize}
@@ -987,15 +733,11 @@ export function AddPlant() {
               <option value="large">Large</option>
             </select>
           </div>
+        </FormStep>
 
-          {/* Origin */}
+        <FormStep num="04 · Provenance" title="Where's it from?">
           <div>
-            <label
-              htmlFor="originType"
-              style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
-            >
-              Origin
-            </label>
+            <FieldLabel htmlFor="originType">Origin</FieldLabel>
             <select
               id="originType"
               value={originType}
@@ -1011,12 +753,9 @@ export function AddPlant() {
 
           {(originType === 'purchased' || originType === 'received') && (
             <div>
-              <label
-                htmlFor="originSource"
-                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
-              >
+              <FieldLabel htmlFor="originSource">
                 {originType === 'purchased' ? 'Shop or source' : 'From whom'}
-              </label>
+              </FieldLabel>
               <input
                 id="originSource"
                 type="text"
@@ -1029,12 +768,7 @@ export function AddPlant() {
 
           {originType === 'seedling' && existingPlants.length > 0 && (
             <div>
-              <label
-                htmlFor="motherPlantId"
-                style={{ display: 'block', fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6 }}
-              >
-                Mother plant
-              </label>
+              <FieldLabel htmlFor="motherPlantId">Mother plant</FieldLabel>
               <select
                 id="motherPlantId"
                 value={motherPlantId}
@@ -1049,55 +783,36 @@ export function AddPlant() {
               </select>
             </div>
           )}
-        </div>
+        </FormStep>
 
-        {/* Inline error */}
         {error && (
-          <div
-            style={{
-              background: 'rgba(231, 76, 60, 0.1)',
-              border: '1px solid var(--danger)',
-              borderRadius: 8,
-              padding: '12px 16px',
-              color: 'var(--danger)',
-              fontSize: 14,
-            }}
-          >
-            {error}
+          <div style={{ padding: '0 18px 8px' }}>
+            <Banner tone="error" title="Couldn't add plant">
+              {error}
+            </Banner>
           </div>
         )}
+      </div>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={
-            loading ||
-            !name.trim() ||
-            !potCategory ||
-            !location.trim() ||
-            !lightLevel ||
-            soilFeelMissing
-          }
-          style={{
-            width: '100%',
-            fontSize: 17,
-            fontWeight: 600,
-            padding: '14px 0',
-            borderRadius: 12,
-            opacity:
-              !name.trim() ||
-              !potCategory ||
-              !location.trim() ||
-              !lightLevel ||
-              soilFeelMissing
-                ? 0.5
-                : 1,
-            marginTop: 4,
-          }}
+      <div className="p7l-addplant__submit">
+        <Button
+          type="button"
+          variant="ghost"
+          fullWidth
+          onClick={() => navigate('/')}
         >
-          {loading ? 'Adding...' : 'Add Plant'}
-        </button>
-      </form>
-    </div>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          fullWidth
+          disabled={submitDisabled}
+          loading={loading}
+        >
+          {loading ? 'Adding…' : 'Add plant'}
+        </Button>
+      </div>
+    </form>
   );
 }
