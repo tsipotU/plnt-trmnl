@@ -298,6 +298,12 @@ deleted, dozens of inputs reorganized into four `FormStep` blocks with new
 chrome — and **zero test query updates**. That outcome is the headline
 feature of every well-built molecule layer.
 
+The same principle scales to **page-local components**. A Calendar day cell
+with a single `aria-label` like `"2026-05-04 · 1 watering · today"` serves
+tests (`getByRole('button', { name: /^2026-05-04/ })`), screen readers, and
+tooltips at once — visual treatment of the cell can change freely without
+touching any of the three consumers.
+
 ---
 
 ## Cross-references

@@ -1,0 +1,10 @@
+/* Page-local styles for the Archive list. Same edge-to-edge wrapper trick
+   as the other rebuilt pages. */
+
+.p7l-archived {
+  margin: -16px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: calc(100dvh - 80px);
+  font-family: var(--font-sans);
+}
