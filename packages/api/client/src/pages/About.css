@@ -1,0 +1,16 @@
+.p7l-about {
+  margin: -16px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: calc(100dvh - 80px);
+  font-family: var(--font-sans);
+}
+
+.p7l-about__body {
+  padding: 0 18px 24px;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0;
+}

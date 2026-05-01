@@ -1,29 +1,13 @@
 import { useState } from 'react';
+import { PageHead } from '../components/molecules/PageHead/PageHead';
+import { SectionHead } from '../components/molecules/SectionHead/SectionHead';
+import { SettingsRow } from '../components/molecules/SettingsRow/SettingsRow';
+import { InfoCard } from '../components/molecules/InfoCard/InfoCard';
+import { Button } from '../components/atoms/Button/Button';
+import { Banner } from '../components/atoms/Banner/Banner';
+import './TrmnlSetup.css';
 
-// Proxy through API to avoid CORS issues
 const RENDERER_URL = '/api/trmnl';
-
-interface StatusRowProps {
-  label: string;
-  value: React.ReactNode;
-}
-
-function StatusRow({ label, value }: StatusRowProps) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 0',
-        borderBottom: '1px solid var(--border)',
-      }}
-    >
-      <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{value}</span>
-    </div>
-  );
-}
 
 const SETUP_STEPS = [
   'Log in to usetrmnl.com',
@@ -60,145 +44,68 @@ export function TrmnlSetup() {
   }
 
   return (
-    <div>
-      {/* Page header */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700 }}>TRMNL Setup</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>
-          Connect your TRMNL e-ink display to PLNT
-        </p>
+    <div className="p7l-trmnl-setup">
+      <PageHead
+        eyebrow="Device"
+        title="TRMNL setup"
+        subtitle="Connect your TRMNL e-ink display to PLNT."
+      />
+
+      <SectionHead as="h2" label="Connection" />
+      <SettingsRow
+        label="Plugin UUID"
+        trailing={<code className="p7l-trmnl-setup__mono">Set in .env</code>}
+      />
+      <SettingsRow label="Strategy" trailing="Webhook" />
+      <SettingsRow label="Last push" trailing="No data yet" />
+      <SettingsRow label="Refresh interval" trailing="30 min" />
+
+      <SectionHead as="h2" label="Setup instructions" />
+      <ol className="p7l-trmnl-setup__steps">
+        {SETUP_STEPS.map((step, i) => (
+          <li key={i}>
+            <span className="p7l-trmnl-setup__step-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="p7l-trmnl-setup__step-text">{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      <SectionHead as="h2" label="Required .env variables" />
+      <div style={{ padding: '0 18px 12px' }}>
+        <InfoCard>
+          <pre className="p7l-trmnl-setup__envblock">
+            <code>
+              <span className="p7l-trmnl-setup__envkey">TRMNL_PLUGIN_UUID</span>=your-uuid-here{'\n'}
+              <span className="p7l-trmnl-setup__envkey">TRMNL_API_KEY</span>=your-api-key-here{'\n'}
+              <span className="p7l-trmnl-setup__envkey">RENDER_CRON</span>=0 5 * * *
+            </code>
+          </pre>
+        </InfoCard>
       </div>
 
-      {/* Status card */}
-      <div className="card" style={{ marginBottom: 16 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Connection Status</h2>
-        <StatusRow label="Plugin UUID" value={<code style={{ fontSize: 12 }}>Set in .env</code>} />
-        <StatusRow label="Strategy" value="Webhook" />
-        <StatusRow
-          label="Last push"
-          value={
-            <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>
-              No data yet
-            </span>
-          }
-        />
-        <StatusRow
-          label="Refresh interval"
-          value={
-            <span style={{ color: 'var(--accent)', fontWeight: 700 }}>30 min</span>
-          }
-        />
-      </div>
-
-      {/* Setup instructions */}
-      <div className="card" style={{ marginBottom: 16 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>Setup Instructions</h2>
-        <ol style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {SETUP_STEPS.map((step, i) => (
-            <li
-              key={i}
-              style={{
-                display: 'flex',
-                gap: 12,
-                alignItems: 'flex-start',
-              }}
-            >
-              <span
-                style={{
-                  flexShrink: 0,
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  background: 'var(--accent)',
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginTop: 1,
-                }}
-              >
-                {i + 1}
-              </span>
-              <span style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--text-primary)' }}>
-                {step}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      {/* Environment variables reference */}
-      <div className="card" style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Required .env Variables</h2>
-        <div
-          style={{
-            background: 'var(--bg-primary)',
-            borderRadius: 6,
-            padding: '12px 14px',
-            fontFamily: 'monospace',
-            fontSize: 13,
-            lineHeight: 1.8,
-            color: 'var(--text-secondary)',
-            border: '1px solid var(--border)',
-          }}
-        >
-          <div>
-            <span style={{ color: 'var(--accent)' }}>TRMNL_PLUGIN_UUID</span>=your-uuid-here
-          </div>
-          <div>
-            <span style={{ color: 'var(--accent)' }}>TRMNL_API_KEY</span>=your-api-key-here
-          </div>
-          <div>
-            <span style={{ color: 'var(--accent)' }}>RENDER_CRON</span>=0 5 * * *
-          </div>
-        </div>
-      </div>
-
-      {/* Test push button */}
+      <SectionHead as="h2" label="Test push" />
       {pushResult && (
-        <div
-          className="card"
-          style={{
-            marginBottom: 12,
-            background: pushResult.ok ? 'rgba(0,168,107,0.1)' : 'rgba(231,76,60,0.1)',
-            border: `1px solid ${pushResult.ok ? 'var(--accent)' : 'var(--danger)'}`,
-            color: pushResult.ok ? 'var(--accent)' : 'var(--danger)',
-            fontSize: 14,
-          }}
-        >
-          {pushResult.message}
+        <div style={{ padding: '0 18px 10px' }}>
+          <Banner tone={pushResult.ok ? 'success' : 'error'}>{pushResult.message}</Banner>
         </div>
       )}
-
-      <button
-        onClick={handleTestPush}
-        disabled={pushing}
-        style={{
-          width: '100%',
-          background: pushing ? 'rgba(0,168,107,0.4)' : 'var(--accent)',
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 600,
-          minHeight: 52,
-          borderRadius: 8,
-          cursor: pushing ? 'not-allowed' : 'pointer',
-        }}
-      >
-        {pushing ? 'Triggering render...' : 'Test Push (Trigger Render)'}
-      </button>
-
-      <p
-        style={{
-          marginTop: 10,
-          fontSize: 12,
-          color: 'var(--text-secondary)',
-          textAlign: 'center',
-        }}
-      >
-        Triggers an immediate re-render on the renderer container (localhost:3901)
+      <div style={{ padding: '0 18px 8px' }}>
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          loading={pushing}
+          disabled={pushing}
+          onClick={handleTestPush}
+        >
+          {pushing ? 'Triggering render…' : 'Trigger render now'}
+        </Button>
+      </div>
+      <p className="p7l-trmnl-setup__hint">
+        Triggers an immediate re-render on the renderer container (localhost:3901).
       </p>
+
+      <div style={{ height: 96 }} />
     </div>
   );
 }
