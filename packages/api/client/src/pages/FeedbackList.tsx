@@ -83,7 +83,7 @@ export function FeedbackList() {
         title="Feedback"
       />
 
-      <FilterRail aria-label="Filter by type">
+      <FilterRail bordered={false} aria-label="Filter by type">
         {CATEGORIES.map((c) => (
           <Chip
             key={c}
