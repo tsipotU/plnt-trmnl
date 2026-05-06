@@ -2,7 +2,7 @@
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
-**Last updated:** 2026-05-06 (post repo-public flip, OSS-readiness batch, branch protection, Storybook on GH Pages, `PLNT` → `p7l` wordmark rebrand. v1.0.0 still not tagged; Wave 14 = TRMNL identity is the next functional wave.)
+**Last updated:** 2026-05-06 (post repo-public flip, OSS-readiness batch, branch protection, Storybook on GH Pages, `PLNT` → `p7l` wordmark rebrand, dog-food triage + Wave 17 groomed in. v1.0.0 still not tagged; **Wave 17 — Dog-food polish + sunset** is the next functional wave, ahead of Wave 14.)
 
 ---
 
@@ -27,6 +27,7 @@ Single-file briefing so a new session, contributor, or future-you can pick up wo
 
 ## What just happened (last 24h, in case you've been away)
 
+00. **Wave 17 groomed in** (2026-05-06). Local instance was rebuilt to deploy the p7l rebrand → dog-food run produced 18 in-app feedback items → triaged into 17 new GitHub issues ([#155](https://github.com/tsipotU/plnt-trmnl/issues/155)–[#171](https://github.com/tsipotU/plnt-trmnl/issues/171)) plus 3 follow-ups ([#172](https://github.com/tsipotU/plnt-trmnl/issues/172)–[#174](https://github.com/tsipotU/plnt-trmnl/issues/174)) for older stale-open feedback. Highlights: [#166](https://github.com/tsipotU/plnt-trmnl/issues/166) sunsets vacation mode permanently; [#169](https://github.com/tsipotU/plnt-trmnl/issues/169) lands a Claude-Design-produced nav-surface design pass (6 new `--nav-*` tokens + Storybook expansion + component bindings) which fixes the transparency cluster; [#170](https://github.com/tsipotU/plnt-trmnl/issues/170) audits the 7 non-nav components silently broken by the same undefined `--bg-secondary` token. **Wave restructure**: inserted Wave 17 ahead of Wave 14, added Wave 18 (passport IA, post-v1.0). Order: 17 → 14 → 15 → 16 → 18, v1.0.0 tag at end of W16. **Milestones reorganised** on GitHub — wave-named milestones for 14/15/16/17/18 + v1.1/v2 backlog buckets, 5 stale `v0.x` milestones closed. **Issue housekeeping**: #1 closed (catalog at 444 exceeds 250+ goal), #148 retitled and scoped to category-only (vacation half obsoleted by #166). **Feedback DB updated** with link-comments mapping feedback rows to GitHub issues, and 3 stale-open rows flipped to `in_progress`. ROADMAP.md, CHANGELOG.md, this file all reflect the new state.
 0. **Brand consolidation `PLNT` → `p7l`** (PR #151, 2026-05-06). Wordmark replaced everywhere it appears (Header, About, Dashboard welcome, TrmnlSetup, PlantDetail, README, INSTALL, conventions). Tokens are now `plnt-trmnl` (codename) / `p7l` (wordmark) / `p7l-` (CSS prefix). Naming.mdx Foundations table codifies it. Roadmap also gained two new backlog items: v1.1 iCalendar subscription feed, v2 propagation guides + calendar-backed propagation projects.
 1. **Repo flipped public** (2026-05-05). History was rewritten via `git filter-repo --replace-text` to scrub leaked paths / IPs / private-project references before the flip; `scripts/pre-flip-audit.sh` was tightened to leakier patterns and exited 0 post-rewrite. Repo also renamed from `plant-trmnl` → `plnt-trmnl` (level B: visible surface only — DB filenames, localStorage keys, Docker service names preserved). License: kept MIT after critical review against AGPL / PolyForm; non-binding "Commercial use" community-norms section added to README via PR #150. Branch protection ruleset enabled.
 2. **OSS-readiness batch** (rolling 2026-04-26 → 2026-05-05):
@@ -90,23 +91,23 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 
 ## Open issues snapshot (as of HEAD)
 
-| # | Title | Wave |
-|---|---|---|
-| #7 | TRMNL template: visual redesign to match Lovable mockups | Wave 14 (next) |
-| #138 | Two-variant illustration pipeline (resumed Wave 11) | Wave 14 (next, blocked on generator pick) |
-| #55 | TRMNL-X dual-resolution renderer support | Wave 15 |
-| #59 | PWA: installable home-screen app + offline | Wave 15 |
-| #40 | Frontend design pass: holistic UI refresh | Wave 16 (pre-flip) |
-| #1 | Native Dutch-name audit (444-plant catalog) | Wave 16 (Emiel) |
-| #139 | Plant detail: full section reorder to passport IA | child of #134, Wave 16 or sooner |
-| #140 | Plant detail: hero block visual redesign | Wave 16 |
-| #141 | Plant detail: "This plant" section consolidation | Wave 16 |
-| #142 | Plant detail: sticky in-page nav | Wave 16 |
-| #143 | Plant detail: origin & lore narrative card | Wave 16 |
-| #127 | Calendar view (week/month/year) | v2 (post-flip) |
-| #128 | "Identify my plant" walkthrough | v2 (post-flip) |
+33 open issues, all milestoned.
 
-Closed during Wave 13 (2026-04-26): #134, #133, #60, #18 (won't-fix). Closed during Wave 12 (2026-04-26): #126, #135. Closed earlier: #137 (goat-tracker GH bridge, not-planned), #54 (superseded by #138).
+**Wave 17 — Dog-food polish + sunset (active, 18):** #155 (repot bug), #156 (foldout /add transparent), #157 (mobile tooltip z-index), #158 (zoom after feedback popup), #159 (tag-filter line glitch), #160 (notes don't save), #161 (Today button clipped), #162 (image lightbox), #164 (archive flow polish), #165 (feedback button restyle), #166 (sunset vacation mode), #167 (humanized water-state labels), #169 (nav surface design pass), #170 (`--bg-secondary` audit), #171 (v1.0.0 placeholder in About+Settings), #172 (pull-to-refresh stuck), #173 (plant images don't load), #174 (date-strip + plant-list disagree on empty state).
+
+**Wave 14 — TRMNL identity:** #7 (TRMNL template visual), #138 (two-variant illustration pipeline, blocked on generator pick).
+
+**Wave 15 — PWA + TRMNL-X:** #55 (dual-resolution renderer), #59 (PWA install + offline).
+
+**Wave 16 — Holistic polish + v1.0.0 launch:** #40 (frontend design pass).
+
+**Wave 18 — Plant detail passport IA (post-v1.0):** #139 (full section reorder), #140 (hero block redesign), #141 ("This plant" consolidation), #142 (sticky in-page nav), #143 (origin & lore card), #168 (common conditions cards collapse + uniform width).
+
+**v1.1 backlog:** #144 (auth modernization), #148 (category filter — vacation half obsolete), #152 (iCalendar feed), #163 (task ribbon info+log panel).
+
+**v2 backlog:** #127 (calendar grid view), #128 ("Identify my plant" walkthrough), #153 (propagation guides + projects).
+
+Closed 2026-05-06: #1 (catalog at 444 species, exceeded 250+ goal). Closed 2026-04-26: #134, #133, #60, #18 (won't-fix), #126, #135. Closed earlier: #137 (goat-tracker GH bridge, not-planned), #54 (superseded by #138).
 
 ## Architectural carry-forwards
 
@@ -162,9 +163,12 @@ The auto-memory `project_plant_trmnl.md` already carries cross-session facts; do
 The OSS-readiness scaffolding has all landed — `LICENSE` (MIT), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `CODEOWNERS`, issue + PR templates, `.github/workflows/test.yml`, `.github/dependabot.yml`, `.nvmrc`, `.editorconfig`. History scrubbed; repo public; Storybook deployed; branch protection on. License framing clear.
 
 What still gates v1.0.0:
+- **Wave 17** — Dog-food polish + sunset (18 issues, see milestone). Burns down the 2026-05-06 dog-food output, lands the nav-surface design pass (#169), audits the `--bg-secondary` token (#170), sunsets vacation mode (#166). Inserted ahead of W14 because the polish + design-system gap close block clean v1.0 work.
 - **Wave 14** — TRMNL identity (#7 template + #138 illustration pipeline, generation source still TBD).
 - **Wave 15** — PWA (#59) + TRMNL-X dual-resolution (#55).
 - **Wave 16** — holistic frontend design pass (#40), Native Dutch-name audit on the 444-plant catalog (Emiel), README screenshot/copy refresh, `INSTALL.md` clean-machine smoke test.
 - **Tag v1.0.0**, draft GitHub Release notes from CHANGELOG `[Unreleased]`, announce (TRMNL Discord, /r/houseplants, /r/selfhosted, HN).
+
+Wave 18 (passport IA — #139–#143 + #168) is post-v1.0; doesn't gate the tag.
 
 `docs/RELEASE-PROCESS.md` documents the mechanics in detail. `ROADMAP.md` carries the wave-by-wave plan; v1.1 and v2 backlog also live there (calendar feed, propagation, auth modernization, illustrations rollout, drift-from-mean calibration, identify walkthrough, calendar view, multi-user).
