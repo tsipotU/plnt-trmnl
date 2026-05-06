@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Brand consolidation: `PLNT` → `p7l` (2026-05-06)
+
+- **Wordmark renamed.** The user-facing brand token `PLNT` has been replaced everywhere it appears (Header, About page, Dashboard welcome, TrmnlSetup subtitle, PlantDetail Conditions copy, README headline, INSTALL title, `docs/conventions.md`). Test regexes in `Header.test.tsx`, `About.test.tsx`, and `Dashboard.test.tsx` updated to match.
+- **Naming.mdx Foundations table** updated to reflect the new convention. The three project tokens are now: `plnt-trmnl` (codename / repo / package scopes), `p7l` (user-facing wordmark), `p7l-` (every CSS class in the design system). The wordmark and CSS prefix sharing the same numeronym root is now the *point* of the convention.
+- **PR #151** — single squash merge, 14 files changed, 9 affected tests green.
+
+### Roadmap additions (2026-05-06)
+
+- **v1.1 backlog: Calendar subscription feed (`.ics`).** Surface the existing schedule machinery as a read-only iCalendar feed users can subscribe to in Apple Calendar / Google Calendar / Outlook. One per-user secret URL, events for upcoming waterings (and later: propagation milestones). Spec-light: serve `text/calendar` from `/api/calendar/<token>.ics`.
+- **v2 backlog: Propagation guides + calendar-backed propagation projects.** Catalog gains per-species propagation profiles (seed, cutting, division, layering, air-layering, grafting). Users can start a "propagation project" that p7l walks them through phase-by-phase using the existing schedule/calendar machinery. Per profile: method, difficulty, expected success rate, time-to-viable-plant, seasonal window, source-plant prerequisites, materials list (incl. final pot + soil + fertilizer), step-by-step process, common failure modes. On success, the new plant becomes its own p7l entry.
+
+### Repository public flip + branch protection (2026-05-05 → 2026-05-06)
+
+- **History rewritten** via `git filter-repo --replace-text` to scrub leaked paths / IPs / references to private projects (baristi-v2, CampingHappy) before going public. Force-pushed to origin.
+- **Repo renamed** from `plant-trmnl` → `plnt-trmnl` (level B: visible surface only). Operational identifiers (DB filenames, localStorage keys, Docker service names) preserved to avoid breaking running deployments.
+- **Repo visibility flipped to public.** GitHub Pages source set to "GitHub Actions"; first Storybook build deployed to https://tsipotU.github.io/plnt-trmnl/.
+- **Branch protection ruleset enabled** on `main`: require pull request, require status checks (`Client suite` + `API + renderer suite`), squash-merge only, no direct pushes.
+- **Auto-merge enabled at repo level** (`allow_auto_merge=true`). `gh pr merge --auto --squash --delete-branch` now functions; armed PRs merge as soon as required checks turn green.
+- **License clarified** — kept MIT (after critical review against AGPL / PolyForm Noncommercial). Added "Commercial use" community-norms section in README via PR #150 — non-binding asks for fork-back contributions, coordination on commercial products, and project credit.
+
+### OSS-readiness batch (2026-04-26 → 2026-05-05)
+
+- **Auth recovery CLI.** `npm run reset-auth` (in `packages/api/src/cli/reset-auth.ts`). Idempotent password reset that clears the stored hash + every active session, with `--password` / `--password-file` / `--database` / `--help` flags. INSTALL.md updated to point at it. Pure `resetAuth(db, password)` exported for tests; 5 unit tests cover insert / replace / sessions-cleanup / length-validation / empty-sessions.
+- **Storybook GitHub Pages deploy.** New `.github/workflows/storybook.yml` builds the catalog and deploys to GitHub Pages on every push to `main`. Catalog now live at https://tsipotU.github.io/plnt-trmnl/.
+- **Foundations cookbook (5 docs pages).** `Naming.mdx`, `Color.mdx`, `Accessibility.mdx`, `Theming.mdx`, `AddingAMolecule.mdx`. `@storybook/addon-themes` wired in `.storybook/main.ts` + `.storybook/preview.ts` for live light / dark toggling via `withThemeByDataAttribute`.
+- **`docs/conventions.md`.** Agent-and-human conventions / gotchas reference, lifted from `CLAUDE.md` and reorganized by concern (DB & scheduling, auth, routing, frontend, renderer, assets / Docker). `CLAUDE.md` slimmed to a 27-line pointer with agent-specific gotchas only.
+- **`docs/README.md`.** Index for the `docs/` directory (always-current vs wave-scoped vs append-only).
+- **README + CONTRIBUTING rewrite.** Full rewrite per OSS-readiness outline (status, quickstart, Storybook URL, architecture diagram, doc-map table; CONTRIBUTING covers welcome + scope, local setup, repo layout, test conventions, filing issues / PRs, working with the design system + API + catalog).
+- **`@legacy` JSDoc tags on 14 page-local components** in `packages/api/client/src/components/` — pre-catalog scaffolding marked so new code composes catalog primitives instead of extending the legacy components.
+- **Plants list filters narrowed (#148, partial).** `StateFilter` trimmed to `'all' | 'due'` for v1.0; full filter rail (vacation + category) deferred to v1.1 — depends on server-side changes (`vacation` boolean per plant, LEFT JOIN catalog into `/api/plants` for `category`).
+- **Pre-flip audit tightened.** `scripts/pre-flip-audit.sh` updated to leakier patterns (`/Users/admin`, `192.168.50.`, `sk-ant-`); `docs/archive/` and `scripts/` excluded from self-reference matches so the audit passed cleanly post-history-rewrite.
+
 ### Hotfixes — auth gate + image serving + Cloudflare hygiene (2026-04-26)
 
 - **Auth gate scoped to `/api/*`.** The `requireAuth` middleware was applied at `app.use()` level with no path prefix, so it ran on every request — including the SPA shell, `/login`, and `/welcome`. Fresh devices with no session cookie hit `401 {"error":"Authentication required"}` at the root URL and could never reach the login form. Existing browsers worked only because their cookie from a past login satisfied the gate. The middleware now early-exits for any path that doesn't start with `/api/`; the SPA's own AuthGate handles client-side route protection. Auth test suite extended with three SPA-pass-through cases (`/`, `/login`, `/welcome`).

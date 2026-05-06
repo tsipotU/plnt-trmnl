@@ -8,8 +8,9 @@ For shipped work, see [`CHANGELOG.md`](CHANGELOG.md). For the current snapshot, 
 
 ## Status
 
-- **Waves 1–10 + 12 + 13 shipped.** Catalog at 444 species across 12 categories (expanded from 250 on 2026-04-26). Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing (monstera fixture), AddPlant onboarding polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding (CollapsibleSection, ConditionCard primitives), calibration UX (explanation, progress, convergence/drift) all in. Repo is private; v1.0.0 not yet tagged. See `CHANGELOG.md`.
-- **Now:** Wave 14 (next session) — TRMNL identity (#7 template + #138 illustrations). Generation source for #138 must be chosen before that part can ship.
+- **Waves 1–10 + 12 + 13 shipped.** Catalog at 444 species across 12 categories (expanded from 250 on 2026-04-26). Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing (monstera fixture), AddPlant onboarding polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding (CollapsibleSection, ConditionCard primitives), calibration UX (explanation, progress, convergence/drift) all in.
+- **Repo is public** (flipped 2026-05-05). Storybook catalog live at https://tsipotU.github.io/plnt-trmnl/. Branch protection on `main` with required status checks + squash-merge + auto-merge. `PLNT` wordmark consolidated to `p7l` (PR #151, 2026-05-06). v1.0.0 not yet tagged — gated on Waves 14–16. See `CHANGELOG.md`.
+- **Now:** Wave 14 — TRMNL identity (#7 template + #138 illustrations). Generation source for #138 must be chosen before that part can ship.
 - **Next active waves:** 14 → 15 → 16, in order. v1.0 ships at end of Wave 16.
 - **Open child issues from Wave 13** (filed for future waves): [#139](https://github.com/tsipotU/plnt-trmnl/issues/139) full passport-order section reorder, [#140](https://github.com/tsipotU/plnt-trmnl/issues/140) hero block redesign, [#141](https://github.com/tsipotU/plnt-trmnl/issues/141) "this plant" consolidation, [#142](https://github.com/tsipotU/plnt-trmnl/issues/142) sticky in-page nav, [#143](https://github.com/tsipotU/plnt-trmnl/issues/143) origin & lore narrative card.
 
@@ -19,7 +20,7 @@ For each shipped wave's full scope and outcome, see [`CHANGELOG.md`](CHANGELOG.m
 
 ## Wave 14 — TRMNL identity (template + illustrations)
 
-**Status:** Picked up tomorrow (2026-04-27).
+**Status:** Next functional wave (not yet picked up).
 
 **Scope:**
 - [#7](https://github.com/tsipotU/plnt-trmnl/issues/7) — TRMNL template visual redesign matching Lovable mockups. Liquid templates for watering-day-1, watering-day-2, rest-day; title bar + footer; typography hierarchy; calibration prompt with 1–5 scale visual. Touches `docs/trmnl-templates/` only — separate from the SPA.
@@ -35,30 +36,27 @@ For each shipped wave's full scope and outcome, see [`CHANGELOG.md`](CHANGELOG.m
 
 **Likely outputs:** `docs/plans/<date>-wave-15-plan.md`, `manifest.webmanifest`, service worker, renderer dual-output mode, push-cron device-type routing.
 
-## Wave 16 — Pre-flip polish + release
+## Wave 16 — Holistic polish + v1.0.0 release
 
-**Goal:** Everything that has to be true on the day we flip the repo public, including the holistic visual pass.
+**Goal:** The visual identity pass that turns "shipping pieces" into "one coherent product," then the v1.0.0 tag and announcement.
 
 **Scope:**
-- [#40](https://github.com/tsipotU/plnt-trmnl/issues/40) — Holistic frontend design pass. The *last* thing before flip. By now the IA (Wave 13), TRMNL identity (Wave 14), and capabilities (Wave 15) are all in place. This pass unifies palette/typography/spacing across the SPA, polishes empty states and micro-interactions, defines the visual identity that the previous waves used in placeholder form. Visual only, no functional changes.
+- [#40](https://github.com/tsipotU/plnt-trmnl/issues/40) — Holistic frontend design pass. The *last* thing before tag. By now the IA (Wave 13), TRMNL identity (Wave 14), and capabilities (Wave 15) are all in place. This pass unifies palette/typography/spacing across the SPA, polishes empty states and micro-interactions, defines the visual identity that the previous waves used in placeholder form. Visual only, no functional changes.
 - Native Dutch-name audit on the 444-plant catalog (Emiel).
-- Run `scripts/pre-flip-audit.sh` — should fail on first run (history contains personal paths).
-- Run `git filter-repo --replace-text scripts/filter-repo-replacements.txt`. Re-run audit; expect exit 0. Force-push.
-- Run `scripts/audit-issues.sh`; edit any flagged GitHub issues.
 - README final pass — every link works, every screenshot reflects shipping reality, every command in `INSTALL.md` runs on a clean machine.
-- CI dry-run on a fork — make sure `.github/workflows/test.yml` actually goes green on a clean machine.
-- Repo settings → Visibility → public.
 - Tag v1.0.0, draft GitHub Release notes from CHANGELOG `[Unreleased]` → `[1.0.0]`.
 - Announce: TRMNL Discord, TRMNL forum, /r/houseplants, /r/selfhosted, HN.
 
-**Already in place** (landed during the post-Wave-8 cleanup pass — verify at flip time):
+**Already done** (landed before this wave was picked up):
+- Repo flipped public (2026-05-05). History scrubbed via `git filter-repo`. Pre-flip audit green.
 - `LICENSE` (MIT), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `CODEOWNERS`.
 - `.github/ISSUE_TEMPLATE/{bug,feature}.md`, `.github/pull_request_template.md`.
-- `.github/workflows/test.yml` (CI), `.github/dependabot.yml`.
-- `.nvmrc`, `.editorconfig`.
+- `.github/workflows/test.yml` (CI), `.github/workflows/storybook.yml` (GH Pages).
+- Branch protection on `main` with required status checks + squash-merge only + auto-merge.
+- `.github/dependabot.yml`, `.nvmrc`, `.editorconfig`.
 - `scripts/pre-flip-audit.sh`, `scripts/audit-issues.sh`, `scripts/filter-repo-replacements.txt`.
 
-**Likely outputs:** `docs/plans/<date>-wave-16-plan.md`, v1.0.0 tag, public repo, release notes, announcement.
+**Likely outputs:** `docs/plans/<date>-wave-16-plan.md`, v1.0.0 tag, release notes, announcement.
 
 ---
 
@@ -74,13 +72,13 @@ Things that shouldn't block v1.0 but should land soon after.
 - **Catalog illustrations rollout.** Catalog is now 444 species but only 1 has an `image_path` (monstera-deliciosa-albo-variegata). Wave 14's #138 illustration pipeline produces the variants per species; v1.1 is when we actually populate the catalog. Auto-backfill `plants.illustration_path` at boot (when a plant's species matches a catalog entry that has `image_path` and the column is NULL) so users with pre-existing plants get images for free as new illustrations land.
 - **"Drift from mean" calibration model.** Wave 13 added drift detection using the existing convergence-reset logic (a non-3 answer flips `is_converged` 1→0). A richer model that tracks mean dry-days over the last N cycles and flags meaningful deviation is the proper fix.
 - [#148](https://github.com/tsipotU/plnt-trmnl/issues/148) — **Plants list filters: vacation + category.** Phase 3 visual rebuild ships 4 of 5 state filters and 0 category filters because `/api/plants` rows don't expose `vacation` or `category`. Resolution is server-side: add `vacation` boolean to per-plant rows, LEFT JOIN catalog into `/api/plants` for `category`. Then the Plants list page restores both rails per the prototype.
-- **Calendar subscription feed (iCalendar / `.ics`).** p7l already owns the schedule machinery — surface it as a read-only iCal feed users can subscribe to in Apple Calendar / Google Calendar / Outlook. One per-user secret URL, events for upcoming waterings (and later: propagation milestones — see v2). Spec-light: serve `text/calendar` from `/api/calendar/<token>.ics`, regenerate on read, no two-way sync. Likely a single small wave.
+- [#152](https://github.com/tsipotU/plnt-trmnl/issues/152) — **Calendar subscription feed (iCalendar / `.ics`).** p7l already owns the schedule machinery — surface it as a read-only iCal feed users can subscribe to in Apple Calendar / Google Calendar / Outlook. One per-user secret URL, events for upcoming waterings (and later: propagation milestones — see v2). Spec-light: serve `text/calendar` from `/api/calendar/<token>.ics`, regenerate on read, no two-way sync. Likely a single small wave.
 
 ## Post-v1 (v2 backlog)
 
 - [#127](https://github.com/tsipotU/plnt-trmnl/issues/127) — Calendar view (week/month/year grid).
 - [#128](https://github.com/tsipotU/plnt-trmnl/issues/128) — "Identify my plant" guided walkthrough.
-- **Propagation guides + calendar-backed propagation projects.** Expand the catalog with per-species *propagation profiles* (multiple methods possible per species: seed, cutting, division, layering, air-layering, grafting), and let users start a "propagation project" that p7l walks them through phase-by-phase using the existing schedule/calendar machinery. Per profile: method, difficulty (with comparator examples — apple/avocado/tomato are all "hard" but for different reasons), expected success rate, time-to-viable-plant, seasonal window, source-plant prerequisites, materials list (incl. final pot + soil + fertilizer), step-by-step process, what success looks like, common failure modes & what to watch for. Frontend: "Propagate" CTA on species/plant page → active project surface alongside the watering calendar. On success, the new plant becomes its own p7l entry and inherits the standard schedule. Catalog/freetext model mirrors the species catalog (curated for common, AI-enrichment fallback). Sizable — full design wave when picked up. Pairs with the v1.1 calendar-feed item (propagation milestones become subscribable events).
+- [#153](https://github.com/tsipotU/plnt-trmnl/issues/153) — **Propagation guides + calendar-backed propagation projects.** Expand the catalog with per-species *propagation profiles* (multiple methods possible per species: seed, cutting, division, layering, air-layering, grafting), and let users start a "propagation project" that p7l walks them through phase-by-phase using the existing schedule/calendar machinery. Per profile: method, difficulty (with comparator examples — apple/avocado/tomato are all "hard" but for different reasons), expected success rate, time-to-viable-plant, seasonal window, source-plant prerequisites, materials list (incl. final pot + soil + fertilizer), step-by-step process, what success looks like, common failure modes & what to watch for. Frontend: "Propagate" CTA on species/plant page → active project surface alongside the watering calendar. On success, the new plant becomes its own p7l entry and inherits the standard schedule. Catalog/freetext model mirrors the species catalog (curated for common, AI-enrichment fallback). Sizable — full design wave when picked up. Pairs with the v1.1 calendar-feed item (propagation milestones become subscribable events).
 - **Multi-user / family accounts.** If p7l ever gets shared use, swap single-tenant for proper users + per-plant ownership/visibility. Builds on the v1.1 auth modernization.
 
 These are good ideas but not v1-blocking. Land them post-flip when there's external interest.
