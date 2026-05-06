@@ -109,3 +109,22 @@ to see what's already in the catalog before building something new.
 ## License
 
 MIT. See [`LICENSE`](LICENSE).
+
+## Commercial use
+
+MIT means you can technically do whatever, but plnt-trmnl is a
+community project that exists because hobbyist self-hosters wanted
+something nice for their plants. A few asks that aren't legally
+binding but matter:
+
+- **If you fork it, contribute back the fixes.** Especially anything
+  in the catalog (new species, better facts, image improvements).
+  The 444-species catalog is hand-curated and improves through use.
+- **If you build a commercial product on it, talk to me first.**
+  Not to ask permission — to coordinate. I'd rather know than read
+  about it on Hacker News.
+- **Credit the project.** A "built on plnt-trmnl" line in your
+  README, settings page, or about screen is enough.
+
+If something here goes against the spirit of how you're thinking
+about using it, that's signal — open an issue and we'll talk.
