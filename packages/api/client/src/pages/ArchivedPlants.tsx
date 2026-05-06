@@ -22,7 +22,7 @@ interface ArchivedPlant {
 type ReasonFilter = 'all' | 'died' | 'gave_away' | 'moved' | 'other';
 
 const REASON_LABELS: Record<NonNullable<ArchivedPlant['archive_reason']>, string> = {
-  died: 'Died',
+  died: 'Passed away',
   gave_away: 'Gave away',
   moved: 'Moved',
   other: 'Other',

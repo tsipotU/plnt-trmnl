@@ -1025,15 +1025,15 @@ describe('PlantDetail — post-archive navigation (#135)', () => {
       expect(screen.getByText(/Doomed Pothos/)).toBeInTheDocument();
     });
 
-    // Open archive flow — the Danger zone button has text "Archive plant"
-    // (the BackBar icon button has aria-label "Open archive" so it doesn't
-    // collide).
+    // Open archive flow — the only archive entry point is the Danger zone
+    // button at the bottom (text "Archive plant"). The BackBar's top-right
+    // duplicate was removed in #164 to lower mis-tap risk.
     const archiveBtn = await screen.findByRole('button', { name: /^Archive plant$/i });
     await user.click(archiveBtn);
 
     // Pick reason + confirm — RadioRows expose role="radio" with the label
     // text as their accessible name. Confirm button has text "Archive".
-    const diedRadio = await screen.findByRole('radio', { name: /It died/i });
+    const diedRadio = await screen.findByRole('radio', { name: /It passed away/i });
     await user.click(diedRadio);
     const confirmBtn = screen.getByRole('button', { name: /^Archive$/i });
     await user.click(confirmBtn);
