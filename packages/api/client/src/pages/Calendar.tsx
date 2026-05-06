@@ -6,11 +6,10 @@ import { PlantRow } from '../components/molecules/PlantRow/PlantRow.js';
 import { EmptyState } from '../components/molecules/EmptyState/EmptyState.js';
 import { Banner } from '../components/atoms/Banner/Banner.js';
 import { RowState } from '../components/atoms/RowState/RowState.js';
-import { Pictogram } from '../components/atoms/Pictogram/Pictogram.js';
+import { PlantThumb } from '../components/PlantThumb.js';
 import type { Plant } from '../components/PlantCard.js';
 import {
   plantState,
-  plantPictogram,
   plantMeta,
   plantSpeciesLine,
   isoToday,
@@ -165,7 +164,7 @@ export function Calendar() {
     return (
       <PlantRow
         key={p.id}
-        pictogram={<Pictogram name={plantPictogram(p)} size={28} />}
+        pictogram={<PlantThumb plant={p} size={28} />}
         name={p.name}
         species={plantSpeciesLine(p)}
         meta={plantMeta(p)}
