@@ -76,7 +76,7 @@ export function BatchUndoToast({ batchId, plantCount, onUndone, onDismiss }: Pro
         zIndex: 200,
       }}
     >
-      <span style={{ color: 'var(--text-primary)', fontSize: 14 }}>
+      <span style={{ color: 'var(--ink)', fontSize: 14 }}>
         Watered {plantCount} {plantCount === 1 ? 'plant' : 'plants'}
       </span>
       <button
@@ -87,8 +87,8 @@ export function BatchUndoToast({ batchId, plantCount, onUndone, onDismiss }: Pro
           padding: '0.5rem 0.9rem',
           borderRadius: 8,
           border: '1px solid var(--border)',
-          background: 'var(--bg-secondary)',
-          color: 'var(--text-primary)',
+          background: 'var(--bg-elevated)',
+          color: 'var(--ink)',
           fontSize: 14,
           fontWeight: 600,
           opacity: submitting ? 0.6 : 1,

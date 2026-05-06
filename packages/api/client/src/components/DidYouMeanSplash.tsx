@@ -53,9 +53,9 @@ export function DidYouMeanSplash({
 
       {suggestion ? (
         <>
-          <p style={{ fontSize: 15, color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: 15, color: 'var(--ink-2)' }}>
             Did you mean:{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>
+            <strong style={{ color: 'var(--ink)' }}>
               {suggestion.latin_name}
             </strong>
             {suggestion.primary_common_name
@@ -81,7 +81,7 @@ export function DidYouMeanSplash({
           </button>
         </>
       ) : (
-        <p style={{ fontSize: 15, color: 'var(--text-secondary)' }}>
+        <p style={{ fontSize: 15, color: 'var(--ink-2)' }}>
           We don&rsquo;t have a close match in our catalog yet.
         </p>
       )}
@@ -99,7 +99,7 @@ export function DidYouMeanSplash({
           borderRadius: 12,
           background: 'transparent',
           border: '1px solid var(--border, #ccc)',
-          color: 'var(--text-primary)',
+          color: 'var(--ink)',
           opacity: retrying ? 0.6 : 1,
         }}
       >

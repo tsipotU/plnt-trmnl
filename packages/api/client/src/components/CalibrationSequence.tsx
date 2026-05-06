@@ -126,13 +126,13 @@ export function CalibrationSequence({ plantIds, plantNames, onComplete }: Props)
           {flash}
         </div>
       )}
-      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 4 }}>
         {index + 1} of {queue.length}
       </div>
       <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
         {current.plantName}
       </h3>
-      <p style={{ fontSize: 15, color: 'var(--text-primary)', marginBottom: 12 }}>
+      <p style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 12 }}>
         {current.questionText}
       </p>
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: 8 }}>
@@ -147,8 +147,8 @@ export function CalibrationSequence({ plantIds, plantNames, onComplete }: Props)
               flex: 1,
               borderRadius: 8,
               border: '1px solid var(--border)',
-              background: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--ink)',
               fontSize: 16,
               fontWeight: 600,
               opacity: submitting ? 0.6 : 1,
@@ -164,7 +164,7 @@ export function CalibrationSequence({ plantIds, plantNames, onComplete }: Props)
             display: 'flex',
             justifyContent: 'space-between',
             fontSize: 12,
-            color: 'var(--text-secondary)',
+            color: 'var(--ink-2)',
           }}
         >
           <span>{current.scaleMinLabel ?? ''}</span>

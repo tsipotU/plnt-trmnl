@@ -35,7 +35,7 @@ export function LightLevelTooltip() {
         style={{
           background: 'none',
           border: 'none',
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           fontSize: 16,
           padding: '0 8px',
           cursor: 'pointer',
@@ -76,7 +76,7 @@ export function LightLevelTooltip() {
               right: 8,
               background: 'none',
               border: 'none',
-              color: 'var(--text-secondary)',
+              color: 'var(--ink-2)',
               fontSize: 20,
               cursor: 'pointer',
               minHeight: 'auto',
@@ -95,7 +95,7 @@ export function LightLevelTooltip() {
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
-                    color: 'var(--text-primary)',
+                    color: 'var(--ink)',
                     marginBottom: 6,
                   }}
                 >
@@ -104,7 +104,7 @@ export function LightLevelTooltip() {
                 <p
                   style={{
                     fontSize: 12,
-                    color: 'var(--text-secondary)',
+                    color: 'var(--ink-2)',
                     marginBottom: 4,
                   }}
                 >
@@ -113,7 +113,7 @@ export function LightLevelTooltip() {
                 <p
                   style={{
                     fontSize: 12,
-                    color: 'var(--text-secondary)',
+                    color: 'var(--ink-2)',
                     fontStyle: 'italic',
                   }}
                 >

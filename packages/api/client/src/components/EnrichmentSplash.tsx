@@ -86,7 +86,7 @@ export function EnrichmentSplash({
       >
         <div style={{ fontSize: 48 }} aria-hidden="true">✨</div>
         <p style={{ fontSize: 18, fontWeight: 600 }}>Enriching {typedName}…</p>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+        <p style={{ fontSize: 14, color: 'var(--ink-2)' }}>
           Refining care details — this usually takes a few seconds
         </p>
       </div>
@@ -111,7 +111,7 @@ export function EnrichmentSplash({
         <p id="splash-correct-title" style={{ fontSize: 18, fontWeight: 600, textAlign: 'center' }}>
           What&rsquo;s the correct species?
         </p>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', textAlign: 'center' }}>
+        <p style={{ fontSize: 14, color: 'var(--ink-2)', textAlign: 'center' }}>
           Type the plant&rsquo;s name — we&rsquo;ll re-run enrichment.
         </p>
         <input
@@ -150,7 +150,7 @@ export function EnrichmentSplash({
             borderRadius: 12,
             background: 'transparent',
             border: '1px solid var(--border)',
-            color: 'var(--text-primary)',
+            color: 'var(--ink)',
             opacity: submitting ? 0.6 : 1,
           }}
         >
@@ -177,7 +177,7 @@ export function EnrichmentSplash({
         <p
           style={{
             fontSize: 13,
-            color: 'var(--text-secondary)',
+            color: 'var(--ink-2)',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
             textAlign: 'center',
@@ -199,7 +199,7 @@ export function EnrichmentSplash({
         <p
           style={{
             fontSize: 14,
-            color: 'var(--text-secondary)',
+            color: 'var(--ink-2)',
             textAlign: 'center',
           }}
         >
@@ -230,7 +230,7 @@ export function EnrichmentSplash({
             borderRadius: 12,
             background: 'transparent',
             border: '1px solid var(--border)',
-            color: 'var(--text-primary)',
+            color: 'var(--ink)',
           }}
         >
           Try a different name
@@ -261,7 +261,7 @@ export function EnrichmentSplash({
       <p
         style={{
           fontSize: 13,
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           textAlign: 'center',
@@ -286,7 +286,7 @@ export function EnrichmentSplash({
         style={{
           width: '100%',
           aspectRatio: '16/9',
-          background: 'var(--bg-secondary)',
+          background: 'var(--bg-elevated)',
           borderRadius: 'var(--radius)',
           overflow: 'hidden',
           display: 'flex',
@@ -316,24 +316,24 @@ export function EnrichmentSplash({
       >
         {light && (
           <div style={{ display: 'flex', gap: 8, fontSize: 14 }}>
-            <span style={{ color: 'var(--text-secondary)', minWidth: 80 }}>Light</span>
-            <span style={{ color: 'var(--text-primary)' }}>{light}</span>
+            <span style={{ color: 'var(--ink-2)', minWidth: 80 }}>Light</span>
+            <span style={{ color: 'var(--ink)' }}>{light}</span>
           </div>
         )}
         {water && (
           <div style={{ display: 'flex', gap: 8, fontSize: 14 }}>
-            <span style={{ color: 'var(--text-secondary)', minWidth: 80 }}>Water</span>
-            <span style={{ color: 'var(--text-primary)' }}>{water}</span>
+            <span style={{ color: 'var(--ink-2)', minWidth: 80 }}>Water</span>
+            <span style={{ color: 'var(--ink)' }}>{water}</span>
           </div>
         )}
         {placement && (
           <div style={{ display: 'flex', gap: 8, fontSize: 14 }}>
-            <span style={{ color: 'var(--text-secondary)', minWidth: 80 }}>Placement</span>
-            <span style={{ color: 'var(--text-primary)' }}>{placement}</span>
+            <span style={{ color: 'var(--ink-2)', minWidth: 80 }}>Placement</span>
+            <span style={{ color: 'var(--ink)' }}>{placement}</span>
           </div>
         )}
         {!light && !water && !placement && (
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: 13, color: 'var(--ink-2)' }}>
             Care summary unavailable — full profile loading on the next screen.
           </p>
         )}
@@ -367,7 +367,7 @@ export function EnrichmentSplash({
           borderRadius: 12,
           background: 'transparent',
           border: '1px solid var(--border)',
-          color: 'var(--text-primary)',
+          color: 'var(--ink)',
         }}
       >
         Not quite
