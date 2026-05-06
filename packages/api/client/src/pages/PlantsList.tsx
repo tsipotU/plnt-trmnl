@@ -11,9 +11,9 @@ import { Button } from '../components/atoms/Button/Button.js';
 import { Chip } from '../components/atoms/Chip/Chip.js';
 import { RowState } from '../components/atoms/RowState/RowState.js';
 import { Pictogram } from '../components/atoms/Pictogram/Pictogram.js';
+import { PlantThumb } from '../components/PlantThumb.js';
 import {
   plantState,
-  plantPictogram,
   plantMeta,
   plantSpeciesLine,
   isoToday,
@@ -89,7 +89,7 @@ export function PlantsList() {
     return (
       <PlantRow
         key={p.id}
-        pictogram={<Pictogram name={plantPictogram(p)} size={28} />}
+        pictogram={<PlantThumb plant={p} size={28} />}
         name={p.name}
         species={plantSpeciesLine(p)}
         meta={plantMeta(p)}
