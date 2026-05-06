@@ -13,28 +13,15 @@ import { initializeSchema } from '../database/schema.js';
 import { createPlantsRouter } from './plants.js';
 import { createPlantNotesRouter } from './plant-notes.js';
 
-const dummyConfig = {
-  heatingSeasonStart: 10,
-  heatingSeasonEnd: 4,
-  growingSeasonStart: 3,
-  growingSeasonEnd: 9,
-  growingSeasonMultiplier: 0.8,
-  dormancyMultiplier: 1.5,
-  dryDaysBase: 3,
-};
-
-const dummyCatalog = {
-  bySpecies: new Map(),
-  list: [],
-} as never;
-
 function buildApp() {
   const db = new Database(':memory:');
   initializeSchema(db);
   const app = express();
   app.use(express.json());
-  // Production order: plants first, plant-notes second, both at /api/plants
-  app.use('/api/plants', createPlantsRouter(db, dummyConfig, dummyCatalog));
+  // Production order: plants first, plant-notes second, both at /api/plants.
+  // Routes/config don't matter for this routing-collision test — pass nothing
+  // and let createPlantsRouter use its defaults.
+  app.use('/api/plants', createPlantsRouter(db));
   app.use('/api/plants', createPlantNotesRouter(db));
 
   const { lastInsertRowid } = db
