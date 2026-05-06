@@ -117,8 +117,8 @@ describe('ArchivedPlants — populated', () => {
     expect(
       screen.getByText(/Root rot after the December cold snap\. RIP\./i),
     ).toBeInTheDocument();
-    // "Died" appears in two places (filter chip + card stamp). Both is fine;
-    // we just need at least one match.
-    expect(screen.getAllByText(/Died/i).length).toBeGreaterThan(0);
+    // "Passed away" appears in two places (filter chip + card stamp). Both is
+    // fine; we just need at least one match. Copy softened by #164.
+    expect(screen.getAllByText(/Passed away/i).length).toBeGreaterThan(0);
   });
 });

@@ -18,7 +18,7 @@ const meta: Meta<typeof ArchiveCard> = {
     name: 'Mara',
     species: 'Maranta leuconeura',
     stamps: [
-      { label: 'Died', memorial: true },
+      { label: 'Passed away', memorial: true },
       { label: '2026-04-04' },
       { label: '412d alive' },
     ],
@@ -81,7 +81,7 @@ export const ArchiveList: Story = {
         leadingIcon="🕊️"
         name="Mara"
         species="Maranta leuconeura"
-        stamps={[{ label: 'Died', memorial: true }, { label: '2026-04-04' }, { label: '412d alive' }]}
+        stamps={[{ label: 'Passed away', memorial: true }, { label: '2026-04-04' }, { label: '412d alive' }]}
         note="Root rot after the December cold snap. RIP."
       />
       <ArchiveCard

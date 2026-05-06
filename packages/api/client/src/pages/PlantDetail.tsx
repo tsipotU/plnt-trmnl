@@ -579,25 +579,6 @@ export function PlantDetail() {
         onBack={() => navigate('/')}
         backLabel="← Today"
         eyebrow={plant.location ?? undefined}
-        actions={
-          <button
-            type="button"
-            onClick={() => setSheet('archive')}
-            aria-label="Open archive"
-            title="Archive plant"
-            style={{
-              background: 'transparent',
-              border: '0.5px solid var(--ink)',
-              padding: '4px 10px',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              color: 'var(--ink)',
-              cursor: 'pointer',
-            }}
-          >
-            ⊘
-          </button>
-        }
       />
 
       {/* Banners */}

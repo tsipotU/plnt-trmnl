@@ -126,7 +126,7 @@ export function RepotSheet({
 export type ArchiveReason = 'died' | 'gave_away' | 'moved' | 'other';
 
 const ARCHIVE_OPTIONS: ReadonlyArray<{ id: ArchiveReason; label: string; desc: string }> = [
-  { id: 'died',      label: '🕊️ It died',       desc: "Saved to memorial. We'll keep its stats." },
+  { id: 'died',      label: '🕊️ It passed away', desc: "Saved to memorial. We'll keep its stats." },
   { id: 'gave_away', label: '🎁 Gave it away',   desc: 'Mark as gifted to a friend or family.' },
   { id: 'moved',     label: '📦 Moved away',     desc: 'Plant is at a different home now.' },
   { id: 'other',     label: '📝 Other',          desc: 'Something else.' },

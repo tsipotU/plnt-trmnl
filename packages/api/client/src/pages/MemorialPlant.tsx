@@ -36,7 +36,7 @@ interface MemorialResponse {
 }
 
 const REASON_LABEL: Record<NonNullable<MemorialPlantData['archive_reason']>, string> = {
-  died: 'It died',
+  died: 'It passed away',
   gave_away: 'Gave it away',
   moved: 'Moved away',
   other: 'Other',

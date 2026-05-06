@@ -71,11 +71,11 @@ describe('MemorialPlant', () => {
     } as Response);
     renderAt('/archive/7');
     await waitFor(() => {
-      // "Cause" is a SectionHead label; "It died" appears in BackBar eyebrow
-      // AND as InfoCard title (intentional duplication — see Composition.mdx
-      // "uniqueness as contract" rule).
+      // "Cause" is a SectionHead label; "It passed away" appears in BackBar
+      // eyebrow AND as InfoCard title (intentional duplication — see
+      // Composition.mdx "uniqueness as contract" rule). Copy softened by #164.
       expect(screen.getByText(/^Cause$/i)).toBeInTheDocument();
-      expect(screen.getAllByText(/It died/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/It passed away/i).length).toBeGreaterThan(0);
     });
   });
 
