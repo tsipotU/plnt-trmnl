@@ -7,6 +7,7 @@ import { FormStep } from './molecules/FormStep/FormStep';
 import { Chip } from './atoms/Chip/Chip';
 import { Button } from './atoms/Button/Button';
 import { FieldLabel } from './atoms/FieldLabel/FieldLabel';
+import { Pictogram } from './atoms/Pictogram/Pictogram';
 import './FeedbackButton.css';
 
 type Category = 'bug' | 'feature' | 'improvement' | 'other';
@@ -31,7 +32,7 @@ export function FeedbackButton() {
     <>
       <FAB
         label="Send feedback"
-        icon="✚"
+        icon={<Pictogram name="balloon" size={22} />}
         position="static"
         onClick={() => setOpen(true)}
         className="p7l-feedback-fab"
