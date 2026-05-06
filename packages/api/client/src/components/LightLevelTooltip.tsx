@@ -1,8 +1,18 @@
-/** @legacy Pre-catalog scaffolding; new components should compose catalog primitives. */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Light-level guidance for AddPlant. Mirror of PotSizeTooltip — same fixed-
+ * position-with-bounding-rect pattern (#157). The original `position: absolute`
+ * got clipped by the form's `overflow-y: auto` on /add; fixed escapes ancestor
+ * overflow without a portal, and a viewport clamp keeps the popover on screen
+ * at narrow widths.
+ *
+ * @legacy Pre-catalog scaffolding; new components should compose catalog primitives.
+ */
 export function LightLevelTooltip() {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const lightLevels = [
     {
@@ -27,11 +37,42 @@ export function LightLevelTooltip() {
     },
   ];
 
+  function placeFromTrigger() {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const popoverWidth = 320;
+    const margin = 8;
+    const maxLeft = window.innerWidth - popoverWidth - margin;
+    const left = Math.max(margin, Math.min(rect.left, maxLeft));
+    setCoords({ top: rect.bottom + margin, left });
+  }
+
+  function open() {
+    placeFromTrigger();
+    setIsOpen(true);
+  }
+
+  function close() {
+    setIsOpen(false);
+  }
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = () => placeFromTrigger();
+    window.addEventListener('resize', handler);
+    window.addEventListener('scroll', handler, true);
+    return () => {
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('scroll', handler, true);
+    };
+  }, [isOpen]);
+
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div style={{ display: 'inline-block' }}>
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => (isOpen ? close() : open())}
         style={{
           background: 'none',
           border: 'none',
@@ -51,25 +92,26 @@ export function LightLevelTooltip() {
         ⓘ
       </button>
 
-      {isOpen && (
+      {isOpen && coords && (
         <div
+          role="dialog"
           style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            marginTop: 8,
+            position: 'fixed',
+            top: coords.top,
+            left: coords.left,
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: 8,
             padding: 16,
             zIndex: 1000,
             minWidth: 280,
+            maxWidth: 'calc(100vw - 16px)',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
           }}
         >
           <button
             type="button"
-            onClick={() => setIsOpen(false)}
+            onClick={close}
             style={{
               position: 'absolute',
               top: 8,
