@@ -28,7 +28,6 @@ export const SingleAxis: Story = {
       ['due', 'Due'],
       ['calibrating', 'Calibrating'],
       ['dialed', 'Dialed in'],
-      ['vacation', 'Vacation'],
     ];
     return (
       <div style={{ maxWidth: 402, margin: '0 auto', border: '1px solid var(--border)' }}>
@@ -52,7 +51,7 @@ export const StackedRails: Story = {
     const [state, setState] = useState('all');
     const [cat, setCat] = useState('all');
     const states: Array<[string, string]> = [
-      ['all', 'All'], ['due', 'Due'], ['calibrating', 'Calibrating'], ['dialed', 'Dialed in'], ['vacation', 'Vacation'],
+      ['all', 'All'], ['due', 'Due'], ['calibrating', 'Calibrating'], ['dialed', 'Dialed in'],
     ];
     const cats: Array<[string, string]> = [
       ['all', 'All cats'], ['foliage', 'Foliage'], ['succulents', 'Succulents'],

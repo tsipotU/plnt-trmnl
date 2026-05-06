@@ -55,7 +55,7 @@ describe('event-log', () => {
   });
 
   it('logs events with null plant_id', () => {
-    logEvent(db, { plantId: null, eventType: 'vacation_start', reason: 'Away until April 15' });
+    logEvent(db, { plantId: null, eventType: 'system_note', reason: 'Some system-level event' });
     // Should not throw
   });
 });

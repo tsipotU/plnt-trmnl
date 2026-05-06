@@ -22,10 +22,9 @@ import './PlantsList.css';
 
 /* === Filter spec ========================================================
  *
- * v1.0 ships only "All" and "Due". The full prototype filter set
- * (Calibrating, Dialed-in, Vacation, plus a category rail) is parked
- * for v1.1 — see issue #148. Showing those chips with no data behind
- * them looked broken; two chips look intentional.
+ * v1.0 ships only "All" and "Due". The category rail is parked for v1.1 —
+ * see issue #148. Showing chips with no data behind them looked broken;
+ * two chips look intentional.
  */
 
 type StateFilter = 'all' | 'due';

@@ -94,12 +94,6 @@ function insertCalibrationQuestion(
   return result.lastInsertRowid as number;
 }
 
-function setVacationUntil(db: Database.Database, date: string) {
-  db.prepare(
-    `INSERT OR REPLACE INTO app_state (key, value, updated_at) VALUES ('vacation_until', ?, datetime('now'))`
-  ).run(date);
-}
-
 describe('GET /api/screen/today', () => {
   let db: Database.Database;
 
@@ -603,49 +597,6 @@ describe('GET /api/screen/today', () => {
 
       expect(res.body.type).toBe('watering');
       expect(res.body.fact).toBeNull();
-    });
-  });
-
-  // ─── Vacation mode ────────────────────────────────────────────────────────
-
-  describe('vacation mode', () => {
-    it('returns rest day when vacation is active (today < vacation_until)', async () => {
-      // Vacation active until Apr 15
-      setVacationUntil(db, '2026-04-15');
-      // Plant due today
-      insertPlant(db, { name: 'Monstera', next_water_date: '2026-04-07' });
-      insertFact(db, 'Bamboo fact');
-      insertOrnament(db, '/assets/ornaments/ornament-1.png');
-
-      const app = buildApp(db);
-      const res = await request(app).get('/api/screen/today?date=2026-04-07');
-
-      expect(res.status).toBe(200);
-      expect(res.body.type).toBe('rest');
-    });
-
-    it('vacation rest day has no overdue plants', async () => {
-      setVacationUntil(db, '2026-04-15');
-      insertPlant(db, { name: 'Overdue Plant', next_water_date: '2026-04-04' });
-      insertFact(db, 'Some fact');
-      insertOrnament(db, '/assets/ornaments/ornament-1.png');
-
-      const app = buildApp(db);
-      const res = await request(app).get('/api/screen/today?date=2026-04-07');
-
-      expect(res.body.overdue).toEqual([]);
-    });
-
-    it('returns normal scheduling when vacation has expired (today >= vacation_until)', async () => {
-      // Vacation ended yesterday
-      setVacationUntil(db, '2026-04-06');
-      const plantId = insertPlant(db, { name: 'Monstera', next_water_date: '2026-04-07' });
-      insertCalibrationQuestion(db, plantId);
-
-      const app = buildApp(db);
-      const res = await request(app).get('/api/screen/today?date=2026-04-07');
-
-      expect(res.body.type).toBe('watering');
     });
   });
 

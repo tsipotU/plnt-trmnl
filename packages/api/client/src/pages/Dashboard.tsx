@@ -107,9 +107,6 @@ export function Dashboard() {
   const wateredIds = new Set(wateredToday.map((p) => p.id));
   const resting = active.filter((p) => !dueIds.has(p.id) && !wateredIds.has(p.id));
 
-  // Vacation count: prototype tracks per-day; surface as a banner if any day in the strip has vacation flag.
-  const onVacation = scheduleDays.filter((d) => d.vacation).length;
-
   // 7-day forecast — slice from today forward.
   const forecast = scheduleDays
     .filter((d) => d.date >= today)
@@ -202,12 +199,6 @@ export function Dashboard() {
             <Stat num={dialedInCount} label="Dialed in" />
             <Stat num={wateredToday.length} label="Watered" />
           </StatRow>
-
-          {onVacation > 0 && (
-            <Banner tone="info">
-              ✈️ {onVacation} {onVacation === 1 ? 'day' : 'days'} on vacation in the next week
-            </Banner>
-          )}
 
           {dueToday.length > 0 && (
             <>

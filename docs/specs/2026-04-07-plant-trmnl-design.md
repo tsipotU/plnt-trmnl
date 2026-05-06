@@ -4,6 +4,8 @@
 **Author:** Emiel + Claude
 **Status:** Draft
 
+> **Sunset note (2026-05-06).** Vacation mode (and all references to it in this spec — `vacation_until`, `vacation_start` / `vacation_end` events, the vacation rest day on the TRMNL screen, the dashboard toggle, the `VacationToggle` component) was **removed permanently** by [#166](https://github.com/tsipotU/plnt-trmnl/issues/166). Sections describing vacation behavior in this doc are preserved as historical context for early design decisions but no longer reflect shipped behavior. See `CHANGELOG.md` `[Unreleased]` for the removal record.
+
 ## Overview
 
 Plant TRMNL is a plant care management system that displays watering schedules, care instructions, and plant facts on a TRMNL e-ink screen (800x480px, 4-level grayscale). A companion web app (mobile-first, iPhone 15 Pro) handles plant management, calibration input, and condition tracking.

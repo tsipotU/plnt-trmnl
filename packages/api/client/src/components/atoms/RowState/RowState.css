@@ -53,11 +53,5 @@
   border-color: var(--ink);
 }
 
-.p7l-rowstate--vacation {
-  background: var(--info);
-  color: var(--bg);
-  border-color: var(--info);
-}
-
 /* Dark-mode foreground tweaks for tones whose ink isn't a theme-flipping token. */
 [data-theme="dark"] .p7l-rowstate--healthy { color: var(--sage-200); }

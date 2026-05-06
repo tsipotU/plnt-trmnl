@@ -62,10 +62,6 @@ interface OrnamentRow {
   shown_count: number;
 }
 
-interface AppStateRow {
-  value: string;
-}
-
 type CalibrationPayload =
   | { questionText: string | null; scaleMinLabel: string | null; scaleMaxLabel: string | null }
   | { skip: true; reason: string };
@@ -142,26 +138,16 @@ export function createScreenRouter(
     const today = (req.query.date as string | undefined) ?? new Date().toISOString().slice(0, 10);
     const todayDate = new Date(today + 'T00:00:00Z');
 
-    // 1. Check vacation mode
-    const vacationRow = db
-      .prepare(`SELECT value FROM app_state WHERE key = 'vacation_until'`)
-      .get() as AppStateRow | undefined;
-
-    const vacationActive =
-      vacationRow != null && today < vacationRow.value;
-
-    // 2. Query plants due today (max 2), unless vacation
-    const duePlants = vacationActive
-      ? []
-      : (db
-          .prepare(
-            `SELECT * FROM plants
-             WHERE next_water_date = ?
-               AND archived = 0
-             ORDER BY id ASC
-             LIMIT 2`
-          )
-          .all(today) as PlantRow[]);
+    // Query plants due today (max 2)
+    const duePlants = db
+      .prepare(
+        `SELECT * FROM plants
+         WHERE next_water_date = ?
+           AND archived = 0
+         ORDER BY id ASC
+         LIMIT 2`
+      )
+      .all(today) as PlantRow[];
 
     // Today's rotating fact (#38). The daily cron seeds app_state; if
     // nothing is cached (first run / missed cron / test fixture), pick now.
@@ -275,18 +261,16 @@ export function createScreenRouter(
     // Next upcoming watering
     const nextWatering = getNextWatering(db, today, []);
 
-    // Overdue plants (skip if vacation active)
-    const overdueRows = vacationActive
-      ? []
-      : (db
-          .prepare(
-            `SELECT id, name, next_water_date
-             FROM plants
-             WHERE next_water_date < ?
-               AND archived = 0
-             ORDER BY next_water_date ASC`
-          )
-          .all(today) as Array<{ id: number; name: string; next_water_date: string }>);
+    // Overdue plants
+    const overdueRows = db
+      .prepare(
+        `SELECT id, name, next_water_date
+         FROM plants
+         WHERE next_water_date < ?
+           AND archived = 0
+         ORDER BY next_water_date ASC`
+      )
+      .all(today) as Array<{ id: number; name: string; next_water_date: string }>;
 
     const overdue = overdueRows
       .map((p) => {

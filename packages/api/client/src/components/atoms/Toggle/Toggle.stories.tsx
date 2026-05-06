@@ -20,7 +20,7 @@ const meta: Meta<typeof Toggle> = {
     disabled: { control: 'boolean' },
   },
   args: {
-    label: 'Vacation mode',
+    label: 'Dark theme',
     size: 'md',
     defaultChecked: false,
   },
@@ -41,7 +41,7 @@ export const ControlledLive: Story = {
     const [on, setOn] = useState(true);
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
-        <Toggle checked={on} onCheckedChange={setOn} label="Vacation mode" />
+        <Toggle checked={on} onCheckedChange={setOn} label="Dark theme" />
         <span
           style={{
             fontFamily: 'var(--font-mono)',
@@ -80,7 +80,7 @@ export const Disabled: Story = {
 export const InSettingsRow: Story = {
   parameters: { controls: { hideNoControlsWarning: true } },
   render: () => {
-    const [vacation, setVacation] = useState(false);
+    const [darkTheme, setDarkTheme] = useState(false);
     const [notifications, setNotifications] = useState(true);
     const Row = ({
       label,
@@ -119,10 +119,10 @@ export const InSettingsRow: Story = {
         }}
       >
         <Row
-          label="Vacation mode"
-          hint="Pause watering reminders for all plants."
-          checked={vacation}
-          onChange={setVacation}
+          label="Dark theme"
+          hint="Switch to the dark appearance for low-light environments."
+          checked={darkTheme}
+          onChange={setDarkTheme}
         />
         <Row
           label="Push reminders"
