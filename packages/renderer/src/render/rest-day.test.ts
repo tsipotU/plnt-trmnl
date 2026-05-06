@@ -42,11 +42,12 @@ describe('renderRestDay', () => {
     expect(html).toContain('7');
   });
 
-  it('shows overdue badge for single overdue plant', () => {
+  it('shows overdue badge for single overdue plant with humanized time (#167)', () => {
     const html = renderRestDay('2026-04-07', fact, ornamentPath, nextWatering, overdueSingle);
 
     expect(html).toContain('Pothos');
-    expect(html).toContain('2 days');
+    // daysOverdue: 2 → "a few days ago" via humanizeDaysFromToday
+    expect(html).toContain('a few days ago');
     expect(html).toContain('Overdue');
   });
 

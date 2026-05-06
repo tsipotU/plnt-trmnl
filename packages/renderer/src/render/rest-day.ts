@@ -1,4 +1,5 @@
 import type { NextWatering } from './watering-day.js';
+import { humanizeDaysFromToday } from './humanize-days.js';
 
 export interface OverduePlant {
   id: number;
@@ -17,10 +18,12 @@ function renderOverdueBadge(overdue: OverduePlant[]): string {
 
   const first = overdue[0];
   const extra = overdue.length > 1 ? ` +${overdue.length - 1} more` : '';
+  // daysOverdue is positive on the wire; humanize wants signed days (negative for past).
+  const when = humanizeDaysFromToday(-first.daysOverdue);
 
   return `<div style="text-align:center;margin-bottom:8px;">
     <span style="background:#2a2a2a;color:#f5f0eb;padding:4px 12px;border-radius:12px;font-family:sans-serif;font-size:13px;">
-      Overdue: ${first.name} (${first.daysOverdue} days)${extra}
+      Overdue: ${first.name} (${when})${extra}
     </span>
   </div>`;
 }
