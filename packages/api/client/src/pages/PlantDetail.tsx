@@ -1248,6 +1248,7 @@ export function PlantDetail() {
         plantId={Number(id)}
         showToast={showToast}
         refreshKey={notesRefreshKey}
+        onAddNote={() => setSheet('note')}
       />
 
       {/* Health */}

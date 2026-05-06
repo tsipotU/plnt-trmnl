@@ -16,6 +16,10 @@ interface NotesLogProps {
   showToast: (msg: string) => void;
   /** Bumped by the page after the NoteSheet saves a note → re-fetch the list. */
   refreshKey?: number;
+  /** Opens the NoteSheet from the empty state. Same handler the top
+      QuickAction uses, surfaced in-place so users who scrolled to the
+      Notes section don't have to scroll back up. */
+  onAddNote?: () => void;
 }
 
 function formatStamp(iso: string): string {
@@ -34,7 +38,7 @@ function formatStamp(iso: string): string {
    component handles list rendering, edit-in-place, and delete-confirm.
    The `refreshKey` prop bumps when the page wants to re-fetch (e.g. after
    the Sheet saves a new note). */
-export function NotesLog({ plantId, showToast, refreshKey = 0 }: NotesLogProps) {
+export function NotesLog({ plantId, showToast, refreshKey = 0, onAddNote }: NotesLogProps) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -100,7 +104,20 @@ export function NotesLog({ plantId, showToast, refreshKey = 0 }: NotesLogProps) 
   }
 
   if (notes.length === 0) {
-    return <EmptyState align="left">No notes yet. Tap the Note quick-action to add one.</EmptyState>;
+    return (
+      <EmptyState
+        align="left"
+        action={
+          onAddNote && (
+            <Button variant="primary" size="sm" onClick={onAddNote}>
+              + Add note
+            </Button>
+          )
+        }
+      >
+        No notes yet.
+      </EmptyState>
+    );
   }
 
   return (
