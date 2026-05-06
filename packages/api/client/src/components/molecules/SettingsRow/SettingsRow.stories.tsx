@@ -16,8 +16,8 @@ const meta: Meta<typeof SettingsRow> = {
     },
   },
   args: {
-    label: 'Vacation mode',
-    description: "Pause watering reminders for all plants while you're away.",
+    label: 'Dark theme',
+    description: 'Switch to the dark appearance for low-light environments.',
   },
 };
 export default meta;
@@ -30,9 +30,9 @@ export const WithToggle: Story = {
     return (
       <div style={{ maxWidth: 460, border: '1px solid var(--border)' }}>
         <SettingsRow
-          label="Vacation mode"
-          description="Pause watering reminders for all plants while you're away."
-          trailing={<Toggle checked={on} onCheckedChange={setOn} label="Vacation mode" />}
+          label="Dark theme"
+          description="Switch to the dark appearance for low-light environments."
+          trailing={<Toggle checked={on} onCheckedChange={setOn} label="Dark theme" />}
         />
       </div>
     );

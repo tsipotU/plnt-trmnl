@@ -194,7 +194,7 @@ Rules to prevent recurrence:
   `logScheduleEvents(db, plantId, result)` so `overflow_rebalance` /
   `schedule_congested` events fire consistently. Wired call sites:
   `routes/plants.ts` (water + PUT repot), `routes/calibration.ts`,
-  `enrichment/callback.ts`, `scheduling/vacation.ts`. Single-water
+  `enrichment/callback.ts`. Single-water
   uses `waterPlant()` helper in `routes/plants.ts`; `POST /water-all`
   uses the same helper per plant. `POST /api/plants` bypasses this on
   initial insert by design — enrichment runs the rebalance seconds

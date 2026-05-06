@@ -8,8 +8,7 @@ export type RowStateTone =
   | 'healthy'
   | 'calibrating'
   | 'dormant'
-  | 'just-added'
-  | 'vacation';
+  | 'just-added';
 
 export interface RowStateProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: RowStateTone;

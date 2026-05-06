@@ -4,7 +4,7 @@ import type { IconName } from '../components/atoms/Pictogram/Pictogram.js';
 const DAY_MS = 86_400_000;
 
 export type PlantStateInfo = {
-  tone: 'due' | 'overdue' | 'healthy' | 'calibrating' | 'just-added' | 'dormant' | 'vacation';
+  tone: 'due' | 'overdue' | 'healthy' | 'calibrating' | 'just-added' | 'dormant';
   label: string;
 };
 

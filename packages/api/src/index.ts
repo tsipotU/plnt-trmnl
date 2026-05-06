@@ -22,7 +22,6 @@ import { createFactsRouter } from './routes/facts.js';
 import { createCatalogRouter } from './routes/catalog.js';
 import { loadCatalog } from './catalog/loader.js';
 import { createScreenRouter } from './routes/screen.js';
-import { createVacationRouter } from './routes/vacation.js';
 import { createFeedbackRouter } from './routes/feedback.js';
 import { createScheduleRouter } from './routes/schedule.js';
 import { createEnrichmentRouter } from './enrichment/callback.js';
@@ -98,7 +97,6 @@ app.use(
     heatingSeasonEnd: config.heatingSeasonEnd,
   })
 );
-app.use('/api/vacation', createVacationRouter(db));
 app.use('/api/feedback', createFeedbackRouter(db, { uploadDir: feedbackUploadDir }));
 app.use('/api', createEnrichmentRouter(db, catalog));
 app.use('/api/schedule', createScheduleRouter(db));

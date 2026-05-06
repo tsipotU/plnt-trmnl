@@ -9,13 +9,13 @@ beforeEach(() => {
 });
 
 const days = [
-  { date: '2026-04-22', is_today: true, plant_ids: [1], plant_names: ['Monstera'], count: 1, overdue_ids: [], vacation: false },
-  { date: '2026-04-23', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [], vacation: false },
-  { date: '2026-04-24', is_today: false, plant_ids: [2, 3], plant_names: ['Pothos', 'Snake'], count: 2, overdue_ids: [], vacation: false },
-  { date: '2026-04-25', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [], vacation: false },
-  { date: '2026-04-26', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [], vacation: false },
-  { date: '2026-04-27', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [], vacation: false },
-  { date: '2026-04-28', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [], vacation: false },
+  { date: '2026-04-22', is_today: true, plant_ids: [1], plant_names: ['Monstera'], count: 1, overdue_ids: [] },
+  { date: '2026-04-23', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [] },
+  { date: '2026-04-24', is_today: false, plant_ids: [2, 3], plant_names: ['Pothos', 'Snake'], count: 2, overdue_ids: [] },
+  { date: '2026-04-25', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [] },
+  { date: '2026-04-26', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [] },
+  { date: '2026-04-27', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [] },
+  { date: '2026-04-28', is_today: false, plant_ids: [], plant_names: [], count: 0, overdue_ids: [] },
 ];
 
 describe('CalendarStrip', () => {

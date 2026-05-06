@@ -126,7 +126,6 @@ export const ToggleableFilter: Story = {
         ['due', 'Due'],
         ['calibrating', 'Calibrating'],
         ['dialed', 'Dialed in'],
-        ['vacation', 'Vacation'],
       ];
       return (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>

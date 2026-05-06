@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Wave 17: sunset vacation mode permanently (#166, 2026-05-06)
+
+- **Removed.** Vacation mode is gone — code, persisted state, historical event-log rows, UI, settings entry, stories, conventions reference. There is no replacement; this is a permanent sunset.
+- **Migration runs on container start (idempotent).** Two `DELETE` statements added to `initializeSchema`: drops the `vacation_until` row from `app_state` and any `vacation_start` / `vacation_end` rows from `event_log`. Plants that were in active vacation simply resume normal scheduling at the next cron tick — no backfill, no resolution event.
+- **API surface removed:** `/api/vacation` (POST + DELETE) endpoints, the `vacation` boolean on `/api/schedule/week` day responses, and the rest-day branch in `/api/screen/today` that triggered when vacation was active. `screen.ts` and `schedule.ts` collapsed to single non-conditional code paths.
+- **Files deleted (4):** `packages/api/src/scheduling/vacation.ts` (+ test), `packages/api/src/routes/vacation.ts` (+ test), `packages/api/client/src/components/VacationToggle.tsx`.
+- **Files edited:** `packages/api/src/index.ts` (route unwiring), `packages/api/src/routes/schedule.ts` and `screen.ts` (logic simplification), `packages/api/src/database/schema.ts` (cleanup migration), `packages/api/src/database/event-log.test.ts` and `routes/screen.test.ts` (vacation-specific tests removed). On the client: `CalendarStrip.tsx` (🌴 day-tile indicator gone), `Calendar.tsx`, `Dashboard.tsx` (vacation banner gone), `PlantsList.tsx` (comment updated), `utils/plantView.ts` (`'vacation'` removed from `PlantStateInfo['tone']`), `RowState.tsx` + `.css` (`'vacation'` tone removed).
+- **Stories cleaned.** `RowState.stories.tsx`, `Banner.stories.tsx`, `Chip.stories.tsx`, `Toggle.stories.tsx`, `FilterRail.stories.tsx`, `SettingsRow.stories.tsx`, and `Composition.mdx` had vacation variants removed. Where a story used "Vacation mode" purely as a demo label (Toggle, SettingsRow, Composition examples), the label was replaced with "Dark theme" — a real setting that exists in the project, not fictional filler.
+- **Why now:** vacation mode shipped but didn't earn its keep. It complicated scheduling logic, added UI surface area, and wasn't used. Sunsetting permanently lets the data model, schedule code, and settings surface simplify before v1.0. See [issue #166](https://github.com/tsipotU/plnt-trmnl/issues/166) for the full case.
+- **Test impact:** API suite 587 → 557 (30 vacation-specific tests deleted). Client suite count unchanged (CalendarStrip / Calendar fixtures had `vacation: false` field stripped, no test cases removed). Acceptance grep `vacation\|is_vacation` returns zero matches in non-archive paths.
+
 ### Wave 17: undefined-token sweep across non-nav components (#170, also closes #156, 2026-05-06)
 
 - **Closes the rest of the `--bg-secondary` regression cluster** — the audit half of the work #169 started. Where #169 introduced the proper `--nav-*` tokens for the three nav components, this PR replaces every remaining undefined-token reference in the codebase with the correct semantic token.

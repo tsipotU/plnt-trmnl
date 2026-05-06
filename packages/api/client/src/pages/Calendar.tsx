@@ -24,7 +24,6 @@ interface ScheduleDay {
   plant_names: string[];
   count: number;
   overdue_ids: number[];
-  vacation: boolean;
 }
 
 const DOW_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];

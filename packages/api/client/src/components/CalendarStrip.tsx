@@ -7,7 +7,6 @@ export interface CalendarDay {
   plant_names: string[];
   count: number;
   overdue_ids: number[];
-  vacation: boolean;
 }
 
 interface Props {
@@ -119,18 +118,6 @@ export function CalendarStrip({ days, selectedDate, onDaySelect }: Props) {
                   }}
                 >
                   !
-                </span>
-              )}
-              {day.vacation && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    bottom: 2,
-                    right: 4,
-                    fontSize: '0.7rem',
-                  }}
-                >
-                  🌴
                 </span>
               )}
             </button>

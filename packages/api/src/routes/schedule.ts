@@ -53,20 +53,6 @@ export function createScheduleRouter(db: Database.Database): Router {
     // Without this, plants dated in [from, today-1] show up in both their natural cell AND today's overdue rollup.
     const overdueNotInWindow = overdue.filter(p => p.next_water_date < from);
 
-    // Vacation state in this project is stored as a single `vacation_until` key in
-    // `app_state` (end date only — open-ended start). A day is "in vacation" if it
-    // is on or before `vacation_until` and on or after today (retroactive flagging
-    // of past days is meaningless for a 7-day lookahead strip).
-    let vacationUntil: string | null = null;
-    try {
-      const row = db.prepare(
-        `SELECT value FROM app_state WHERE key = 'vacation_until'`
-      ).get() as { value: string } | undefined;
-      if (row) vacationUntil = row.value;
-    } catch {
-      vacationUntil = null;
-    }
-
     const days = [];
     for (let i = 0; i < dayCount; i++) {
       const date = addDays(from, i);
@@ -82,9 +68,6 @@ export function createScheduleRouter(db: Database.Database): Router {
         plant_names = [...overdueNotInWindow.map(p => p.name), ...plant_names];
       }
 
-      const inVacation =
-        vacationUntil !== null && date >= today && date <= vacationUntil;
-
       days.push({
         date,
         is_today,
@@ -92,7 +75,6 @@ export function createScheduleRouter(db: Database.Database): Router {
         plant_names,
         count: plant_ids.length,
         overdue_ids,
-        vacation: inVacation,
       });
     }
 

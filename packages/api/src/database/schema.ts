@@ -220,6 +220,13 @@ export function initializeSchema(db: Database.Database): void {
   // Issue #38: shown_at tracking for daily fact rotation. Nullable timestamp,
   // set when a fact is picked for the day. NULL = never shown this cycle.
   addColumnIfMissing(db, 'facts', 'shown_at', 'TEXT');
+
+  // Issue #166: vacation mode sunset. Vacation state lived in app_state
+  // (key='vacation_until'); the only persistent traces are that row plus
+  // historical event_log entries. Both are dropped here. Plants in active
+  // vacation simply resume normal scheduling at the next cron tick.
+  db.prepare(`DELETE FROM app_state WHERE key = 'vacation_until'`).run();
+  db.prepare(`DELETE FROM event_log WHERE event_type IN ('vacation_start', 'vacation_end')`).run();
 }
 
 function addColumnIfMissing(

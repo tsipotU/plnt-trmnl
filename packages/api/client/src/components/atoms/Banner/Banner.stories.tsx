@@ -49,9 +49,6 @@ export const AllTones: Story = {
       <Banner tone="error" title="Renderer offline" icon={<Pictogram name="bell" size={18} />}>
         TRMNL hasn't received an updated screenshot since 2026-04-25. Check the renderer container.
       </Banner>
-      <Banner tone="neutral" title="Vacation mode active" icon={<Pictogram name="cal" size={18} />}>
-        Watering reminders are paused until 2026-05-04.
-      </Banner>
     </div>
   ),
 };

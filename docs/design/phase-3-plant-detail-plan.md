@@ -5,6 +5,8 @@
 **Source page:** `packages/api/client/src/pages/PlantDetail.tsx` (2,025 lines)
 **Target route:** `/plants/:id` (unchanged)
 
+> **Sunset note (2026-05-06).** Items in this plan that mentioned vacation (the `✈️ On vacation` banner, `Vacation mode` SectionHead + SettingsRow, "Vacation banner / Vacation toggle" deferral row, "Vacation per-plant flag") were removed permanently by [#166](https://github.com/tsipotU/plnt-trmnl/issues/166). The vacation-related items in this plan are obsolete; the rest is unaffected.
+
 This plan was reviewed and approved before any rebuild work began. The five
 open questions at the bottom were each answered explicitly; those answers are
 folded into the plan body below as the resolved decisions.

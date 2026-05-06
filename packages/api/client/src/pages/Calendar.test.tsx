@@ -83,8 +83,7 @@ describe('Calendar — day selection', () => {
           plant_ids: [1],
           plant_names: ['Mona'],
           count: 1,
-          overdue_ids: [],
-          vacation: false,
+          overdue_ids: []
         },
       ],
     });
@@ -116,8 +115,7 @@ describe('Calendar — day selection', () => {
           plant_ids: [1],
           plant_names: ['Mona'],
           count: 1,
-          overdue_ids: [],
-          vacation: false,
+          overdue_ids: []
         },
         {
           date: tomorrowIso,
@@ -125,8 +123,7 @@ describe('Calendar — day selection', () => {
           plant_ids: [],
           plant_names: [],
           count: 0,
-          overdue_ids: [],
-          vacation: false,
+          overdue_ids: []
         },
       ],
     });

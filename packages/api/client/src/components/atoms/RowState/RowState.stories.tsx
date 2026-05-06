@@ -8,14 +8,14 @@ const meta: Meta<typeof RowState> = {
     docs: {
       description: {
         component:
-          'Bordered pill for plant lifecycle states — mirrors the prototype `.m-row-state` exactly. Rectangular, 0.5px tone-or-ink border, mono uppercase 9.5px tracked, tone-driven fills. 8 tones cover every state PlantRow / FeedbackRow / EnrichmentQueue need.',
+          'Bordered pill for plant lifecycle states — mirrors the prototype `.m-row-state` exactly. Rectangular, 0.5px tone-or-ink border, mono uppercase 9.5px tracked, tone-driven fills. 7 tones cover every state PlantRow / FeedbackRow / EnrichmentQueue need.',
       },
     },
   },
   argTypes: {
     tone: {
       control: { type: 'inline-radio' },
-      options: ['neutral', 'due', 'overdue', 'healthy', 'calibrating', 'dormant', 'just-added', 'vacation'],
+      options: ['neutral', 'due', 'overdue', 'healthy', 'calibrating', 'dormant', 'just-added'],
     },
   },
   args: {
@@ -39,7 +39,6 @@ export const AllTones: Story = {
       <RowState tone="calibrating">Calibrating</RowState>
       <RowState tone="dormant">Dormant</RowState>
       <RowState tone="just-added">New</RowState>
-      <RowState tone="vacation">Vacation</RowState>
       <RowState tone="neutral">Archived</RowState>
     </div>
   ),
@@ -57,7 +56,7 @@ export const InListRow: Story = {
     }: {
       name: string;
       latin: string;
-      tone: 'due' | 'overdue' | 'healthy' | 'calibrating' | 'dormant' | 'vacation' | 'just-added';
+      tone: 'due' | 'overdue' | 'healthy' | 'calibrating' | 'dormant' | 'just-added';
       label: string;
       meta: string;
     }) => (
