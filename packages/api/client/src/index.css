@@ -24,6 +24,13 @@ body {
   margin: 0 auto;
   min-height: 100dvh;
   background: var(--bg);
+  /* Disable native pull-to-refresh — it triggered the iOS Safari spinner
+     but never reliably completed (auth redirect / tunnel latency made the
+     reload hang in the pulled-down state). We don't need PTR: data fetches
+     on mount and on action. If a refresh affordance is ever wanted, build
+     a Banner-style "Updated N ago — Refresh" rather than rewire native
+     PTR. See #172. */
+  overscroll-behavior-y: none;
 }
 
 a {
