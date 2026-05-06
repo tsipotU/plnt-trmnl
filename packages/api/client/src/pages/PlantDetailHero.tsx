@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pictogram } from '../components/atoms/Pictogram/Pictogram.js';
 import { RowState } from '../components/atoms/RowState/RowState.js';
 import { plantState, type PlantStateInfo, isoToday } from '../utils/plantView.js';
@@ -69,8 +69,24 @@ export function PlantDetailHero({
   const [speciesDraft, setSpeciesDraft] = useState(plant.species ?? '');
   const [editingIdentifier, setEditingIdentifier] = useState(false);
   const [identifierDraft, setIdentifierDraft] = useState(plant.identifier ?? '');
+  const [enlarged, setEnlarged] = useState(false);
 
   const state = buildState(plant);
+
+  // Esc closes the image lightbox (#162). Only listens while open so we don't
+  // hold a global handler in normal page usage.
+  useEffect(() => {
+    if (!enlarged) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setEnlarged(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [enlarged]);
+
+  const illustrationUrl = plant.illustration_path
+    ? `/api/illustrations/${encodeURIComponent(plant.illustration_path)}`
+    : null;
 
   function commitName() {
     const next = nameDraft.trim();
@@ -111,12 +127,19 @@ export function PlantDetailHero({
   return (
     <header className="p7l-pdhero">
       <div className="p7l-pdhero__pic">
-        {plant.illustration_path ? (
-          <img
-            src={`/api/illustrations/${encodeURIComponent(plant.illustration_path)}`}
-            alt={plant.species ?? plant.name}
-            loading="lazy"
-          />
+        {illustrationUrl ? (
+          <button
+            type="button"
+            className="p7l-pdhero__pic-button"
+            onClick={() => setEnlarged(true)}
+            aria-label="Enlarge plant image"
+          >
+            <img
+              src={illustrationUrl}
+              alt={plant.species ?? plant.name}
+              loading="lazy"
+            />
+          </button>
         ) : (
           <Pictogram name="leaf" size={64} stroke={1.4} />
         )}
@@ -235,6 +258,26 @@ export function PlantDetailHero({
           <RowState tone={state.tone}>{state.label}</RowState>
         </div>
       </div>
+
+      {enlarged && illustrationUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Enlarged plant image"
+          className="p7l-pdhero__lightbox"
+          onClick={() => setEnlarged(false)}
+        >
+          <img src={illustrationUrl} alt={plant.species ?? plant.name} />
+          <button
+            type="button"
+            className="p7l-pdhero__lightbox-close"
+            onClick={() => setEnlarged(false)}
+            aria-label="Close enlarged image"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </header>
   );
 }
