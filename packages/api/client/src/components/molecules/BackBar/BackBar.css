@@ -22,6 +22,9 @@
   color: var(--ink);
   cursor: pointer;
   white-space: nowrap;
+  /* Eyebrow is the only flex item allowed to shrink (it ellipses). The back
+     button must stay fully tappable on every viewport — #161. */
+  flex-shrink: 0;
   transition: background var(--motion-fast) var(--ease-standard);
 }
 
@@ -51,4 +54,5 @@
   align-items: center;
   gap: var(--sp-2);
   margin-left: auto;
+  flex-shrink: 0;
 }
