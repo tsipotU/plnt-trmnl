@@ -13,16 +13,6 @@ import { initializeSchema } from '../database/schema.js';
 import { createPlantsRouter } from './plants.js';
 import { createPlantNotesRouter } from './plant-notes.js';
 
-const dummyConfig = {
-  heatingSeasonStart: 10,
-  heatingSeasonEnd: 4,
-  growingSeasonStart: 3,
-  growingSeasonEnd: 9,
-  growingSeasonMultiplier: 0.8,
-  dormancyMultiplier: 1.5,
-  dryDaysBase: 3,
-};
-
 const dummyCatalog = {
   bySpecies: new Map(),
   list: [],
@@ -33,8 +23,10 @@ function buildApp() {
   initializeSchema(db);
   const app = express();
   app.use(express.json());
-  // Production order: plants first, plant-notes second, both at /api/plants
-  app.use('/api/plants', createPlantsRouter(db, dummyConfig, dummyCatalog));
+  // Production order: plants first, plant-notes second, both at /api/plants.
+  // No seasonal config needed — this test only checks routing-collision
+  // between the two routers, not the watering math.
+  app.use('/api/plants', createPlantsRouter(db, undefined, dummyCatalog));
   app.use('/api/plants', createPlantNotesRouter(db));
 
   const { lastInsertRowid } = db
