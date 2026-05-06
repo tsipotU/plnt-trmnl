@@ -2,18 +2,19 @@
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
-**Last updated:** 2026-05-06 (Wave 17 in flight: 4 issues shipped — #176 add-note empty-state button, #169 nav surface design pass, #170 undefined-token sweep, #156 closed as side-effect of #170. Local instance rebuilt to deploy the fixes. v1.0.0 still not tagged; **Wave 17** continues with 13 issues remaining — #155 (Repot task does nothing) is next.)
+**Last updated:** 2026-05-06 (**Wave 17 closed end-to-end** — second burndown shipped 12 PRs spanning #161, #166 (vacation sunset), #171 (dynamic version), #167 (humanized labels), #157, #159, #165, #158, #173, #174, #164, #162, #172 + a drive-by tsc fix. All 18 wave-17 issues resolved. **Wave 14 — TRMNL identity** is the next functional wave on the path to v1.0.0.)
 
 ---
 
 ## Where we are
 
-- **Waves 1–10 + 12 + 13 are shipped and merged to `main`.**
+- **Waves 1–10 + 12 + 13 + 17 are shipped and merged to `main`.**
   - Wave 8 (PR #114, squash `fa8289d`) — pull-based architecture
   - Wave 9 — auth gate, ErrorBoundary, hamburger fix, monstera plant image, AI-connection heuristic
   - Wave 10 — empty-state polish, AddPlant tooltips, post-add splash refactor
   - Wave 12 — date strip distinct today/selected + 11-day centred scroll (#126); archive-flow nav fix + memorial page redesign (#135)
-  - Wave 13 (this session) — plant detail structural rework: passport IA scaffolding (#134, foundation only), ConditionCard cards (#133), calibration UX (#60). Filed 5 child issues (#139–#143) for the deferred reorder / per-section redesigns.
+  - Wave 13 — plant detail structural rework: passport IA scaffolding (#134, foundation only), ConditionCard cards (#133), calibration UX (#60). Filed 5 child issues (#139–#143) for the deferred reorder / per-section redesigns.
+  - **Wave 17 (just closed, 2026-05-06)** — Dog-food polish + sunset. Vacation mode removed entirely (#166); nav-surface design pass + undefined-token sweep (#169 + #170); humanized water-state labels everywhere (#167); plant-image lightbox (#162); plant-image rendering + fallback on dashboard rows (#173); calendar today-cell visual fix (#174); archive flow polish (#164); iOS auto-zoom fix (#158); tooltip overflow-clipping fix (#157); FilterRail stray-line fix (#159); feedback FAB icon + position (#165); BackBar narrow-viewport fix (#161); dynamic version display (#171); native PTR disabled (#172); add-note empty-state button (#176, refile of #160). All 18 milestone issues resolved.
 - **Wave 11 (illustration pipeline) re-bundled into Wave 14** alongside the TRMNL template (#7). Design landed in [#138](https://github.com/tsipotU/plnt-trmnl/issues/138); generation source still needs to be chosen before that part can ship. The original [#54](https://github.com/tsipotU/plnt-trmnl/issues/54) was closed as superseded.
 - **Catalog at 444 species** across 12 categories (expanded from 250 on 2026-04-26). Per-category counts: foliage 108, succulents 57, flowering 47, cacti 32, orchids 26, ferns/herbs/indoor_trees/palms/carnivorous/terrarium 25, air_plants 24. 6,660 unique species facts. Strict validator green at boot.
 - **Architecture is pull-based:** zero in-process LLM. External AI tools poll `/api/plants?enrichment=pending` and `/api/conditions?care_update=pending`, then POST back. Connect-your-AI UI in Settings.
@@ -23,9 +24,30 @@ Single-file briefing so a new session, contributor, or future-you can pick up wo
 - **Storybook catalog live** at https://tsipotU.github.io/plnt-trmnl/. Auto-deploys on every push to `main` via `.github/workflows/storybook.yml`. **9 atoms · 26 molecules · 3 nav · 7 Foundations docs pages** (Naming, Color, Accessibility, Theming, AddingAMolecule, NavigationalSurface, plus Welcome). Wave 17 #169 added the Nav category (Header, MenuDrawer, HamburgerMenu) plus the NavigationalSurface Foundations page — together they form the visual-regression contract for the nav layer.
 - **Branch protection on `main`.** No direct pushes; every change goes via PR. Required status checks: `Client suite` + `API + renderer suite`. Squash-merge only. Auto-merge enabled at the repo level — `gh pr merge --auto --squash --delete-branch` armed PRs land as soon as checks pass.
 - **Brand tokens.** Three: `plnt-trmnl` (codename / repo / package scopes), `p7l` (user-facing wordmark — Header, About, Welcome), `p7l-` (every CSS class). The previous `PLNT` wordmark is gone (PR #151, 2026-05-06). Naming.mdx Foundations doc codifies this.
-- **Test baseline:** API + client **587** tests across 38 files (was 581 before Wave 17). Wave 17 added 6: `NoteSheet.test.tsx` (2), `PlantDetail.notes.test.tsx` (2), `plant-notes-integration.test.ts` (1), and one more from the audit. Renderer **43** tests unchanged.
+- **Test baseline:** API **557** + client **227** + renderer **60** = **844** total. Wave 17 net impact: client +44 (humanize-days helper 21, plantView 18, PlantDetailHero lightbox 5), renderer +17 (mirrored humanize-days), API −30 (vacation removal). Pre-Wave-17 baseline was API 581 + client 151 + renderer 43 = 775.
 
 ## What just happened (last 24h, in case you've been away)
+
+0000. **Wave 17 closes — second burndown shipped 12 PRs + 1 maintenance fix** (2026-05-06, this session). All 18 issues in the Wave 17 milestone are now resolved. PRs landed in this order:
+
+   - **[PR #182](https://github.com/tsipotU/plnt-trmnl/pull/182) — [#161](https://github.com/tsipotU/plnt-trmnl/issues/161)** BackBar back/actions pinned to `flex-shrink: 0` so the eyebrow truncates instead of clipping the back button on narrow viewports.
+   - **[PR #183](https://github.com/tsipotU/plnt-trmnl/pull/183) — drive-by tsc fix** for `plant-notes-integration.test.ts` config stub (vitest accepted, prod tsc rejected). Re-applied a fix HANDOFF #180 said had landed but evidently regressed.
+   - **[PR #184](https://github.com/tsipotU/plnt-trmnl/pull/184) — [#166](https://github.com/tsipotU/plnt-trmnl/issues/166)** Vacation mode sunset permanently. 31 files, −896/+78. `app_state.vacation_until` row + `event_log.vacation_*` rows deleted on container start (idempotent migration). API surface gone (`/api/vacation`, `vacation` field on schedule responses, screen rest-day vacation branch). Client surface gone (VacationToggle, RowState `vacation` tone, CalendarStrip 🌴 indicator, Dashboard banner). Stories cleaned. Docs updated. The `'vacation'` keyword survives only inside the cleanup migration itself and the `docs/archive/` historical references.
+   - **[PR #185](https://github.com/tsipotU/plnt-trmnl/pull/185) — [#171](https://github.com/tsipotU/plnt-trmnl/issues/171)** Dynamic version display via Vite `define` from `packages/api/package.json`. About + Settings + Drawer story now show truth and auto-update on every version bump. New ambient declaration `__APP_VERSION__: string` in `src/vite-env.d.ts`.
+   - **[PR #186](https://github.com/tsipotU/plnt-trmnl/pull/186) — [#167](https://github.com/tsipotU/plnt-trmnl/issues/167)** Humanized water-state labels (`today` / `tomorrow` / `yesterday` / `in a few days` / `a few days ago` / `in about a week` / `about a week ago` / `in over a week` / `over a week ago` / short-date fallback past 14 days). Applied via `humanizeDaysFromToday(days, {fallbackIsoDate?})` helper. Implementation deliberately mirrored in `packages/api/client/src/utils/` and `packages/renderer/src/render/` (renderer is a separate workspace; "third surface = refactor" rule, not yet triggered). Suite-wide test count +56.
+   - **[PR #187](https://github.com/tsipotU/plnt-trmnl/pull/187) — [#157](https://github.com/tsipotU/plnt-trmnl/issues/157)** Tooltips on `/add` no longer clipped. Bug was overflow, not z-index — `.p7l-addplant__form { overflow-y: auto }` clipped any absolutely-positioned descendant at its edges. PotSizeTooltip and LightLevelTooltip popovers switched to `position: fixed` with coords from `getBoundingClientRect()` + viewport clamp. Reposition on resize/scroll. No portal needed.
+   - **[PR #188](https://github.com/tsipotU/plnt-trmnl/pull/188) — [#159](https://github.com/tsipotU/plnt-trmnl/issues/159)** FeedbackList stacked two `<FilterRail>`s with default `bordered: true`; the upper rail's bottom border rendered as a divider *between* the two filter sections. Pass `bordered={false}` on the upper one.
+   - **[PR #189](https://github.com/tsipotU/plnt-trmnl/pull/189) — [#165](https://github.com/tsipotU/plnt-trmnl/issues/165)** Feedback FAB now uses a `balloon` Pictogram (added to the icon catalog using the same 24×24 mid-century geometry as the rest of the set) and sits at `left: 16px` rather than competing with right-side add-item FABs.
+   - **[PR #190](https://github.com/tsipotU/plnt-trmnl/pull/190) — [#158](https://github.com/tsipotU/plnt-trmnl/issues/158)** iOS Safari auto-zooms form controls with `font-size < 16px` and never auto-zooms back out. Five rules across four files lifted to 16px (FeedbackButton, SearchBar, FeedbackDetail textarea + edit, AddPlant input/select). Each touched rule got an inline `#158` comment so this doesn't get "optimized" back.
+   - **[PR #191](https://github.com/tsipotU/plnt-trmnl/pull/191) — [#173](https://github.com/tsipotU/plnt-trmnl/issues/173)** New `PlantThumb` component renders catalog illustration when set, falls back to leaf Pictogram on null OR on image error. Wired in Dashboard, PlantsList, Calendar — three surfaces that previously rendered a generic leaf for every plant.
+   - **[PR #192](https://github.com/tsipotU/plnt-trmnl/pull/192) — [#174](https://github.com/tsipotU/plnt-trmnl/issues/174)** Calendar today-cell only fills ink when there's actually something to do. Two-way split: today + has-events → filled ink; today, no events → subtle surface bg + bold day number. Removed dead `.--overdue.--today` rule (today is never overdue per the React logic).
+   - **[PR #193](https://github.com/tsipotU/plnt-trmnl/pull/193) — [#164](https://github.com/tsipotU/plnt-trmnl/issues/164)** Archive flow polish — top-right `⊘` archive button removed (Danger zone "Archive plant" button at the bottom is now the sole entry point); user-facing copy softened "Died"/"It died" → "Passed away"/"It passed away" across archive sheet, archived list, memorial page. The `'died'` enum stays — that's the stable database/API identifier; only labels changed.
+   - **[PR #194](https://github.com/tsipotU/plnt-trmnl/pull/194) — [#162](https://github.com/tsipotU/plnt-trmnl/issues/162)** Plant image lightbox on plant detail. Tap thumb → fullscreen overlay; click outside or Escape to close. Implementation page-local in `PlantDetailHero` (FeedbackDetail already has an inline lightbox; this is the second surface — extraction triggers at the third per project convention). Accessible: real `<button>` triggers, `role="dialog" aria-modal="true"`, scoped Escape handler, aria-labels on both trigger and close.
+   - **[PR #195](https://github.com/tsipotU/plnt-trmnl/pull/195) — [#172](https://github.com/tsipotU/plnt-trmnl/issues/172)** Native pull-to-refresh disabled — one CSS line on `body` (`overscroll-behavior-y: none`). iOS Safari's PTR triggered the spinner but `location.reload()` round-tripped through auth gate / Cloudflare tunnel awkwardly and the UI hung in the pulled-down state. We don't need PTR (data fetches on mount + after every action). A custom Banner-style "Updated N ago — Refresh" is the right shape if a refresh affordance is ever wanted later.
+
+   **Closed branches/PRs from this session:** `#181` (closed unmerged — superseded by parallel-session PR #180; auto-merge timing race surfaced the "branch off main between PRs" lesson). Memory entries written: `feedback_no_playwright.md` (Playwright is intentionally absent on the Mac mini — don't try to install) and `feedback_fetch_before_read.md` (always `git fetch && git status` before reading state docs — PR #181 conflicted because I read a stale local HANDOFF). Both are linked from `MEMORY.md`.
+
+   **Pattern across the wave:** several reports turned out to have a different root cause than the user described. #157 ("z-index too low") was actually overflow clipping. #158 ("page zoomed after popup") was iOS form-input zoom. #173 ("plant images don't load") was a UX gap (rows weren't even attempting to render). #172 ("PTR hangs") was native gesture + auth-redirect timing. The dog-food-symptom-vs-cause memory entry from earlier in the wave kept paying off — never trust the user's hypothesis without tracing.
 
 000. **Wave 17 first burndown — 4 issues shipped + 1 closed-as-side-effect** (2026-05-06, this session). Each in its own PR through the standard branch-protection + auto-merge flow:
    - **[#176](https://github.com/tsipotU/plnt-trmnl/issues/176) — In-place "+ Add note" button in Notes empty state** (PR [#177](https://github.com/tsipotU/plnt-trmnl/pull/177)). Originally filed as [#160](https://github.com/tsipotU/plnt-trmnl/issues/160) ("Notes don't save"). Investigation across every layer (API isolated, API in production-mounted stack, NoteSheet component, full PlantDetail user journey) found the save flow worked end-to-end. Real root cause was discoverability — the empty state's instructional copy ("Tap the Note quick-action…") pointed to a button that lives at the top of the page, off-screen for users scrolled to Notes. Refiled as #176 with a concrete fix (button inside the empty state, wired to `setSheet('note')`); #160 closed as not-planned. Investigation tests (3 new files — `NoteSheet.test.tsx`, `PlantDetail.notes.test.tsx`, `plant-notes-integration.test.ts`) promoted into permanent coverage of the note-save flow, which previously had zero client-side tests.
@@ -99,9 +121,7 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 
 ## Open issues snapshot (as of HEAD)
 
-33 open issues, all milestoned.
-
-**Wave 17 — Dog-food polish + sunset (active, 18):** #155 (repot bug), #156 (foldout /add transparent), #157 (mobile tooltip z-index), #158 (zoom after feedback popup), #159 (tag-filter line glitch), #160 (notes don't save), #161 (Today button clipped), #162 (image lightbox), #164 (archive flow polish), #165 (feedback button restyle), #166 (sunset vacation mode), #167 (humanized water-state labels), #169 (nav surface design pass), #170 (`--bg-secondary` audit), #171 (v1.0.0 placeholder in About+Settings), #172 (pull-to-refresh stuck), #173 (plant images don't load), #174 (date-strip + plant-list disagree on empty state).
+15 open issues, all milestoned. Wave 17 closed in this session — none of its 18 issues remain.
 
 **Wave 14 — TRMNL identity:** #7 (TRMNL template visual), #138 (two-variant illustration pipeline, blocked on generator pick).
 
@@ -111,11 +131,11 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 
 **Wave 18 — Plant detail passport IA (post-v1.0):** #139 (full section reorder), #140 (hero block redesign), #141 ("This plant" consolidation), #142 (sticky in-page nav), #143 (origin & lore card), #168 (common conditions cards collapse + uniform width).
 
-**v1.1 backlog:** #144 (auth modernization), #148 (category filter — vacation half obsolete), #152 (iCalendar feed), #163 (task ribbon info+log panel).
+**v1.1 backlog:** #144 (auth modernization), #148 (category filter — vacation half now obsolete after #166), #152 (iCalendar feed), #163 (task ribbon info+log panel — absorbs the #155 repot UX gap).
 
 **v2 backlog:** #127 (calendar grid view), #128 ("Identify my plant" walkthrough), #153 (propagation guides + projects).
 
-Closed 2026-05-06: #1 (catalog at 444 species, exceeded 250+ goal). Closed 2026-04-26: #134, #133, #60, #18 (won't-fix), #126, #135. Closed earlier: #137 (goat-tracker GH bridge, not-planned), #54 (superseded by #138).
+**Closed 2026-05-06 (second burndown, this session):** #161, #166, #171, #167, #157, #159, #165, #158, #173, #174, #164, #162, #172. **First burndown earlier same day:** #176 (refile of #160), #169, #170, #156. **Closed earlier 2026-05-06:** #1 (catalog at 444 species, exceeded 250+ goal), #155 (dup of #163). **Closed 2026-04-26:** #134, #133, #60, #18 (won't-fix), #126, #135. **Earlier:** #137 (not-planned), #54 (superseded by #138).
 
 ## Architectural carry-forwards
 
@@ -171,7 +191,7 @@ The auto-memory `project_plant_trmnl.md` already carries cross-session facts; do
 The OSS-readiness scaffolding has all landed — `LICENSE` (MIT), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `CODEOWNERS`, issue + PR templates, `.github/workflows/test.yml`, `.github/dependabot.yml`, `.nvmrc`, `.editorconfig`. History scrubbed; repo public; Storybook deployed; branch protection on. License framing clear.
 
 What still gates v1.0.0:
-- **Wave 17** — Dog-food polish + sunset (18 issues, see milestone). Burns down the 2026-05-06 dog-food output, lands the nav-surface design pass (#169), audits the `--bg-secondary` token (#170), sunsets vacation mode (#166). Inserted ahead of W14 because the polish + design-system gap close block clean v1.0 work.
+- ~~**Wave 17** — Dog-food polish + sunset.~~ **DONE 2026-05-06** (all 18 issues resolved, second burndown).
 - **Wave 14** — TRMNL identity (#7 template + #138 illustration pipeline, generation source still TBD).
 - **Wave 15** — PWA (#59) + TRMNL-X dual-resolution (#55).
 - **Wave 16** — holistic frontend design pass (#40), Native Dutch-name audit on the 444-plant catalog (Emiel), README screenshot/copy refresh, `INSTALL.md` clean-machine smoke test.
