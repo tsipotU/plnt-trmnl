@@ -63,6 +63,11 @@ export const icons: Record<string, ReactNode> = {
   beaker: (
     <path d="M9 3 H 15 M10 3 V 10 L 5 19 a 1.5 1.5 0 0 0 1.4 2 H 17.6 a 1.5 1.5 0 0 0 1.4 -2 L 14 10 V 3" />
   ),
+  balloon: (
+    // Speech balloon with a tail going down-left. Used for the feedback FAB
+    // (#165) — a + glyph reads as 'add an item', a balloon reads as comms.
+    <path d="M5 4 H 19 a 2 2 0 0 1 2 2 V 14 a 2 2 0 0 1 -2 2 H 13 L 8 21 L 9 16 H 5 a 2 2 0 0 1 -2 -2 V 6 a 2 2 0 0 1 2 -2 Z" />
+  ),
 };
 
 export type IconName = keyof typeof icons;

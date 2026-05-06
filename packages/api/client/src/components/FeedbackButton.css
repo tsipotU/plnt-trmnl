@@ -1,6 +1,8 @@
 .p7l-feedback-fab {
   position: fixed;
-  right: 16px;
+  /* Left-align (#165) — feedback is a comms anchor, sits with primary nav
+     CTAs on the left rather than competing with right-side add-item FABs. */
+  left: 16px;
   bottom: 88px;
   z-index: 90;
 }
