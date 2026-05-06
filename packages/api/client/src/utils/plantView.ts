@@ -1,5 +1,6 @@
 import type { Plant } from '../components/PlantCard.js';
 import type { IconName } from '../components/atoms/Pictogram/Pictogram.js';
+import { humanizeDaysFromToday } from './humanize-days.js';
 
 const DAY_MS = 86_400_000;
 
@@ -21,17 +22,17 @@ export function plantState(p: Plant, today: string): PlantStateInfo {
 
   if (wateredToday) return { tone: 'healthy', label: 'Watered' };
   if (isOverdue) {
-    const days = Math.max(
-      1,
-      Math.round(
-        (new Date(today + 'T00:00').getTime() -
-          new Date((p.next_water_date as string) + 'T00:00').getTime()) /
-          DAY_MS,
-      ),
+    const days = Math.round(
+      (new Date((p.next_water_date as string) + 'T00:00').getTime() -
+        new Date(today + 'T00:00').getTime()) /
+        DAY_MS,
     );
-    return { tone: 'overdue', label: `Overdue ${days}d` };
+    return {
+      tone: 'overdue',
+      label: humanizeDaysFromToday(days, { fallbackIsoDate: p.next_water_date as string }),
+    };
   }
-  if (isDueToday) return { tone: 'due', label: 'Due today' };
+  if (isDueToday) return { tone: 'due', label: 'today' };
   if (isNew) return { tone: 'just-added', label: 'New' };
   if (isCalibrating) return { tone: 'calibrating', label: 'Calibrating' };
   if (p.next_water_date != null) {
@@ -40,7 +41,10 @@ export function plantState(p: Plant, today: string): PlantStateInfo {
         new Date(today + 'T00:00').getTime()) /
         DAY_MS,
     );
-    return { tone: 'healthy', label: `In ${days}d` };
+    return {
+      tone: 'healthy',
+      label: humanizeDaysFromToday(days, { fallbackIsoDate: p.next_water_date }),
+    };
   }
   return { tone: 'healthy', label: 'Comfortable' };
 }
