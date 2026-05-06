@@ -52,7 +52,7 @@ troubleshooting), see [`INSTALL.md`](INSTALL.md).
 
 ## Storybook
 
-The component catalog (9 atoms · 26 molecules · 6 Foundations docs
+The component catalog (9 atoms · 26 molecules · 3 nav · 7 Foundations docs
 pages) is published on every push to `main`:
 
 → **<https://tsipotU.github.io/plnt-trmnl/>**
