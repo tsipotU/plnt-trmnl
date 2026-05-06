@@ -13,7 +13,7 @@ see [`INSTALL.md`](../INSTALL.md). For what's planned see
 
 ## What this is
 
-**plant-trmnl** (user-visible name **PLNT**) is a houseplant care
+**plnt-trmnl** (user-visible name **PLNT**) is a houseplant care
 companion with two surfaces:
 
 1. A **TRMNL e-ink display** showing a daily digest of plants needing
@@ -46,7 +46,7 @@ The renderer talks to the API over the Docker network via
 
 ### Enrichment is pull-based
 
-plant-trmnl owns plant state; an external AI tool (Claude Desktop
+plnt-trmnl owns plant state; an external AI tool (Claude Desktop
 scheduled task is the canonical recipe) polls
 `GET /api/plants?enrichment=pending` and
 `GET /api/conditions?care_update=pending`, then POSTs back to
@@ -67,7 +67,7 @@ State machines:
 ## Directory layout
 
 ```
-plant-trmnl/
+plnt-trmnl/
   packages/
     api/
       src/                    Express API source
@@ -359,7 +359,7 @@ Rules to prevent recurrence:
 - Roadmap: [`ROADMAP.md`](../ROADMAP.md)
 - Current handoff: [`docs/HANDOFF.md`](HANDOFF.md)
 - Release playbook: [`docs/RELEASE-PROCESS.md`](RELEASE-PROCESS.md)
-- Master design spec: `docs/specs/2026-04-07-plant-trmnl-design.md`
+- Master design spec: `docs/specs/2026-04-07-plnt-trmnl-design.md`
   (Wave 1, partly superseded by later wave docs — read the high-level
   architecture sections, skip the detailed feature specs)
 - Historical wave plans: `docs/archive/`

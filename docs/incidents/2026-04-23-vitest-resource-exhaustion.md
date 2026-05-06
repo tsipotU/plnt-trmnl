@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-23 (second occurrence; first was 2026-04-22)
 **Severity:** High — system unresponsive, recovery required SSH intervention
-**Context:** Wave 4b work on plant-trmnl
+**Context:** Wave 4b work on plnt-trmnl
 
 ## What happened
 
@@ -20,7 +20,7 @@ OrbStack was **not** the cause — its processes remained at ~50–60MB.
 
 ## Root cause
 
-Vitest defaulted to unbounded worker parallelism (pool size ≈ CPU count). With plant-trmnl's heavy deps (Claude Agent SDK, better-sqlite3 native bindings, full module graphs per worker), each worker's resident set was large enough that the aggregate crossed the memory-pressure threshold before any test suite could finish.
+Vitest defaulted to unbounded worker parallelism (pool size ≈ CPU count). With plnt-trmnl's heavy deps (Claude Agent SDK, better-sqlite3 native bindings, full module graphs per worker), each worker's resident set was large enough that the aggregate crossed the memory-pressure threshold before any test suite could finish.
 
 Contributing factors:
 - No `maxForks` / `maxWorkers` cap in any of the three vitest configs

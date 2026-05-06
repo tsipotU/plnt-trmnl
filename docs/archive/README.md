@@ -1,6 +1,6 @@
 # Archive — historical wave plans
 
-This directory holds **shipped** wave plans, designs, and manual-test docs from Waves 1–8 of plant-trmnl. They're preserved for context (and the occasional "why was this decision made?") but no longer reflect active work.
+This directory holds **shipped** wave plans, designs, and manual-test docs from Waves 1–8 of plnt-trmnl. They're preserved for context (and the occasional "why was this decision made?") but no longer reflect active work.
 
 For the current state, read top-to-bottom:
 
@@ -12,7 +12,7 @@ For the current state, read top-to-bottom:
 
 | File | Wave | Shipped |
 |---|---|---|
-| `2026-04-07-plant-trmnl-plan.md` | Wave 1 — initial scaffold | v0.0.1 |
+| `2026-04-07-plnt-trmnl-plan.md` | Wave 1 — initial scaffold | v0.0.1 |
 | `2026-04-22-feedback-system-plan.md` | feedback feature | v0.1.0 (#19) |
 | `2026-04-22-wave-3-plan.md`, `2026-04-22-wave-3-design.md` | Wave 3 — batch water + calendar + bin-packer | v0.3.0 |
 | `2026-04-22-wave-progress.md` | running tracker (closed) | v0.x |

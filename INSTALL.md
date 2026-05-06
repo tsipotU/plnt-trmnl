@@ -1,19 +1,19 @@
-# Installing PLNT (plant-trmnl)
+# Installing PLNT (plnt-trmnl)
 
-This guide walks you from "I just heard about plant-trmnl" to "I have it running, the TRMNL screen updates daily, and my plants are getting their care data filled in automatically."
+This guide walks you from "I just heard about plnt-trmnl" to "I have it running, the TRMNL screen updates daily, and my plants are getting their care data filled in automatically."
 
 ## What you'll need
 
 - A **TRMNL device** (OG or X). [Buy one at usetrmnl.com.](https://usetrmnl.com/)
-- A **server** to run plant-trmnl on. Tested on: Mac mini, Synology NAS, Raspberry Pi 4, generic Linux box. Anything that runs Docker is fine.
+- A **server** to run plnt-trmnl on. Tested on: Mac mini, Synology NAS, Raspberry Pi 4, generic Linux box. Anything that runs Docker is fine.
 - **Docker** + Docker Compose installed on the server.
 - **An AI tool** that can run on a schedule (or manually copy-paste prompts). Recommended: [Claude Desktop](https://claude.ai/download) (free), which has built-in Scheduled Tasks. Other supported: ChatGPT (paid tier with scheduled tasks), Cursor, Ollama + cron, n8n. Free + interactive options work too — just kick off the prompt manually whenever you add a plant.
 
 ## Install
 
 ```bash
-git clone https://github.com/<your-org-or-fork>/plant-trmnl.git
-cd plant-trmnl
+git clone https://github.com/<your-org-or-fork>/plnt-trmnl.git
+cd plnt-trmnl
 cp .env.example .env
 # Edit .env — set TRMNL_API_KEY and TRMNL_PLUGIN_UUID (instructions below)
 docker compose up -d
@@ -58,7 +58,7 @@ The renderer will push a screen update on the schedule set in `RENDER_CRON` (def
 
 ## Connect your AI
 
-This is the magic — plant-trmnl gives you a pre-written prompt that teaches your AI tool how to enrich your plants on a schedule.
+This is the magic — plnt-trmnl gives you a pre-written prompt that teaches your AI tool how to enrich your plants on a schedule.
 
 1. Open `http://localhost:3900/settings` in a browser.
 2. Click **Copy AI setup prompt**.
@@ -72,7 +72,7 @@ This is the magic — plant-trmnl gives you a pre-written prompt that teaches yo
 4. Set schedule: **Every hour**.
 5. Save.
 
-That's it. Claude Desktop now polls your plant-trmnl every hour, fills in any pending plants, and suggests care updates for any flagged conditions.
+That's it. Claude Desktop now polls your plnt-trmnl every hour, fills in any pending plants, and suggests care updates for any flagged conditions.
 
 ### Recipe — ChatGPT (paid, with Scheduled Tasks)
 
@@ -91,11 +91,11 @@ Most IDE-embedded AIs don't have scheduled tasks. Use them for manual one-shot e
 # Install ollama, pull a capable model (e.g., llama3.1:70b for plant knowledge)
 ollama pull llama3.1:70b
 
-# Save the prompt copied from Settings to ~/plant-trmnl-prompt.txt
+# Save the prompt copied from Settings to ~/plnt-trmnl-prompt.txt
 
 # Add a crontab entry to run the prompt hourly:
 # crontab -e
-0 * * * * ollama run llama3.1:70b "$(cat ~/plant-trmnl-prompt.txt)" >> /tmp/plnt-ai.log 2>&1
+0 * * * * ollama run llama3.1:70b "$(cat ~/plnt-trmnl-prompt.txt)" >> /tmp/plnt-ai.log 2>&1
 ```
 
 (Note: Ollama plant-knowledge quality varies by model. For best results use a 70B+ model with broad training data.)
@@ -103,9 +103,9 @@ ollama pull llama3.1:70b
 ### Recipe — n8n / make.com / Zapier
 
 These platforms have HTTP-request nodes. Build a workflow that:
-1. GET `http://<plant-trmnl-host>:3900/api/plants?enrichment=pending`
+1. GET `http://<plnt-trmnl-host>:3900/api/plants?enrichment=pending`
 2. For each plant, call your AI integration with the setup prompt + the plant context.
-3. POST the AI's output to `http://<plant-trmnl-host>:3900/api/plants/{id}/enrichment`.
+3. POST the AI's output to `http://<plnt-trmnl-host>:3900/api/plants/{id}/enrichment`.
 
 Schedule the workflow hourly. Same pattern for `/api/conditions?care_update=pending`.
 

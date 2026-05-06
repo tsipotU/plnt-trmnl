@@ -1,6 +1,6 @@
 # Release Process
 
-Maintainer-facing playbook for shipping plant-trmnl releases.
+Maintainer-facing playbook for shipping plnt-trmnl releases.
 
 ## Cadence
 

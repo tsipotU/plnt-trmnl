@@ -3,7 +3,7 @@ interface BuildOpts {
   sampleFacts: string[];
 }
 
-const TEMPLATE = `You are connected to plant-trmnl, a houseplant care tracker.
+const TEMPLATE = `You are connected to plnt-trmnl, a houseplant care tracker.
 
 Your job: keep its plant data and condition care suggestions up to date.
 

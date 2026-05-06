@@ -1,4 +1,4 @@
-# 🪴 PLNT — plant-trmnl
+# 🪴 PLNT — plnt-trmnl
 
 A houseplant care companion for [TRMNL](https://usetrmnl.com/) e-ink
 displays + a mobile-first web app.
@@ -38,8 +38,8 @@ household with ~100 plants over six months.
 ## Quickstart
 
 ```bash
-git clone https://github.com/tsipotU/plant-trmnl.git
-cd plant-trmnl
+git clone https://github.com/tsipotU/plnt-trmnl.git
+cd plnt-trmnl
 cp .env.example .env       # edit TRMNL keys + admin password
 docker compose up -d
 open http://localhost:3900 # claim the instance with the setup token from the API logs
@@ -53,7 +53,7 @@ troubleshooting), see [`INSTALL.md`](INSTALL.md).
 The component catalog (9 atoms · 26 molecules · 6 Foundations docs
 pages) is published on every push to `main`:
 
-→ **<https://tsipotU.github.io/plant-trmnl/>**
+→ **<https://tsipotU.github.io/plnt-trmnl/>**
 
 A new contributor can browse every primitive, see every variant,
 and read the conventions before cloning.
@@ -68,7 +68,7 @@ external service dependencies.
 | `plant-api` | 3900 | REST API + SQLite + serves the SPA |
 | `plant-renderer` | 3901 | TRMNL screenshot renderer + push cron |
 
-**Enrichment is pull-based.** plant-trmnl owns plant state; an
+**Enrichment is pull-based.** plnt-trmnl owns plant state; an
 external AI tool (Claude Desktop scheduled task is the canonical
 recipe) polls for pending enrichments and POSTs results back. There
 is no in-process LLM, no API key, no metered billing.
@@ -103,7 +103,7 @@ For deeper architecture see
 
 Issues and PRs welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for
 local setup, test conventions, and how the design system catalog
-works. Browse [`Storybook`](https://tsipotU.github.io/plant-trmnl/)
+works. Browse [`Storybook`](https://tsipotU.github.io/plnt-trmnl/)
 to see what's already in the catalog before building something new.
 
 ## License

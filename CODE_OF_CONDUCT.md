@@ -6,11 +6,11 @@ https://www.contributor-covenant.org/version/2/1/code_of_conduct/
 
 ## Short version
 
-We want plant-trmnl to be a welcoming community for anyone who wants to participate. Be kind, be patient, focus on the work, give people the benefit of the doubt.
+We want plnt-trmnl to be a welcoming community for anyone who wants to participate. Be kind, be patient, focus on the work, give people the benefit of the doubt.
 
 ## Reporting
 
-Concerns about behavior in this project (issues, PRs, discussions, anywhere the project happens) can be reported to the maintainers privately via a [GitHub Security Advisory](https://github.com/tsipotU/plant-trmnl/security/advisories/new) or by direct message to a maintainer. We'll handle reports confidentially and act on them.
+Concerns about behavior in this project (issues, PRs, discussions, anywhere the project happens) can be reported to the maintainers privately via a [GitHub Security Advisory](https://github.com/tsipotU/plnt-trmnl/security/advisories/new) or by direct message to a maintainer. We'll handle reports confidentially and act on them.
 
 ## Enforcement
 

@@ -31,7 +31,7 @@ assignees: ""
 
 ## Environment
 
-- plant-trmnl commit / version: <!-- e.g. main @ b3e82df, or v0.7.0 -->
+- plnt-trmnl commit / version: <!-- e.g. main @ b3e82df, or v0.7.0 -->
 - Deployment: <!-- docker-compose / bare tsx / other -->
 - Host OS: <!-- e.g. macOS 14, Debian 12, Synology DSM 7.2 -->
 - Node version: <!-- output of `node --version` -->

@@ -64,7 +64,7 @@ export function Settings() {
       <SectionHead as="h2" label="Connect your AI" />
       <div style={{ padding: '0 18px 12px' }}>
         <InfoCard>
-          plant-trmnl needs help filling in care data, facts, and species info.
+          plnt-trmnl needs help filling in care data, facts, and species info.
           Connect any AI tool by copying the prompt below and pasting it into a
           scheduled task (Claude Desktop, ChatGPT scheduled tasks, Cursor, n8n,
           …).

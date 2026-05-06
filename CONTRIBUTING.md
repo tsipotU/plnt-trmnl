@@ -1,6 +1,6 @@
-# Contributing to plant-trmnl
+# Contributing to plnt-trmnl
 
-Thanks for considering a contribution. plant-trmnl is a small project
+Thanks for considering a contribution. plnt-trmnl is a small project
 with a small team — this doc keeps coordination cheap and tells you
 where the project's conventions live so you can land a PR that won't
 churn in review.
@@ -41,7 +41,7 @@ Read these in order — about 15 minutes total:
 If you'll be touching the React frontend, also browse the live
 catalog:
 
-→ **Storybook: <https://tsipotU.github.io/plant-trmnl/>**
+→ **Storybook: <https://tsipotU.github.io/plnt-trmnl/>**
 
 The catalog has 9 atoms, 26 molecules, and 6 Foundations docs
 pages (Composition, Naming, Color, Accessibility, Theming, Adding a
@@ -51,8 +51,8 @@ component.
 ## Local setup
 
 ```bash
-git clone https://github.com/tsipotU/plant-trmnl.git
-cd plant-trmnl
+git clone https://github.com/tsipotU/plnt-trmnl.git
+cd plnt-trmnl
 nvm use                                # pins Node 24 (.nvmrc)
 npm ci                                 # API + renderer workspaces
 cd packages/api/client && npm ci       # client is NOT a workspace; install separately
@@ -111,7 +111,7 @@ We follow TDD. Tests live next to the code they cover
 - **Test pages by querying for the molecule's accessible names**
   rather than asserting on classnames. See "Testing through
   molecules" in
-  [Composition](https://tsipotU.github.io/plant-trmnl/?path=/docs/foundations-composition--docs).
+  [Composition](https://tsipotU.github.io/plnt-trmnl/?path=/docs/foundations-composition--docs).
 - **`Element.prototype.scrollIntoView = vi.fn()`** in `beforeEach`
   for components that scroll on mount — jsdom doesn't implement it.
 - **Never mix runners.** Client `.test.tsx` files only run under
@@ -131,7 +131,7 @@ For bugs, include:
 - What you expected to happen.
 - What actually happened (full error / stack trace if applicable).
 - A minimal reproduction (curl, steps in the SPA, log line).
-- Your environment: OS, Node version, plant-trmnl commit SHA.
+- Your environment: OS, Node version, plnt-trmnl commit SHA.
 
 For features, include:
 
@@ -190,7 +190,7 @@ The catalog ships in `packages/api/client/src/components/atoms/` and
 Before building a new component:
 
 1. Browse the live catalog at
-   <https://tsipotU.github.io/plant-trmnl/>.
+   <https://tsipotU.github.io/plnt-trmnl/>.
 2. If the thing you need exists, compose it.
 3. If it doesn't, decide between **page-local** or **molecule**.
    Read the **Adding a molecule** Foundations page for the
@@ -199,10 +199,10 @@ Before building a new component:
 Conventions in short (full version on the Foundations pages):
 
 - Every CSS class begins with `p7l-`. See
-  [Naming](https://tsipotU.github.io/plant-trmnl/?path=/docs/foundations-naming--docs).
+  [Naming](https://tsipotU.github.io/plnt-trmnl/?path=/docs/foundations-naming--docs).
 - Components consume only semantic tokens (`--ink`, `--bg`,
   `--accent`, …) — never raw scales. See
-  [Color in practice](https://tsipotU.github.io/plant-trmnl/?path=/docs/foundations-color--docs).
+  [Color in practice](https://tsipotU.github.io/plnt-trmnl/?path=/docs/foundations-color--docs).
 - A new molecule = `<Name>/<Name>.tsx` + `<Name>.css` +
   `<Name>.stories.tsx` + (optional) `<Name>.test.tsx`. No
   `index.ts` re-exports.

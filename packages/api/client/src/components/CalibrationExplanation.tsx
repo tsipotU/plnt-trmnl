@@ -80,7 +80,7 @@ export function CalibrationExplanation({ initialOpen = false }: Props) {
             </h3>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
               Published care data is a starting guess. Your home is unique. These quick
-              taps help plant-trmnl learn when YOUR plant actually wants water.
+              taps help plnt-trmnl learn when YOUR plant actually wants water.
             </p>
             <button
               type="button"

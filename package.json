@@ -1,5 +1,5 @@
 {
-  "name": "plant-trmnl",
+  "name": "plnt-trmnl",
   "private": true,
   "workspaces": ["packages/api", "packages/renderer"],
   "scripts": {

@@ -1,4 +1,4 @@
-# Plant TRMNL — Session Handoff
+# Plnt TRMNL — Session Handoff
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
@@ -14,7 +14,7 @@ Single-file briefing so a new session, contributor, or future-you can pick up wo
   - Wave 10 — empty-state polish, AddPlant tooltips, post-add splash refactor
   - Wave 12 — date strip distinct today/selected + 11-day centred scroll (#126); archive-flow nav fix + memorial page redesign (#135)
   - Wave 13 (this session) — plant detail structural rework: passport IA scaffolding (#134, foundation only), ConditionCard cards (#133), calibration UX (#60). Filed 5 child issues (#139–#143) for the deferred reorder / per-section redesigns.
-- **Wave 11 (illustration pipeline) re-bundled into Wave 14** alongside the TRMNL template (#7). Design landed in [#138](https://github.com/tsipotU/plant-trmnl/issues/138); generation source still needs to be chosen before that part can ship. The original [#54](https://github.com/tsipotU/plant-trmnl/issues/54) was closed as superseded.
+- **Wave 11 (illustration pipeline) re-bundled into Wave 14** alongside the TRMNL template (#7). Design landed in [#138](https://github.com/tsipotU/plnt-trmnl/issues/138); generation source still needs to be chosen before that part can ship. The original [#54](https://github.com/tsipotU/plnt-trmnl/issues/54) was closed as superseded.
 - **Catalog at 444 species** across 12 categories (expanded from 250 on 2026-04-26). Per-category counts: foliage 108, succulents 57, flowering 47, cacti 32, orchids 26, ferns/herbs/indoor_trees/palms/carnivorous/terrarium 25, air_plants 24. 6,660 unique species facts. Strict validator green at boot.
 - **Architecture is pull-based:** zero in-process LLM. External AI tools poll `/api/plants?enrichment=pending` and `/api/conditions?care_update=pending`, then POST back. Connect-your-AI UI in Settings.
 - **Auth gate live, scoped to `/api/*`** (fixed 2026-04-26 — see hotfix #2 below). Self-hosted instances require a setup token (printed in API logs at first start) → `/welcome` page to claim → `/login` for return visits. `/health`, `/api/auth/*`, and `/api/feedback` are public API routes; everything else under `/api/*` requires a session. **All non-`/api/*` paths (the SPA shell, `/login`, `/welcome`, static bundle) always pass through** — the SPA's own AuthGate component handles client-side route protection. Bootstrap mode (no admin password yet) lets all `/api/*` traffic through.
@@ -49,7 +49,7 @@ Single-file briefing so a new session, contributor, or future-you can pick up wo
    - `#129` AddPlant tooltips — 4-level light + new pot-size rule-of-thumb
    - `#130` Post-add splash — three-way fork (catalog hit / AI active / no-AI fallback)
 8. **Wave 11 designed + deferred** (commit `b5a4b2b`):
-   - Design captured in [#138](https://github.com/tsipotU/plant-trmnl/issues/138) — two committed PNG variants per species (X 1872×1404 16-grey + OG 800×480 4-grey), convention-based catalog wiring, build-time dithering script using `sharp`
+   - Design captured in [#138](https://github.com/tsipotU/plnt-trmnl/issues/138) — two committed PNG variants per species (X 1872×1404 16-grey + OG 800×480 4-grey), convention-based catalog wiring, build-time dithering script using `sharp`
    - Generation source decision deferred (paid API vs self-hosted vs LLM-SVG vs hand-commissioned)
    - Style direction: line art / line art + shading
    - `#54` closed as superseded
@@ -58,19 +58,19 @@ Single-file briefing so a new session, contributor, or future-you can pick up wo
 
 The Mac mini runs two flavors of the stack:
 
-- **Production-ish via Docker:** `docker compose up -d --build`. The live DB lives at `/data/plant-trmnl.db` inside the `plant-trmnl-plant-api-1` container (volume `db-data`). Feedback uploads at `/app/feedback-uploads/` inside the container.
-- **Dev via tsx:** `nohup npx tsx watch packages/api/src/index.ts > /tmp/plant-api.log 2>&1 &`. Uses the host filesystem (`./plant-trmnl.db`) — but as of 2026-04-26 we deleted that stale file because the Docker container has been the single source of truth.
+- **Production-ish via Docker:** `docker compose up -d --build`. The live DB lives at `/data/plnt-trmnl.db` inside the `plnt-trmnl-plant-api-1` container (volume `db-data`). Feedback uploads at `/app/feedback-uploads/` inside the container.
+- **Dev via tsx:** `nohup npx tsx watch packages/api/src/index.ts > /tmp/plant-api.log 2>&1 &`. Uses the host filesystem (`./plnt-trmnl.db`) — but as of 2026-04-26 we deleted that stale file because the Docker container has been the single source of truth.
 
 ```bash
 # Restart Docker procedure
-cd ~/Projects/plant-trmnl
+cd ~/Projects/plnt-trmnl
 docker compose restart plant-api plant-renderer
 docker compose logs -f --tail=30 plant-api
 ```
 
 Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant-api"}`. SPA at `http://localhost:3900/`.
 
-**To inspect live DB without freezing on WAL:** copy through the API (`curl /api/...`) or `docker exec plant-trmnl-plant-api-1 sh -c "sqlite3 /data/plant-trmnl.db ..."` — naive `docker cp` of the `.db` file alone gets a stale snapshot since SQLite buffers writes in `*.db-wal`.
+**To inspect live DB without freezing on WAL:** copy through the API (`curl /api/...`) or `docker exec plnt-trmnl-plant-api-1 sh -c "sqlite3 /data/plnt-trmnl.db ..."` — naive `docker cp` of the `.db` file alone gets a stale snapshot since SQLite buffers writes in `*.db-wal`.
 
 **First-time auth bootstrap** (after a fresh Docker `up`): `docker compose logs plant-api | grep "setup token"` → visit `/`, get redirected to `/welcome`, paste token + choose password. Recovery: `docker compose exec plant-api node scripts/reset-password.js`.
 
@@ -116,7 +116,7 @@ Closed during Wave 13 (2026-04-26): #134, #133, #60, #18 (won't-fix). Closed dur
 ## Pickup recipe (cheap context warmup)
 
 ```bash
-cd ~/Projects/plant-trmnl
+cd ~/Projects/plnt-trmnl
 git status && git log --oneline -10
 ```
 
@@ -133,7 +133,7 @@ The auto-memory `project_plant_trmnl.md` already carries cross-session facts; do
 
 ## Don't-forget list
 
-- **Live DB lives in the Docker volume** (`/data/plant-trmnl.db` inside `plant-trmnl-plant-api-1`). The host file `~/Projects/plant-trmnl/plant-trmnl.db` was deleted on 2026-04-26 — no stale snapshot to confuse.
+- **Live DB lives in the Docker volume** (`/data/plnt-trmnl.db` inside `plnt-trmnl-plant-api-1`). The host file `~/Projects/plnt-trmnl/plnt-trmnl.db` was deleted on 2026-04-26 — no stale snapshot to confuse.
 - **Always launch dev API from project root** (if running `tsx`), not from `packages/api/`. The catalog seeder reads `assets/ornaments` relative to CWD.
 - **Client lives at `packages/api/client/`**, not `packages/client/`. The API serves its own `dist/client`. Client is **not** an npm workspace — vite/sharp dependencies must resolve from inside `packages/api/client/`.
 - **Never run bare `vitest`** on this Mac mini. Use `npm test`. The `maxForks: 2` cap is the only thing between you and an SSH-recovery freeze.

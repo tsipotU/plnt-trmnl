@@ -1,4 +1,4 @@
-# Plant TRMNL — agent entry point
+# Plnt TRMNL — agent entry point
 
 Both human contributors and AI agents share the same conventions
 file. Read **[`docs/conventions.md`](docs/conventions.md)** first —

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to plant-trmnl are documented here.
+All notable changes to plnt-trmnl are documented here.
 
 The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Stale "enrichment pending" UI hidden when no AI tool active (#131):** new `GET /api/system/ai-connection` heuristic (recent `enrichment_complete` event ⇒ "connected"). PlantCard hides the badge and PlantDetail swaps the wait banner for a "Connect an AI tool" CTA when no AI tool has been seen in the last 7 days.
 
 ### Changed
-- **Architecture:** All in-process LLM calls removed. plant-trmnl now exposes a pull-based enrichment API; users connect their own AI tool (Claude Desktop scheduled task, ChatGPT scheduled tasks, Cursor, Ollama + cron, n8n, etc.).
+- **Architecture:** All in-process LLM calls removed. plnt-trmnl now exposes a pull-based enrichment API; users connect their own AI tool (Claude Desktop scheduled task, ChatGPT scheduled tasks, Cursor, Ollama + cron, n8n, etc.).
 - **Catalog:** Expanded from 30 → 250 species across 12 categories (added `orchids`, `carnivorous`, `herbs`, `terrarium`). 60+ cultivars/variegated forms across major collector genera (Monstera, Pothos, Philodendron, Sansevieria, Ficus, Echeveria, Calathea, Aglaonema). Phalaenopsis migrated from `flowering` to its new `orchids` category.
 - **Settings:** New "Connect your AI" section with a "Copy AI setup prompt" button that copies a ready-to-paste prompt teaching the user's AI which endpoints to call.
 
