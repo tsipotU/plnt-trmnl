@@ -136,7 +136,8 @@
   border-radius: var(--r-0);
   padding: 10px 12px;
   font-family: var(--font-sans);
-  font-size: 14px;
+  /* 16px floor — sub-16px form controls trigger iOS Safari auto-zoom. #158. */
+  font-size: 16px;
   color: var(--ink);
   min-height: 44px;
 }

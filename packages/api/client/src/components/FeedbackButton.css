@@ -22,7 +22,9 @@
 .p7l-feedback-form__textarea {
   width: 100%;
   font-family: var(--font-sans);
-  font-size: 14px;
+  /* 16px floor on form controls — anything less triggers iOS Safari
+     auto-zoom-on-focus (which Safari never reverses). #158. */
+  font-size: 16px;
   color: var(--ink);
   background: var(--bg);
   border: var(--hairline-thin) solid var(--border);

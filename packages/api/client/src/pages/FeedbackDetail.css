@@ -122,7 +122,8 @@
   width: 100%;
   min-height: 96px;
   font-family: var(--font-serif);
-  font-size: 14px;
+  /* 16px floor — sub-16px form controls trigger iOS Safari auto-zoom. #158. */
+  font-size: 16px;
   line-height: 1.5;
   color: var(--ink);
   background: var(--bg);
@@ -173,7 +174,8 @@
 .p7l-feedbackdetail__edit textarea {
   width: 100%;
   font-family: var(--font-sans);
-  font-size: 14px;
+  /* 16px floor — sub-16px form controls trigger iOS Safari auto-zoom. #158. */
+  font-size: 16px;
   color: var(--ink);
   background: var(--bg);
   border: var(--hairline-thin) solid var(--border);
