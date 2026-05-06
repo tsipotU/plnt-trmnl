@@ -34,7 +34,7 @@ export const Default: Story = {
       ['trmnl',       'TRMNL device',      'paired'],
       ['ai-prompt',   'AI tool',           'connected'],
       ['roadmap',     'Roadmap',           '5 waves'],
-      ['about',       'About p7l',         'v1·0·0'],
+      ['about',       'About p7l',         `v${__APP_VERSION__.replace(/\./g, '·')}`],
     ];
 
     return (

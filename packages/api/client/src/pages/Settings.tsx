@@ -59,7 +59,7 @@ export function Settings() {
   return (
     <div className="p7l-settings">
       <BackBar onBack={() => navigate('/')} backLabel="← Today" />
-      <PageHead eyebrow="Instance · v1.0.0" title="Settings" />
+      <PageHead eyebrow={`Instance · v${__APP_VERSION__}`} title="Settings" />
 
       <SectionHead as="h2" label="Connect your AI" />
       <div style={{ padding: '0 18px 12px' }}>
