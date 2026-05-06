@@ -2,7 +2,7 @@
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
-**Last updated:** 2026-05-06 (post repo-public flip, OSS-readiness batch, branch protection, Storybook on GH Pages, `PLNT` → `p7l` wordmark rebrand, dog-food triage + Wave 17 groomed in. v1.0.0 still not tagged; **Wave 17 — Dog-food polish + sunset** is the next functional wave, ahead of Wave 14.)
+**Last updated:** 2026-05-06 (post repo-public flip, OSS-readiness batch, branch protection, Storybook on GH Pages, `PLNT` → `p7l` wordmark rebrand, dog-food triage + Wave 17 groomed in. #155 closed as duplicate of #163. v1.0.0 still not tagged; **Wave 17 — Dog-food polish + sunset** is the next functional wave, ahead of Wave 14.)
 
 ---
 
@@ -91,9 +91,9 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 
 ## Open issues snapshot (as of HEAD)
 
-33 open issues, all milestoned.
+32 open issues, all milestoned.
 
-**Wave 17 — Dog-food polish + sunset (active, 18):** #155 (repot bug), #156 (foldout /add transparent), #157 (mobile tooltip z-index), #158 (zoom after feedback popup), #159 (tag-filter line glitch), #160 (notes don't save), #161 (Today button clipped), #162 (image lightbox), #164 (archive flow polish), #165 (feedback button restyle), #166 (sunset vacation mode), #167 (humanized water-state labels), #169 (nav surface design pass), #170 (`--bg-secondary` audit), #171 (v1.0.0 placeholder in About+Settings), #172 (pull-to-refresh stuck), #173 (plant images don't load), #174 (date-strip + plant-list disagree on empty state).
+**Wave 17 — Dog-food polish + sunset (active, 13):** #157 (mobile tooltip z-index), #158 (zoom after feedback popup), #159 (tag-filter line glitch), #161 (Today button clipped), #162 (image lightbox), #164 (archive flow polish), #165 (feedback button restyle), #166 (sunset vacation mode), #167 (humanized water-state labels), #171 (v1.0.0 placeholder in About+Settings), #172 (pull-to-refresh stuck), #173 (plant images don't load), #174 (date-strip + plant-list disagree on empty state). (#156, #160, #169, #170 merged earlier; #155 closed as duplicate of #163.)
 
 **Wave 14 — TRMNL identity:** #7 (TRMNL template visual), #138 (two-variant illustration pipeline, blocked on generator pick).
 
@@ -107,7 +107,7 @@ Verify: `curl http://localhost:3900/health` → `{"status":"ok","service":"plant
 
 **v2 backlog:** #127 (calendar grid view), #128 ("Identify my plant" walkthrough), #153 (propagation guides + projects).
 
-Closed 2026-05-06: #1 (catalog at 444 species, exceeded 250+ goal). Closed 2026-04-26: #134, #133, #60, #18 (won't-fix), #126, #135. Closed earlier: #137 (goat-tracker GH bridge, not-planned), #54 (superseded by #138).
+Closed 2026-05-06: #1 (catalog at 444 species, exceeded 250+ goal), #155 (dup of #163 — task ribbon redesign). Closed 2026-04-26: #134, #133, #60, #18 (won't-fix), #126, #135. Closed earlier: #137 (goat-tracker GH bridge, not-planned), #54 (superseded by #138).
 
 ## Architectural carry-forwards
 
