@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import './MenuDrawer.css';
 
 interface MenuDrawerProps {
   open: boolean;
@@ -77,12 +78,7 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
           data-testid="menu-backdrop"
           aria-hidden="true"
           onClick={onClose}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.4)',
-            zIndex: 20,
-          }}
+          className="p7l-menu-drawer__scrim"
         />
       )}
       <aside
@@ -93,22 +89,8 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
         aria-label="Main menu"
         aria-hidden={!open}
         onKeyDown={onKeyDownCapture}
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: 'min(85vw, 320px)',
-          background: 'var(--bg-secondary)',
-          borderLeft: '1px solid var(--border)',
-          transform: open ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 180ms ease-out',
-          zIndex: 21,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 16,
-          paddingTop: 24,
-        }}
+        className="p7l-menu-drawer"
+        data-open={open ? 'true' : 'false'}
       >
         {/* Routes intentionally not listed here:
               - "/" Today           — Header logo links to / (also acts as fallback)
@@ -116,16 +98,16 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
               - "/archive/:id"      — reached from Archive rows
               - "/feedback/:id"     — reached from Feedback rows
               - "/welcome", "/login" — auth bootstrap, outside the chrome by design */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-          <Link to="/add" style={drawerLinkStyle}>Add plant</Link>
-          <Link to="/plants" style={drawerLinkStyle}>Plants</Link>
-          <Link to="/calendar" style={drawerLinkStyle}>Calendar</Link>
-          <Link to="/archived" style={drawerLinkStyle}>Archive</Link>
-          <Link to="/feedback" style={drawerLinkStyle}>Feedback</Link>
-          <Link to="/settings" style={drawerLinkStyle}>Settings</Link>
-          <Link to="/setup" style={drawerLinkStyle}>TRMNL setup</Link>
-          <Link to="/preview" style={drawerLinkStyle}>TRMNL preview</Link>
-          <Link to="/about" style={drawerLinkStyle}>About</Link>
+        <nav className="p7l-menu-drawer__nav">
+          <Link to="/add" className="p7l-menu-drawer__link">Add plant</Link>
+          <Link to="/plants" className="p7l-menu-drawer__link">Plants</Link>
+          <Link to="/calendar" className="p7l-menu-drawer__link">Calendar</Link>
+          <Link to="/archived" className="p7l-menu-drawer__link">Archive</Link>
+          <Link to="/feedback" className="p7l-menu-drawer__link">Feedback</Link>
+          <Link to="/settings" className="p7l-menu-drawer__link">Settings</Link>
+          <Link to="/setup" className="p7l-menu-drawer__link">TRMNL setup</Link>
+          <Link to="/preview" className="p7l-menu-drawer__link">TRMNL preview</Link>
+          <Link to="/about" className="p7l-menu-drawer__link">About</Link>
         </nav>
         <button
           type="button"
@@ -133,15 +115,7 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.assign('/login');
           }}
-          style={{
-            ...drawerLinkStyle,
-            background: 'transparent',
-            border: '1px solid var(--border)',
-            color: 'var(--text-secondary)',
-            textAlign: 'left',
-            cursor: 'pointer',
-            marginTop: 8,
-          }}
+          className="p7l-menu-drawer__logout"
         >
           Log out
         </button>
@@ -149,13 +123,3 @@ export function MenuDrawer({ open, onClose, triggerRef }: MenuDrawerProps) {
     </>
   );
 }
-
-const drawerLinkStyle: React.CSSProperties = {
-  display: 'block',
-  padding: '12px 8px',
-  minHeight: 44,
-  color: 'var(--text-primary)',
-  fontSize: 16,
-  textDecoration: 'none',
-  borderRadius: 6,
-};

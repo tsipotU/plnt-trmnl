@@ -1,41 +1,41 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HamburgerMenu } from './HamburgerMenu';
 import { MenuDrawer } from './MenuDrawer';
+import './Header.css';
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setScrolled(!entry.isIntersecting),
+      // 4px before the sentinel exits — avoids flicker on iOS rubber-band.
+      { rootMargin: '-4px 0px 0px 0px', threshold: 1 },
+    );
+    obs.observe(sentinel);
+    return () => obs.disconnect();
+  }, []);
 
   return (
     <>
+      <div
+        ref={sentinelRef}
+        aria-hidden="true"
+        className="p7l-nav-header__sentinel"
+        data-testid="p7l-nav-header-sentinel"
+      />
       <header
-        style={{
-          background: 'var(--bg-secondary)',
-          borderBottom: '1px solid var(--border)',
-          padding: '12px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-        }}
+        className="p7l-nav-header"
+        data-scrolled={scrolled || undefined}
       >
-        <Link
-          to="/"
-          aria-label="p7l home"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            color: 'var(--text-primary)',
-            fontWeight: 700,
-            fontSize: 18,
-            textDecoration: 'none',
-          }}
-        >
-          <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1 }}>🪴</span>
+        <Link to="/" aria-label="p7l home" className="p7l-nav-header__brand">
+          <span aria-hidden="true" className="p7l-nav-header__logo">🪴</span>
           <span>p7l</span>
         </Link>
         <HamburgerMenu
