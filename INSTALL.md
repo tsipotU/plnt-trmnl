@@ -1,4 +1,4 @@
-# Installing PLNT (plnt-trmnl)
+# Installing p7l (plnt-trmnl)
 
 This guide walks you from "I just heard about plnt-trmnl" to "I have it running, the TRMNL screen updates daily, and my plants are getting their care data filled in automatically."
 

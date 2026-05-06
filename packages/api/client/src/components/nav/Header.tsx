@@ -24,7 +24,7 @@ export function Header() {
       >
         <Link
           to="/"
-          aria-label="PLNT home"
+          aria-label="p7l home"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -36,7 +36,7 @@ export function Header() {
           }}
         >
           <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1 }}>🪴</span>
-          <span>PLNT</span>
+          <span>p7l</span>
         </Link>
         <HamburgerMenu
           ref={triggerRef}

@@ -1,16 +1,16 @@
-# 🪴 PLNT — plnt-trmnl
+# 🪴 p7l — plnt-trmnl
 
 A houseplant care companion for [TRMNL](https://usetrmnl.com/) e-ink
 displays + a mobile-first web app.
 
-PLNT shows you which plants need water today on your TRMNL screen,
+p7l shows you which plants need water today on your TRMNL screen,
 learns each plant's actual cadence in YOUR home through quick
 calibration taps, and surfaces care suggestions when something looks
 off. It's designed for the 30-second "am I watering today?" check at
 the kitchen sink — and to look quietly beautiful on your wall the
 rest of the day.
 
-![PLNT mockup](docs/mockups/watering-1-plant.png)
+![p7l mockup](docs/mockups/watering-1-plant.png)
 
 ## What it does
 

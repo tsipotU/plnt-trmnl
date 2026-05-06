@@ -13,11 +13,11 @@ function renderHeader() {
 }
 
 describe('Header', () => {
-  it('renders a home link labelled "PLNT home" containing the wordmark', () => {
+  it('renders a home link labelled "p7l home" containing the wordmark', () => {
     renderHeader();
-    const home = screen.getByRole('link', { name: /plnt home/i });
+    const home = screen.getByRole('link', { name: /p7l home/i });
     expect(home).toHaveAttribute('href', '/');
-    expect(home).toHaveTextContent('PLNT');
+    expect(home).toHaveTextContent('p7l');
   });
 
   it('does not show drawer contents by default (aria-hidden)', () => {

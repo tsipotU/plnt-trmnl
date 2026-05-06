@@ -178,7 +178,7 @@ export function Dashboard() {
       {!loading && !error && plants.length === 0 && (
         <div className="p7l-today__welcome">
           <span className="p7l-today__welcome-emoji" aria-hidden="true">🪴</span>
-          <h2 className="p7l-today__welcome-title">Welcome to PLNT</h2>
+          <h2 className="p7l-today__welcome-title">Welcome to p7l</h2>
           <p className="p7l-today__welcome-body">
             Add your first plant to get started.
           </p>

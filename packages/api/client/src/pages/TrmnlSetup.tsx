@@ -48,7 +48,7 @@ export function TrmnlSetup() {
       <PageHead
         eyebrow="Device"
         title="TRMNL setup"
-        subtitle="Connect your TRMNL e-ink display to PLNT."
+        subtitle="Connect your TRMNL e-ink display to p7l."
       />
 
       <SectionHead as="h2" label="Connection" />
