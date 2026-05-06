@@ -1,0 +1,50 @@
+/* Sticky navigational surface. Two states:
+     - At-rest: opaque paper, soft hairline edge, no shadow.
+     - Scrolled: same surface, edge crisps, soft shadow lifts.
+   Bound to layer-named --nav-* tokens (#169) so future nav surfaces
+   (bottom-tab bar, pinned filter rail) pick up the same treatment. */
+.p7l-nav-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--nav-z-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--nav-surface);
+  border-bottom: 1px solid var(--nav-edge-soft);
+  transition: border-color var(--motion-base) var(--ease-standard),
+              box-shadow var(--motion-base) var(--ease-standard);
+}
+
+.p7l-nav-header[data-scrolled] {
+  border-bottom-color: var(--nav-edge);
+  box-shadow: var(--nav-shadow-elev);
+}
+
+.p7l-nav-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.p7l-nav-header__logo {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* 1px sentinel placed above the header content. IntersectionObserver
+   fires when this element leaves the viewport, which means the page
+   has scrolled — cheaper than a scroll listener, no rAF needed. */
+.p7l-nav-header__sentinel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  pointer-events: none;
+}

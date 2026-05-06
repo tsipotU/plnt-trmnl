@@ -1,0 +1,73 @@
+/* Right-side drawer + scrim, bound to the navigational-surface layer (#169).
+   Behaviour (focus trap, Escape, route-change-closes, body scroll lock) lives
+   in MenuDrawer.tsx; this file is purely visual. */
+
+.p7l-menu-drawer__scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--nav-scrim);
+  z-index: var(--nav-z-scrim);
+}
+
+.p7l-menu-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(85vw, 320px);
+  background: var(--nav-surface);
+  border-left: 1px solid var(--nav-edge);
+  box-shadow: var(--nav-shadow-elev);
+  transform: translateX(100%);
+  transition: transform var(--motion-base) var(--ease-standard);
+  z-index: var(--nav-z-drawer);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  padding-top: 24px;
+}
+
+.p7l-menu-drawer[data-open="true"] {
+  transform: translateX(0);
+}
+
+.p7l-menu-drawer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.p7l-menu-drawer__link {
+  display: block;
+  padding: 12px 8px;
+  min-height: 44px;
+  color: var(--ink);
+  font-size: 16px;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.p7l-menu-drawer__link:hover {
+  background: var(--surface-hover);
+}
+
+.p7l-menu-drawer__logout {
+  display: block;
+  padding: 12px 8px;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid var(--nav-edge);
+  color: var(--ink-2);
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-top: 8px;
+  font-family: inherit;
+}
+
+.p7l-menu-drawer__logout:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}

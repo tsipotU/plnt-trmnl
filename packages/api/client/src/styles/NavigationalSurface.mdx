@@ -1,0 +1,119 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Foundations/Navigational surface" />
+
+# Navigational surface
+
+The navigational surface is the layer that sits above page content
+and follows the user's gaze: the page Header, MenuDrawer, and any
+future bottom-tab bar or pinned filter rail. It needs three things
+that page content doesn't:
+
+1. **Always-on opacity** — content scrolling underneath must not
+   bleed through.
+2. **A self-evident edge** — the boundary between nav and page
+   should read at a glance, but stay quiet at rest.
+3. **A consistent vocabulary across components** — Header,
+   MenuDrawer, and HamburgerMenu should feel like one surface, not
+   three separate paint jobs.
+
+## Why this needed a redesign (#169)
+
+Before this pass, the three nav components referenced
+`var(--bg-secondary)` — a token that had never existed in
+[`tokens.css`](?path=/docs/foundations-color--docs). CSS resolves
+unknown custom-property references to *nothing*, so the components
+rendered transparent. Content scrolling underneath bled through.
+
+The fix isn't a patch — the design system was missing a primitive.
+This page documents the primitive.
+
+## Tokens
+
+Six visible-surface tokens, plus a blur, plus three z-indexes. All
+named by **layer** (`--nav-*`), not by component (`--header-bg`,
+`--drawer-bg`). That keeps the surface coherent across the three
+existing nav components and lets future nav surfaces reuse the
+treatment without coining new tokens.
+
+| Token | Light value | Role |
+|---|---|---|
+| `--nav-surface` | `var(--bg)` | Fully opaque ground. Default. |
+| `--nav-surface-elev` | `rgba(251,250,246,0.86)` | Paper-toned, 86%. Glass variant only. |
+| `--nav-surface-blur` | `12px` | Used only with `backdrop-filter` on glass. |
+| `--nav-edge` | `var(--rule)` | Crisp edge (scrolled / drawer). |
+| `--nav-edge-soft` | `rgba(46,46,42,0.18)` | At-rest divider. |
+| `--nav-scrim` | `rgba(20,20,18,0.42)` | Drawer backdrop, ink-toned. |
+| `--nav-shadow-elev` | `0 1px 0 / 0 6px 14px` | Elevation shadow. |
+| `--nav-z-header` | `50` | Sticky header layer. |
+| `--nav-z-scrim` | `90` | Drawer backdrop. |
+| `--nav-z-drawer` | `91` | Drawer panel. |
+
+Dark mode rebindings live in the same file under
+`[data-theme="dark"]` — same semantic role, different ink-toned
+values so the surface stays calm against a dark page.
+
+## Header treatment
+
+Two states:
+
+- **At-rest:** `--nav-surface` ground, `--nav-edge-soft` border,
+  no shadow. Quiet.
+- **Scrolled:** edge crisps from `--nav-edge-soft` to `--nav-edge`,
+  `--nav-shadow-elev` lifts the surface visually.
+
+Scroll detection uses an `IntersectionObserver` on a 1px sentinel
+above the page content — cheaper than a scroll listener, no rAF
+loop, and the threshold is set to fire 4px before the sentinel exits
+the viewport (avoids flicker on iOS rubber-band).
+
+The `data-scrolled` attribute is the contract: any future hover/
+active style on the scrolled header should hang off it.
+
+See [Header stories](?path=/story/nav-header--at-rest).
+
+## MenuDrawer treatment
+
+The drawer panel uses `--nav-surface` (same as the Header — they
+**are** the same surface, just spatially separated). The scrim is
+`--nav-scrim` — ink-toned 42% rather than neutral black. The panel
+gets `--nav-shadow-elev` and a `--nav-edge` left border.
+
+Behavioural code (focus trap, Escape, scroll lock,
+route-change-closes) is unchanged. The redesign is purely visual.
+
+See [MenuDrawer stories](?path=/story/nav-menudrawer--open).
+
+## HamburgerMenu treatment
+
+The chunky `≡` glyph is replaced by three 1px hairlines. They
+read as *three rules* — same vocabulary as the horizontal rules in
+the Notes log, the History strip, the Conditions list. On
+`aria-expanded="true"` they cross into an X over 160ms with
+`--ease-standard`.
+
+The 44×44 tap target is preserved.
+
+See [HamburgerMenu stories](?path=/story/nav-hamburgermenu--closed).
+
+## Frosted-glass variant (opt-in)
+
+`--nav-surface-elev` and `--nav-surface-blur` exist for a future
+frosted-glass treatment, gated behind
+`[data-nav-surface="glass"]`. It fits the "ambient, calm" brief
+but breaks the editorial vocabulary, so opaque-paper is the active
+default. The variant ships in tokens.css for users who flip the
+data attribute; nothing in the live app does, today.
+
+## What this is not
+
+- This is **not** a wrapper component. Header, MenuDrawer, and
+  HamburgerMenu remain page-local components with their own files
+  and tests; the design system contributes the **tokens** and the
+  **Storybook contract**, not a `<NavSurface>` HOC.
+- This is **not** a global theme override. `--bg-secondary` was
+  also referenced in 7 non-nav components; those are tracked
+  separately in #170 and are not part of this surface.
+- This is **not** a replacement for the existing `Drawer` molecule.
+  `MenuDrawer` is a page-level component (the right-side menu);
+  `Drawer` is a generic primitive. A future pass may align them.
