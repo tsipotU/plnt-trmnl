@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Wave 17: undefined-token sweep across non-nav components (#170, also closes #156, 2026-05-06)
+
+- **Closes the rest of the `--bg-secondary` regression cluster** — the audit half of the work #169 started. Where #169 introduced the proper `--nav-*` tokens for the three nav components, this PR replaces every remaining undefined-token reference in the codebase with the correct semantic token.
+- **Three undefined tokens, 14 files, 76 references swept.** The audit grew once we widened the search beyond the issue's title: not just `--bg-secondary` (6 files) but also `--text-primary` and `--text-secondary` (8 more files). All three are token names that were never defined in `tokens.css`; CSS resolves unknown custom-property references to nothing, so backgrounds rendered transparent and text rendered with no color set.
+- **Substitutions:**
+  - `var(--bg-secondary)` → `var(--bg-elevated)` (white in light, `#1c2024` in dark — the existing token for elevated card surfaces)
+  - `var(--text-primary)` → `var(--ink)` (primary body text)
+  - `var(--text-secondary)` → `var(--ink-2)` (muted text)
+- **Files touched:** `EnrichmentSplash`, `BatchUndoToast`, `ConditionCard`, `PlantCard`, `CalibrationModal`, `CalibrationSequence`, `DidYouMeanSplash`, `CalibrationExplanation`, `CollapsibleSection`, `VacationToggle` (sunset by #166 but left consistent here), `PotSizeTooltip`, `AuthGate`, `LightLevelTooltip`, `ErrorBoundary`. All `@legacy` pre-catalog scaffolding — the bug was only visible on these older surfaces; new catalog primitives use the correct tokens.
+- **Closes #156** as a side effect. The "foldout menu on /add transparent" report turned out to be the `EnrichmentSplash` (post-submit overlay), which had 16 undefined-token references. With those fixed, the splash renders opaque and `--ink`/`--ink-2` text shows in proper contrast. The "foldout menu" terminology in the original report was the user reaching for the closest UI metaphor for an unfamiliar component — banked as a feedback memory: dog-food terminology rarely matches code-side component names.
+- **Test baseline:** **587** API + client tests pass (no test changes — visual rebinding doesn't move semantic queries). Visual verification deferred to deployed dog-food check.
+
 ### Wave 17: navigational surface design pass (#169, 2026-05-06)
 
 - **Closes the design-system gap that left Header / MenuDrawer / HamburgerMenu transparent.** All three components referenced `var(--bg-secondary)`, a token that had never been defined in `tokens.css` — CSS resolves unknown custom-property references to nothing, so the components rendered see-through and content scrolling underneath bled through. The fix isn't a patch; the design system was missing a primitive.
