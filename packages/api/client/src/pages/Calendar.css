@@ -92,12 +92,14 @@
 }
 .p7l-calendar__day--muted:hover { background: var(--surface); }
 
+/* Today — subtle surface bg + bold number when nothing's scheduled. The
+   filled-ink "you have things to do" treatment is reserved for today AND
+   has-events together. Without this split, today looked urgent even on
+   empty days, contradicting the "Nothing scheduled." plant list — #174. */
 .p7l-calendar__day--today {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--surface);
+  font-weight: 600;
 }
-
-.p7l-calendar__day--today:hover { background: var(--ink); }
 
 .p7l-calendar__day--has-events::after {
   content: '';
@@ -111,16 +113,19 @@
   border-radius: 50%;
 }
 
+.p7l-calendar__day--today.p7l-calendar__day--has-events {
+  background: var(--ink);
+  color: var(--bg);
+}
+.p7l-calendar__day--today.p7l-calendar__day--has-events:hover {
+  background: var(--ink);
+}
 .p7l-calendar__day--today.p7l-calendar__day--has-events::after {
   background: var(--bg);
 }
 
 .p7l-calendar__day--overdue {
   background: var(--overdue-soft);
-}
-
-.p7l-calendar__day--overdue.p7l-calendar__day--today {
-  background: var(--ink);
 }
 
 .p7l-calendar__day--selected {
