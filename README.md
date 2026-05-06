@@ -28,9 +28,11 @@ season modifiers stack on top. Plant care data comes from a curated
 
 ## Status
 
-**Pre-v1.0.** Phase 3 (frontend design system) is complete; v1.0
-ships once the OSS-readiness PRs land. Battle-tested on a single
-household with ~100 plants over six months.
+**Pre-v1.0.** Repo is public, OSS-readiness work is in, design-system
+catalog is live at the Storybook URL below. v1.0.0 ships once the
+remaining functional waves land — TRMNL identity (Wave 14), PWA +
+TRMNL-X (Wave 15), holistic visual pass + Dutch-name audit (Wave 16).
+Battle-tested on a single household with ~100 plants over six months.
 
 - See [`ROADMAP.md`](ROADMAP.md) for what's next.
 - See [`CHANGELOG.md`](CHANGELOG.md) for what shipped.
