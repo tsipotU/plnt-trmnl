@@ -17,7 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Storybook expansion (the regression contract).** 10 new stories + 1 Foundations docs page. `Nav/Header` (AtRest / Scrolled / ScrolledDark — the Scrolled story is the contract; if it ever snapshots transparent again, chromatic diff screams). `Nav/HamburgerMenu` (Closed / Pressed / Open). `Nav/MenuDrawer` (Closed / Open / OpenLongList / OpenDark). `Foundations/Navigational surface` MDX documents the diagnosis, the token layer, the treatment for each of the three components, and the opt-in frosted-glass variant. After this lands the catalog has **9 atoms · 26 molecules · 3 nav · 7 Foundations pages**.
 - **Frosted-glass variant** ships in tokens but not as the active default. Fits the "ambient, calm" brief but breaks the editorial vocabulary; opaque-paper stays the active treatment. Available via `[data-nav-surface="glass"]` for users who flip the data attribute.
 - **Resolves the in-app feedback transparency cluster.** Feedback rows around mobile nav transparent on scroll, mobile foldout menu transparent, top menu bar transparent. May also resolve [#157](https://github.com/tsipotU/plnt-trmnl/issues/157) (foldout menu on /add) — verify in next dog-food pass. **Out of scope:** the 7 non-nav components also referencing `--bg-secondary` ([#170](https://github.com/tsipotU/plnt-trmnl/issues/170)).
-- **Test baseline:** all 20 nav tests pass without modification (semantic queries on roles / aria attributes are stable across the markup change). Full API + client suite green at 586 tests.
+- **Test baseline:** all 20 nav tests pass without modification (semantic queries on roles / aria attributes are stable across the markup change). Full API + client suite green at 587 tests.
+
+### Wave 17: in-place "Add note" button in empty state (#176, 2026-05-06)
+
+- **Discoverability fix on the plant detail Notes section.** Empty state previously read *"No notes yet. Tap the Note quick-action to add one."* — but the QuickAction lives at the top of the page, off-screen once a user has scrolled down to Notes. Added a primary "+ Add note" button inside the empty state, wired to the same `setSheet('note')` handler the QuickAction uses.
+- **Originally filed as #160** ("Notes don't save"). Investigation across every layer (API isolated, API in production-mounted stack, NoteSheet component, full PlantDetail user journey) found the save flow worked end-to-end. Real root cause: discoverability — users found the empty state's instructional copy but not the QuickAction it pointed to. #160 closed; refiled as #176 with the concrete UX fix.
+- **Test coverage gap closed** alongside the fix. The note save flow had no client-side tests (`PlantDetail.test.tsx` covered conditions / archive / timeline but skipped notes). Added 3 new test files:
+  - `NoteSheet.test.tsx` (2 tests) — POST + `onSaved` on success, `onError` on failure.
+  - `PlantDetail.notes.test.tsx` (2 tests) — full QuickAction → NoteSheet → save journey + the new empty-state button entry point.
+  - `plant-notes-integration.test.ts` (1 test) — POST through the production-mounted stack (plants router + plant-notes router both at `/api/plants`), guards against routing collisions the existing isolated test couldn't catch.
+- **Test baseline:** API **587** tests (was 581) across 38 files.
 
 ### Wave 17 groomed in: dog-food triage + milestone restructure (2026-05-06)
 
