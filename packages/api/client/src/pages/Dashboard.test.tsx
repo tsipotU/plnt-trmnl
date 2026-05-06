@@ -54,7 +54,7 @@ describe('Dashboard — empty state CTA visibility (#125)', () => {
       </MemoryRouter>,
     );
     await waitFor(() => {
-      expect(screen.getByText(/Welcome to PLNT/i)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome to p7l/i)).toBeInTheDocument();
     });
     // The empty-state CTA renders as a button in this code path
     expect(
@@ -98,7 +98,7 @@ describe('Dashboard — Today layout (Phase 3)', () => {
       </MemoryRouter>,
     );
     await waitFor(() => {
-      expect(screen.getByText(/Welcome to PLNT/i)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome to p7l/i)).toBeInTheDocument();
     });
     expect(screen.queryByRole('heading', { level: 1, name: /^Today$/ })).toBeNull();
   });

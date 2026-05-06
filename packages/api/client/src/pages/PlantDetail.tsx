@@ -748,7 +748,7 @@ export function PlantDetail() {
         <div style={{ padding: '0 18px 8px' }}>
           <InfoCard tone="info" title="What is this?">
             Conditions are problems affecting your plant — things like root rot,
-            leaf yellowing, or pest infestations. When flagged, PLNT suggests
+            leaf yellowing, or pest infestations. When flagged, p7l suggests
             how to address them.
             <div style={{ marginTop: 10 }}>
               <Button

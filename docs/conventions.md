@@ -13,7 +13,7 @@ see [`INSTALL.md`](../INSTALL.md). For what's planned see
 
 ## What this is
 
-**plnt-trmnl** (user-visible name **PLNT**) is a houseplant care
+**plnt-trmnl** (user-visible name **p7l**) is a houseplant care
 companion with two surfaces:
 
 1. A **TRMNL e-ink display** showing a daily digest of plants needing
