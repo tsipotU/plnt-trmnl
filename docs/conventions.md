@@ -287,6 +287,27 @@ Rules to prevent recurrence:
   of unmounting the whole tree. The boundary lives at
   `packages/api/client/src/components/ErrorBoundary.tsx`. Don't
   remove it.
+- **Form-control `font-size` floor is 16px.** iOS Safari auto-zooms
+  any `<input>` / `<textarea>` / `<select>` whose `font-size < 16px`
+  on focus, and never auto-zooms back out on blur. Sub-16px form
+  controls leave the page zoomed-in indefinitely. See `#158`. Touched
+  rules in `FeedbackButton.css`, `SearchBar.css`, `FeedbackDetail.css`,
+  `AddPlant.css` carry inline `#158` comments — don't "optimize" them
+  back down.
+- **Tooltips/popovers must escape ancestor `overflow`.** Surfaces
+  with `position: absolute; top: 100%` get clipped by any ancestor
+  `overflow: auto/hidden` (e.g. `.p7l-addplant__form`). Use
+  `position: fixed` with coords from `getBoundingClientRect()` and a
+  viewport clamp; reposition on resize/scroll while open. See `#157`,
+  `PotSizeTooltip.tsx` for the pattern. No portal needed — fixed
+  alone escapes overflow as long as no ancestor has `transform` or
+  `filter`.
+- **Native pull-to-refresh is disabled** (`#172`).
+  `overscroll-behavior-y: none` on `body` in `index.css`. iOS Safari's
+  PTR triggered the spinner but `location.reload()` round-tripped
+  through auth gate / Cloudflare tunnel awkwardly and the UI hung in
+  the pulled-down state. Don't try to re-enable PTR; if a refresh
+  affordance is wanted, build a Banner-style "Updated N ago — Refresh".
 - **jsdom doesn't implement `scrollIntoView`.** Any component that
   calls `el.scrollIntoView(...)` on mount will crash every test in
   the file unless you stub it:

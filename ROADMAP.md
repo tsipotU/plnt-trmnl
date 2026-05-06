@@ -8,40 +8,46 @@ For shipped work, see [`CHANGELOG.md`](CHANGELOG.md). For the current snapshot, 
 
 ## Status
 
-- **Waves 1–10 + 12 + 13 shipped.** Catalog at 444 species across 12 categories (expanded from 250 on 2026-04-26). Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing (monstera fixture), AddPlant onboarding polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding (CollapsibleSection, ConditionCard primitives), calibration UX (explanation, progress, convergence/drift) all in.
+- **Waves 1–10 + 12 + 13 + 17 shipped.** Catalog at 444 species across 12 categories (expanded from 250 on 2026-04-26). Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing (monstera fixture), AddPlant onboarding polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding (CollapsibleSection, ConditionCard primitives), calibration UX (explanation, progress, convergence/drift), Wave 17 dog-food + design-system burndown all in.
 - **Repo is public** (flipped 2026-05-05). Storybook catalog live at https://tsipotU.github.io/plnt-trmnl/. Branch protection on `main` with required status checks + squash-merge + auto-merge. `PLNT` wordmark consolidated to `p7l` (PR #151, 2026-05-06). v1.0.0 not yet tagged — gated on Waves 14–16. See `CHANGELOG.md`.
-- **Now:** Wave 17 — Dog-food polish + sunset (16 issues from 2026-05-06 dog-food run, plus the nav-surface design pass and a vacation-mode sunset). Inserted ahead of Wave 14 because the polish + design-system gaps block clean v1.0 work.
-- **Next active waves:** 17 → 14 → 15 → 16, in order. v1.0 tag cut at end of Wave 16. Wave 18 (passport IA) follows post-v1.0.
+- **Wave 17 closed 2026-05-06** — all 18 issues resolved across two burndown sessions. Vacation mode sunset, nav-surface design pass + undefined-token sweep, humanized water-state labels, plant-image lightbox + dashboard rendering, archive flow polish, iOS auto-zoom fix, tooltip overflow-clipping fix, calendar today-cell alignment, dynamic version display, native PTR disabled, BackBar narrow-viewport fix, FilterRail stray-line fix, feedback FAB restyle, add-note empty-state button.
+- **Now:** Wave 14 — TRMNL identity (template + illustrations) is the next functional wave.
+- **Next active waves:** 14 → 15 → 16, in order. v1.0 tag cut at end of Wave 16. Wave 18 (passport IA) follows post-v1.0.
 - **Open child issues from Wave 13** (now bundled into Wave 18): [#139](https://github.com/tsipotU/plnt-trmnl/issues/139), [#140](https://github.com/tsipotU/plnt-trmnl/issues/140), [#141](https://github.com/tsipotU/plnt-trmnl/issues/141), [#142](https://github.com/tsipotU/plnt-trmnl/issues/142), [#143](https://github.com/tsipotU/plnt-trmnl/issues/143), plus dog-food-surfaced [#168](https://github.com/tsipotU/plnt-trmnl/issues/168).
 
-## Shipped waves (1–10 + 12 + 13)
+## Shipped waves (1–10 + 12 + 13 + 17)
 
 For each shipped wave's full scope and outcome, see [`CHANGELOG.md`](CHANGELOG.md). Specs and plans live under [`docs/specs/`](docs/specs/) and [`docs/plans/`](docs/plans/) (current waves) and [`docs/archive/`](docs/archive/) (Waves 1–8). Wave 11 was deferred and re-bundled into Wave 14 below.
 
-## Wave 17 — Dog-food polish + sunset
+## ~~Wave 17 — Dog-food polish + sunset~~ — **shipped 2026-05-06**
 
-**Status:** Active (inserted ahead of Wave 14 per groom session 2026-05-06).
+**Status:** Closed. All 18 milestone issues resolved across two burndown sessions on 2026-05-06.
 
-**Goal:** Burn down the 17 dog-food issues filed 2026-05-06 + the nav-surface design pass + the vacation-mode sunset. This is the wave that turns "running but rough" into "ready for v1.0 polish." No new features.
+**What shipped:**
 
-**Recommended order:**
+- Vacation mode sunset permanently ([#166](https://github.com/tsipotU/plnt-trmnl/issues/166))
+- Navigational surface design pass + undefined-token sweep ([#169](https://github.com/tsipotU/plnt-trmnl/issues/169) + [#170](https://github.com/tsipotU/plnt-trmnl/issues/170), closed [#156](https://github.com/tsipotU/plnt-trmnl/issues/156) as side-effect)
+- Humanized water-state labels everywhere ([#167](https://github.com/tsipotU/plnt-trmnl/issues/167))
+- Plant-image lightbox on detail page ([#162](https://github.com/tsipotU/plnt-trmnl/issues/162))
+- Plant-image rendering + fallback on dashboard rows ([#173](https://github.com/tsipotU/plnt-trmnl/issues/173))
+- Calendar today-cell visual fix ([#174](https://github.com/tsipotU/plnt-trmnl/issues/174))
+- Archive flow polish — single archive entry point + softer copy ([#164](https://github.com/tsipotU/plnt-trmnl/issues/164))
+- iOS auto-zoom fix on form controls ([#158](https://github.com/tsipotU/plnt-trmnl/issues/158))
+- Tooltip overflow-clipping fix on /add ([#157](https://github.com/tsipotU/plnt-trmnl/issues/157))
+- FilterRail stray-line fix on /feedback ([#159](https://github.com/tsipotU/plnt-trmnl/issues/159))
+- Feedback FAB icon + position ([#165](https://github.com/tsipotU/plnt-trmnl/issues/165))
+- BackBar narrow-viewport fix ([#161](https://github.com/tsipotU/plnt-trmnl/issues/161))
+- Dynamic version display ([#171](https://github.com/tsipotU/plnt-trmnl/issues/171))
+- Native PTR disabled ([#172](https://github.com/tsipotU/plnt-trmnl/issues/172))
+- Add-note empty-state button ([#176](https://github.com/tsipotU/plnt-trmnl/issues/176), refile of [#160](https://github.com/tsipotU/plnt-trmnl/issues/160))
 
-1. [#170](https://github.com/tsipotU/plnt-trmnl/issues/170) — `--bg-secondary` token audit (mechanical, unblocks visual review of subsequent components).
-2. [#169](https://github.com/tsipotU/plnt-trmnl/issues/169) — p7l navigational surface design pass: 6 new `--nav-*` tokens + Storybook expansion (3 nav molecules + Foundations page) + bind Header/MenuDrawer/HamburgerMenu. Resolves the transparency cluster (in-app feedback rows #29, #30, #24, possibly #21).
-3. **High-priority bugs (parallel after #169):**
-   - [#160](https://github.com/tsipotU/plnt-trmnl/issues/160) — Notes don't save on plant detail
-   - [#155](https://github.com/tsipotU/plnt-trmnl/issues/155) — Repot task scrolls but does nothing (quick fix; #163 is the broader feature)
-   - [#156](https://github.com/tsipotU/plnt-trmnl/issues/156) — Foldout menu /add transparent (may close with #169 if surface treatment extends)
-4. **Medium bugs:** [#157](https://github.com/tsipotU/plnt-trmnl/issues/157) (mobile tooltip z-index), [#158](https://github.com/tsipotU/plnt-trmnl/issues/158) (zoom after feedback popup), [#161](https://github.com/tsipotU/plnt-trmnl/issues/161) (Today button clipped), [#171](https://github.com/tsipotU/plnt-trmnl/issues/171) (About + Settings hardcoded "v1.0.0" placeholder).
-5. **UX polish (cheap, opportunistic):** [#162](https://github.com/tsipotU/plnt-trmnl/issues/162) (image lightbox), [#164](https://github.com/tsipotU/plnt-trmnl/issues/164) (archive flow polish), [#165](https://github.com/tsipotU/plnt-trmnl/issues/165) (feedback button restyle), [#167](https://github.com/tsipotU/plnt-trmnl/issues/167) (humanized water-state labels).
-6. [#159](https://github.com/tsipotU/plnt-trmnl/issues/159) — tag-filter line glitch (low priority, slip-friendly).
-7. [#166](https://github.com/tsipotU/plnt-trmnl/issues/166) — **Sunset vacation mode** last (destructive change touching API + client + schema + docs; do it once other work is settled to minimize merge conflicts).
+**Closed without code change:** [#155](https://github.com/tsipotU/plnt-trmnl/issues/155) (dup of [#163](https://github.com/tsipotU/plnt-trmnl/issues/163), absorbed into the broader task-ribbon redesign in v1.1).
 
-**Likely outputs:** `docs/plans/2026-05-XX-wave-17-plan.md`, multiple small PRs (one per cluster), CHANGELOG entries under `[Unreleased]`.
-
-**Excluded from Wave 17 (folded into later waves):**
-- [#163](https://github.com/tsipotU/plnt-trmnl/issues/163) — task ribbon info+log panel (feature, needs spec → Wave 19+ / v1.1)
+**Folded forward:**
+- [#163](https://github.com/tsipotU/plnt-trmnl/issues/163) — task ribbon info+log panel (feature, needs spec → v1.1 backlog)
 - [#168](https://github.com/tsipotU/plnt-trmnl/issues/168) — common conditions card collapse + width (folds into Wave 18 passport IA)
+
+For per-PR details see `CHANGELOG.md` `[Unreleased]` Wave 17 entries.
 
 ## Wave 14 — TRMNL identity (template + illustrations)
 
