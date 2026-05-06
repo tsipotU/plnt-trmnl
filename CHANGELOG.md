@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Wave 17: in-place "Add note" button in empty state (#176, 2026-05-06)
+
+- **Discoverability fix on the plant detail Notes section.** Empty state previously read *"No notes yet. Tap the Note quick-action to add one."* — but the QuickAction lives at the top of the page, off-screen once a user has scrolled down to Notes. Added a primary "+ Add note" button inside the empty state, wired to the same `setSheet('note')` handler the QuickAction uses.
+- **Originally filed as #160** ("Notes don't save"). Investigation across every layer (API isolated, API in production-mounted stack, NoteSheet component, full PlantDetail user journey) found the save flow worked end-to-end. Real root cause: discoverability — users found the empty state's instructional copy but not the QuickAction it pointed to. #160 closed; refiled as #176 with the concrete UX fix.
+- **Test coverage gap closed** alongside the fix. The note save flow had no client-side tests (`PlantDetail.test.tsx` covered conditions / archive / timeline but skipped notes). Added 3 new test files:
+  - `NoteSheet.test.tsx` (2 tests) — POST + `onSaved` on success, `onError` on failure.
+  - `PlantDetail.notes.test.tsx` (2 tests) — full QuickAction → NoteSheet → save journey + the new empty-state button entry point.
+  - `plant-notes-integration.test.ts` (1 test) — POST through the production-mounted stack (plants router + plant-notes router both at `/api/plants`), guards against routing collisions the existing isolated test couldn't catch.
+- **Test baseline:** API **587** tests (was 581) across 38 files.
+
 ### Wave 17 groomed in: dog-food triage + milestone restructure (2026-05-06)
 
 - **Dog-food run on the running instance** (after the p7l-rebrand rebuild deployed locally) produced 18 in-app feedback items. Combined with 3 stale-but-open feedback rows from the 2026-04-26 dog-food window, 20 items were triaged in this session.
