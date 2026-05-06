@@ -53,7 +53,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (state === 'loading') {
     return (
-      <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-secondary)' }}>
+      <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-2)' }}>
         Loading…
       </div>
     );

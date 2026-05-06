@@ -60,7 +60,7 @@ export function ConditionCard({ condition, actionSlot }: Props) {
             border: 'none',
             cursor: 'pointer',
             textAlign: 'left',
-            color: 'var(--text-primary)',
+            color: 'var(--ink)',
             padding: 0,
             minHeight: 'unset',
           }}
@@ -98,11 +98,11 @@ export function ConditionCard({ condition, actionSlot }: Props) {
                     fontSize: 11,
                     fontWeight: 600,
                     padding: '2px 8px',
-                    background: 'var(--bg-secondary)',
+                    background: 'var(--bg-elevated)',
                     borderRadius: 999,
                     minWidth: 60,
                     textAlign: 'center',
-                    color: 'var(--text-secondary)',
+                    color: 'var(--ink-2)',
                   }}
                 >
                   {t}
@@ -121,19 +121,19 @@ export function ConditionCard({ condition, actionSlot }: Props) {
         <div style={{ padding: '0 14px 14px', display: 'grid', gap: 10, fontSize: 13 }}>
           {condition.symptoms && (
             <div>
-              <strong style={{ color: 'var(--text-secondary)' }}>Symptoms:</strong>{' '}
+              <strong style={{ color: 'var(--ink-2)' }}>Symptoms:</strong>{' '}
               {condition.symptoms}
             </div>
           )}
           {condition.remedy && (
             <div>
-              <strong style={{ color: 'var(--text-secondary)' }}>Remedy:</strong>{' '}
+              <strong style={{ color: 'var(--ink-2)' }}>Remedy:</strong>{' '}
               {condition.remedy}
             </div>
           )}
           {condition.prevention && (
             <div>
-              <strong style={{ color: 'var(--text-secondary)' }}>Prevention:</strong>{' '}
+              <strong style={{ color: 'var(--ink-2)' }}>Prevention:</strong>{' '}
               {condition.prevention}
             </div>
           )}

@@ -37,7 +37,7 @@ export function CollapsibleSection({
           border: 'none',
           cursor: 'pointer',
           textAlign: 'left',
-          color: 'var(--text-primary)',
+          color: 'var(--ink)',
           fontSize: 16,
           fontWeight: 600,
         }}

@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
             Something went wrong
           </h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
+          <p style={{ color: 'var(--ink-2)', marginBottom: 24 }}>
             The app hit an unexpected error. Reloading often helps.
           </p>
           <button
@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </button>
           {this.state.error && (
             <details style={{ marginTop: 24, fontSize: 12, textAlign: 'left' }}>
-              <summary style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <summary style={{ cursor: 'pointer', color: 'var(--ink-2)' }}>
                 Technical details
               </summary>
               <pre style={{ overflow: 'auto', padding: 8 }}>

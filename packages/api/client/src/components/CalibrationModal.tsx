@@ -61,8 +61,8 @@ function ScaleButtons({
             borderRadius: '50%',
             fontSize: 20,
             fontWeight: 700,
-            background: value === n ? 'var(--accent)' : 'var(--bg-secondary)',
-            color: value === n ? 'white' : 'var(--text-secondary)',
+            background: value === n ? 'var(--accent)' : 'var(--bg-elevated)',
+            color: value === n ? 'white' : 'var(--ink-2)',
             border: value === n ? '2px solid var(--accent)' : '2px solid var(--border)',
             padding: 0,
             flexShrink: 0,
@@ -126,7 +126,7 @@ function PlantCalibrationScreen({
       <div
         style={{
           fontSize: 13,
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           marginBottom: 24,
           alignSelf: 'flex-start',
         }}
@@ -140,7 +140,7 @@ function PlantCalibrationScreen({
           width: 96,
           height: 96,
           borderRadius: '50%',
-          background: 'var(--bg-secondary)',
+          background: 'var(--bg-elevated)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -175,7 +175,7 @@ function PlantCalibrationScreen({
         <div
           style={{
             fontSize: 14,
-            color: 'var(--text-secondary)',
+            color: 'var(--ink-2)',
             marginBottom: 8,
             textAlign: 'center',
           }}
@@ -192,7 +192,7 @@ function PlantCalibrationScreen({
           gap: 8,
           marginBottom: 6,
           fontSize: 13,
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
         }}
       >
         <span>Calibration {(plant.calibration_cycle ?? 0) + 1} of ~5</span>
@@ -204,7 +204,7 @@ function PlantCalibrationScreen({
         style={{
           fontSize: 18,
           textAlign: 'center',
-          color: 'var(--text-primary)',
+          color: 'var(--ink)',
           lineHeight: 1.5,
           marginBottom: 4,
           maxWidth: 300,
@@ -226,7 +226,7 @@ function PlantCalibrationScreen({
               width: '100%',
               maxWidth: 320,
               fontSize: 12,
-              color: 'var(--text-secondary)',
+              color: 'var(--ink-2)',
               marginBottom: 32,
               paddingTop: 4,
             }}
@@ -257,7 +257,7 @@ function PlantCalibrationScreen({
             onClick={onSkip}
             style={{
               background: 'transparent',
-              color: 'var(--text-secondary)',
+              color: 'var(--ink-2)',
               fontSize: 14,
               padding: '10px 16px',
               textDecoration: 'underline',
@@ -293,7 +293,7 @@ function PlantCalibrationScreen({
                 >
                   {result!.interval_before} → {result!.interval_after} days
                 </div>
-                <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                <div style={{ fontSize: 14, color: 'var(--ink-2)' }}>
                   Interval adjusted
                 </div>
               </>
@@ -303,13 +303,13 @@ function PlantCalibrationScreen({
                   style={{
                     fontSize: 28,
                     fontWeight: 700,
-                    color: 'var(--text-secondary)',
+                    color: 'var(--ink-2)',
                     marginBottom: 4,
                   }}
                 >
                   {result?.interval_before ?? '—'} days
                 </div>
-                <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                <div style={{ fontSize: 14, color: 'var(--ink-2)' }}>
                   Interval unchanged
                 </div>
               </>
@@ -334,10 +334,10 @@ function PlantCalibrationScreen({
                 style={{
                   marginTop: 12,
                   padding: '8px 12px',
-                  background: 'var(--bg-secondary)',
+                  background: 'var(--bg-elevated)',
                   borderRadius: 8,
                   fontSize: 14,
-                  color: 'var(--text-secondary)',
+                  color: 'var(--ink-2)',
                 }}
               >
                 {plant.name} is drinking differently lately — recalibrating.
@@ -453,7 +453,7 @@ export function CalibrationModal({ onDone }: CalibrationModalProps) {
           top: 16,
           right: 16,
           background: 'transparent',
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           fontSize: 22,
           padding: 8,
           zIndex: 101,

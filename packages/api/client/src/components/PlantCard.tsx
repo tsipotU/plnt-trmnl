@@ -78,7 +78,7 @@ export function PlantCard({ plant }: PlantCardProps) {
           width: 48,
           height: 48,
           borderRadius: 8,
-          background: 'var(--bg-secondary)',
+          background: 'var(--bg-elevated)',
           border: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
@@ -105,7 +105,7 @@ export function PlantCard({ plant }: PlantCardProps) {
           style={{
             fontWeight: 700,
             fontSize: 17,
-            color: 'var(--text-primary)',
+            color: 'var(--ink)',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -117,7 +117,7 @@ export function PlantCard({ plant }: PlantCardProps) {
           <div
             style={{
               fontSize: 13,
-              color: 'var(--text-primary)',
+              color: 'var(--ink)',
               opacity: 0.85,
               marginTop: 1,
               whiteSpace: 'nowrap',
@@ -133,7 +133,7 @@ export function PlantCard({ plant }: PlantCardProps) {
             style={{
               fontStyle: 'italic',
               fontSize: 13,
-              color: 'var(--text-secondary)',
+              color: 'var(--ink-2)',
               marginTop: 1,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -149,7 +149,7 @@ export function PlantCard({ plant }: PlantCardProps) {
           <div
             style={{
               fontSize: 12,
-              color: 'var(--text-secondary)',
+              color: 'var(--ink-2)',
               marginTop: 4,
               display: 'flex',
               gap: 8,
@@ -168,12 +168,12 @@ export function PlantCard({ plant }: PlantCardProps) {
           {plant.next_water_date && !isOverdue && (
             <span
               style={{
-                background: 'var(--bg-secondary)',
+                background: 'var(--bg-elevated)',
                 border: '1px solid var(--border)',
                 borderRadius: 4,
                 padding: '2px 7px',
                 fontSize: 12,
-                color: 'var(--text-secondary)',
+                color: 'var(--ink-2)',
               }}
             >
               💧 {formatDate(plant.next_water_date)}
@@ -240,7 +240,7 @@ export function PlantCard({ plant }: PlantCardProps) {
       {/* Chevron */}
       <div
         style={{
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           fontSize: 18,
           lineHeight: 1,
           alignSelf: 'center',

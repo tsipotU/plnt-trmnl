@@ -96,7 +96,7 @@ export function VacationToggle() {
           style={{
             background: 'transparent',
             border: '1px solid var(--border)',
-            color: 'var(--text-secondary)',
+            color: 'var(--ink-2)',
             fontSize: 12,
             padding: '4px 10px',
             minHeight: 32,
@@ -133,7 +133,7 @@ export function VacationToggle() {
           style={{
             background: 'transparent',
             border: '1px solid var(--border)',
-            color: 'var(--text-secondary)',
+            color: 'var(--ink-2)',
             fontSize: 13,
             padding: '4px 10px',
             minHeight: 36,
@@ -154,7 +154,7 @@ export function VacationToggle() {
       style={{
         background: 'transparent',
         border: '1px solid var(--border)',
-        color: 'var(--text-secondary)',
+        color: 'var(--ink-2)',
         fontSize: 13,
         padding: '4px 12px',
         minHeight: 36,

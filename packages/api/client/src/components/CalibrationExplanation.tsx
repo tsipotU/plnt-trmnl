@@ -40,7 +40,7 @@ export function CalibrationExplanation({ initialOpen = false }: Props) {
         style={{
           background: 'transparent',
           border: '1px solid var(--border)',
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           width: 22,
           height: 22,
           minHeight: 22,
@@ -78,7 +78,7 @@ export function CalibrationExplanation({ initialOpen = false }: Props) {
             <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 10 }}>
               Why am I being asked this?
             </h3>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p style={{ fontSize: 14, color: 'var(--ink-2)', marginBottom: 16 }}>
               Published care data is a starting guess. Your home is unique. These quick
               taps help plnt-trmnl learn when YOUR plant actually wants water.
             </p>

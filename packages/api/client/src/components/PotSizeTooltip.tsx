@@ -39,7 +39,7 @@ export function PotSizeTooltip() {
         style={{
           background: 'none',
           border: 'none',
-          color: 'var(--text-secondary)',
+          color: 'var(--ink-2)',
           fontSize: 16,
           padding: '0 8px',
           cursor: 'pointer',
@@ -79,7 +79,7 @@ export function PotSizeTooltip() {
               right: 8,
               background: 'none',
               border: 'none',
-              color: 'var(--text-secondary)',
+              color: 'var(--ink-2)',
               fontSize: 20,
               cursor: 'pointer',
               padding: '4px 8px',
@@ -93,7 +93,7 @@ export function PotSizeTooltip() {
             <p
               style={{
                 fontSize: 13,
-                color: 'var(--text-secondary)',
+                color: 'var(--ink-2)',
                 marginBottom: 12,
                 fontStyle: 'italic',
               }}
@@ -106,13 +106,13 @@ export function PotSizeTooltip() {
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
-                    color: 'var(--text-primary)',
+                    color: 'var(--ink)',
                     marginBottom: 4,
                   }}
                 >
                   {g.label}
                 </p>
-                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{g.body}</p>
+                <p style={{ fontSize: 12, color: 'var(--ink-2)' }}>{g.body}</p>
               </div>
             ))}
           </div>
