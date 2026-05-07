@@ -885,17 +885,19 @@ describe('/add form validation (#207)', () => {
     renderAddPlant();
     await screen.findByLabelText(/Plant species or type/i);
 
-    // FieldLabel renders a `·` dot (aria-hidden) when required={true}.
-    // The label wraps the input, so getByLabelText finds the input.
-    // We verify the required indicator is present by checking the label text
-    // content — the FieldLabel component renders .p7l-field-label__required with `·`.
-    const speciesInput = screen.getByLabelText(/Plant species or type/i);
-    const label = speciesInput.closest('form')?.querySelector('[for="name"], label:has(#name)') ??
-      speciesInput.parentElement?.querySelector('label');
-
     // The FieldLabel for species passes required={true} — confirm required marker in DOM
     // (looking for the aria-hidden dot via the label element wrapping the input)
     expect(screen.getByLabelText(/Plant species or type/i)).toHaveAttribute('aria-required', 'true');
+
+    // FieldLabel renders a `·` dot (aria-hidden) when required={true}.
+    // The <label htmlFor="name"> is linked to the species input by id.
+    // Assert the visible marker span is present so this test fails if the
+    // FieldLabel `required` prop is removed or the marker is stripped.
+    const speciesLabel = document.querySelector('label[for="name"]');
+    expect(speciesLabel).not.toBeNull();
+    const marker = speciesLabel!.querySelector('.p7l-field-label__required');
+    expect(marker).toBeInTheDocument();
+    expect(marker).toHaveTextContent('·');
 
     // Last-watered group also carries a required signal
     expect(screen.getByRole('group', { name: /when did you last water/i })).toHaveAttribute(
@@ -946,6 +948,42 @@ describe('/add form validation (#207)', () => {
     // Start typing — error should clear
     await user.type(screen.getByLabelText(/Plant species or type/i), 'M');
     expect(screen.queryByText(/species is required/i)).not.toBeInTheDocument();
+  });
+
+  it('submits successfully after fixing the species error (Scenario 4)', async () => {
+    const user = userEvent.setup();
+    // Use makeValidationFetch which returns a successful POST response.
+    global.fetch = makeValidationFetch();
+
+    renderAddPlantWithRoutes();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    // Step 1: submit with empty species — triggers inline error.
+    await user.click(screen.getByRole('button', { name: /Add plant/i }));
+    expect(await screen.findByText(/species is required/i)).toBeInTheDocument();
+
+    // Confirm no POST was fired during the failed attempt.
+    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
+    const postsBefore = fetchMock.mock.calls.filter(
+      (c: unknown[]) =>
+        typeof c[1] === 'object' && c[1] !== null && (c[1] as RequestInit).method === 'POST',
+    );
+    expect(postsBefore).toHaveLength(0);
+
+    // Step 2: type a species name to fix the error, then submit again.
+    await user.type(screen.getByLabelText(/Plant species or type/i), 'Monstera deliciosa');
+    await user.click(screen.getByRole('button', { name: /Add plant/i }));
+
+    // Step 3: POST must fire — validation gate must not block a valid submit.
+    await waitFor(() => {
+      const postsAfter = fetchMock.mock.calls.filter(
+        (c: unknown[]) =>
+          typeof c[1] === 'object' && c[1] !== null && (c[1] as RequestInit).method === 'POST',
+      );
+      expect(postsAfter).toHaveLength(1);
+      const [postUrl] = postsAfter[0] as [string, RequestInit];
+      expect(postUrl).toBe('/api/plants');
+    });
   });
 });
 
