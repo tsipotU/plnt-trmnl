@@ -24,6 +24,11 @@ type SoilFeel = '' | 'bone_dry' | 'dry' | 'slightly_moist' | 'moist' | 'wet';
 interface ExistingPlant {
   id: number;
   name: string;
+  species?: string | null;
+}
+
+function normalizeSpecies(s: string | null | undefined): string {
+  return (s ?? '').trim().toLowerCase();
 }
 
 interface CatalogSearchResult {
@@ -768,19 +773,34 @@ export function AddPlant() {
 
           {originType === 'seedling' && existingPlants.length > 0 && (
             <div>
-              <FieldLabel htmlFor="motherPlantId">Mother plant</FieldLabel>
-              <select
-                id="motherPlantId"
-                value={motherPlantId}
-                onChange={(e) => setMotherPlantId(e.target.value)}
-              >
-                <option value="">— optional —</option>
-                {existingPlants.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              {!name.trim() ? (
+                <p className="p7l-helper">Select a species first to pick a mother plant.</p>
+              ) : (() => {
+                const sameSpeciesCandidates = existingPlants.filter(
+                  (p) => normalizeSpecies(p.species) === normalizeSpecies(name),
+                );
+                return sameSpeciesCandidates.length === 0 ? (
+                  <p className="p7l-helper">
+                    No {name.trim()} in your collection yet — leave this blank.
+                  </p>
+                ) : (
+                  <>
+                    <FieldLabel htmlFor="motherPlantId">Mother plant</FieldLabel>
+                    <select
+                      id="motherPlantId"
+                      value={motherPlantId}
+                      onChange={(e) => setMotherPlantId(e.target.value)}
+                    >
+                      <option value="">— optional —</option>
+                      {sameSpeciesCandidates.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                );
+              })()}
             </div>
           )}
         </FormStep>

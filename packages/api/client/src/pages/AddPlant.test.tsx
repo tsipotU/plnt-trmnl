@@ -767,3 +767,91 @@ describe('AddPlant — post-add enrichment splash (issue #72)', () => {
     expect(screen.getByRole('button', { name: /Yes, that.?s it/i })).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// #208 — Mother plant picker: filter to same species
+// ---------------------------------------------------------------------------
+
+function makeMotherPickerFetch(existingPlants: Array<{ id: number; name: string; species: string | null }>) {
+  return vi.fn(async (url: string, init?: RequestInit) => {
+    if (url === '/api/system/ai-connection') {
+      return { ok: true, json: async () => ({ connected: true }) } as Response;
+    }
+    // GET /api/plants — return the provided list
+    if (url === '/api/plants' && !init?.method) {
+      return { ok: true, json: async () => existingPlants } as Response;
+    }
+    if (url === '/api/plants' && init?.method === 'POST') {
+      const body = init.body ? JSON.parse(init.body as string) : {};
+      return { ok: true, json: async () => ({ id: 99, ...body }) } as Response;
+    }
+    return { ok: true, json: async () => [] } as Response;
+  }) as unknown as typeof fetch;
+}
+
+describe('mother plant picker (#208)', () => {
+  it('hides when user has zero plants', async () => {
+    global.fetch = makeMotherPickerFetch([]);
+
+    const user = userEvent.setup();
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    await user.selectOptions(screen.getByLabelText(/Origin/i), 'seedling');
+
+    expect(screen.queryByLabelText(/Mother plant/i)).not.toBeInTheDocument();
+  });
+
+  it('shows empty-state copy when no plants of same species exist', async () => {
+    global.fetch = makeMotherPickerFetch([
+      { id: 1, name: 'Pothos', species: 'Epipremnum aureum' },
+    ]);
+
+    const user = userEvent.setup();
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    await user.type(screen.getByLabelText(/Plant species or type/i), 'Monstera deliciosa');
+    await user.selectOptions(screen.getByLabelText(/Origin/i), 'seedling');
+
+    expect(screen.queryByLabelText(/Mother plant/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/no Monstera deliciosa/i)).toBeInTheDocument();
+  });
+
+  it('lists only same-species plants as candidates', async () => {
+    global.fetch = makeMotherPickerFetch([
+      { id: 1, name: 'Mom', species: 'Monstera deliciosa' },
+      { id: 2, name: 'Big one', species: 'Monstera deliciosa' },
+      { id: 3, name: 'Pothos', species: 'Epipremnum aureum' },
+    ]);
+
+    const user = userEvent.setup();
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    await user.type(screen.getByLabelText(/Plant species or type/i), 'Monstera deliciosa');
+    await user.selectOptions(screen.getByLabelText(/Origin/i), 'seedling');
+
+    const select = screen.getByLabelText(/Mother plant/i) as HTMLSelectElement;
+    const optionNames = Array.from(select.options).map((o) => o.text);
+    expect(optionNames).toContain('Mom');
+    expect(optionNames).toContain('Big one');
+    expect(optionNames).not.toContain('Pothos');
+  });
+
+  it('hides picker and shows "select a species first" hint when species field is empty', async () => {
+    global.fetch = makeMotherPickerFetch([
+      { id: 1, name: 'Mom', species: 'Monstera deliciosa' },
+    ]);
+
+    const user = userEvent.setup();
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    // Select seedling without entering a species
+    await user.selectOptions(screen.getByLabelText(/Origin/i), 'seedling');
+
+    expect(screen.queryByLabelText(/Mother plant/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/select a species first/i)).toBeInTheDocument();
+  });
+});
