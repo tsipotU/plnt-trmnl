@@ -21,6 +21,17 @@ type WateredWhen = 'today' | 'pick' | 'unknown';
 type OriginType = '' | 'purchased' | 'received' | 'seedling' | 'unknown';
 type SoilFeel = '' | 'bone_dry' | 'dry' | 'slightly_moist' | 'moist' | 'wet';
 
+// Fields that get inline error treatment (shown on submit, cleared on edit).
+// Other required fields (pot, location, light) keep the disabled-button pattern.
+const INLINE_REQUIRED_FIELDS = ['name'] as const;
+type InlineRequiredField = typeof INLINE_REQUIRED_FIELDS[number];
+
+function getMissingInlineRequired(state: { name: string }): InlineRequiredField[] {
+  const missing: InlineRequiredField[] = [];
+  if (!state.name.trim()) missing.push('name');
+  return missing;
+}
+
 interface ExistingPlant {
   id: number;
   name: string;
@@ -98,6 +109,7 @@ export function AddPlant() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Set<InlineRequiredField>>(new Set());
 
   const [splashMode, setSplashMode] = useState<
     'enriching' | 'success' | 'correcting' | 'no-match' | null
@@ -177,6 +189,14 @@ export function AddPlant() {
   function handleNameChange(value: string): void {
     setName(value);
     if (catalogSlug) setCatalogSlug(null);
+    // Clear inline error as soon as the user starts editing.
+    if (fieldErrors.has('name')) {
+      setFieldErrors((prev) => {
+        const next = new Set(prev);
+        next.delete('name');
+        return next;
+      });
+    }
   }
 
   function resolveLastWateredAt(): string {
@@ -188,12 +208,23 @@ export function AddPlant() {
   const needsSoilFeel = wateredWhen === 'unknown';
   const soilFeelMissing = needsSoilFeel && !soilFeel;
 
-  const submitDisabled =
-    loading || !name.trim() || !potCategory || !location.trim() || !lightLevel || soilFeelMissing;
+  // name is validated inline with visible errors on submit.
+  // soilFeel keeps the disabled-button pattern (it's a conditional sub-field).
+  // pot/location/light are validated server-side; native required hints cover the UX gap.
+  const submitDisabled = loading || soilFeelMissing;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitDisabled) return;
+
+    // Inline validation gate — shows errors for name when missing.
+    const missing = getMissingInlineRequired({ name });
+    if (missing.length > 0) {
+      setFieldErrors(new Set(missing));
+      document.getElementById('name')?.focus();
+      return;
+    }
+    setFieldErrors(new Set());
 
     setLoading(true);
     setError(null);
@@ -522,11 +553,15 @@ export function AddPlant() {
                 placeholder="Monstera, Ficus, Pothos…"
                 autoFocus
                 required
+                aria-required="true"
+                aria-invalid={fieldErrors.has('name') || undefined}
+                aria-describedby={fieldErrors.has('name') ? 'name-error' : undefined}
                 autoComplete="off"
                 role="combobox"
                 aria-expanded={catalogOpen}
                 aria-controls="catalog-suggestions"
                 aria-autocomplete="list"
+                style={fieldErrors.has('name') ? { borderColor: 'var(--status-overdue)' } : undefined}
               />
               {catalogOpen && catalogResults.length > 0 && (
                 <ul
@@ -557,6 +592,11 @@ export function AddPlant() {
                 </ul>
               )}
             </div>
+            {fieldErrors.has('name') && (
+              <p id="name-error" role="alert" className="p7l-addplant__field-error">
+                Species is required
+              </p>
+            )}
             <p className="p7l-addplant__hint">
               {isFirstPlant
                 ? 'Search for your plant by species name. Personal names go in Identifier.'
@@ -591,6 +631,7 @@ export function AddPlant() {
             className="p7l-addplant__seg"
             role="group"
             aria-label="When did you last water"
+            aria-required="true"
           >
             {(
               [
