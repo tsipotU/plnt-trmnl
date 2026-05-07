@@ -855,3 +855,92 @@ describe('mother plant picker (#208)', () => {
     expect(screen.getByText(/select a species first/i)).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// #204 — EnrichmentSplash: branch on catalog_slug, not illustration_path
+// ---------------------------------------------------------------------------
+
+describe('AddPlant — splash branch (#204)', () => {
+  it('routes to success branch when catalog_slug is set even if illustration_path is null', async () => {
+    // Simulate: user picks "Monstera deliciosa" from the typeahead (sets catalogSlug),
+    // but the catalog entry has no illustration_path yet (gated on #138).
+    // Bug: old code derived hasCatalogPayload from plant.species && plant.illustration_path,
+    // which is falsy when illustration_path is null — sending the user to no-match.
+    // Fix: branch on catalogSlug (client-side state), which the typeahead always sets.
+    const user = userEvent.setup();
+
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/system/ai-connection') {
+        return { ok: true, json: async () => ({ connected: true }) } as Response;
+      }
+      if (typeof url === 'string' && url.startsWith('/api/catalog/search')) {
+        return {
+          ok: true,
+          json: async () => [
+            {
+              slug: 'monstera-deliciosa',
+              latin_name: 'Monstera deliciosa',
+              category: 'foliage',
+              primary_common_name: 'Swiss cheese plant',
+            },
+          ],
+        } as Response;
+      }
+      if (url === '/api/plants' && init?.method === 'POST') {
+        // Server echoes back the plant row — catalog_slug is NOT a DB column
+        // so it's absent from the response. illustration_path is null because
+        // images haven't been generated yet (issue #138 still open).
+        return {
+          ok: true,
+          json: async () => ({
+            id: 204,
+            name: 'Monstera deliciosa',
+            species: 'Monstera deliciosa',
+            illustration_path: null,
+          }),
+        } as Response;
+      }
+      if (url === '/api/plants/204') {
+        return {
+          ok: true,
+          json: async () => ({
+            id: 204,
+            name: 'Monstera deliciosa',
+            species: 'Monstera deliciosa',
+            illustration_path: null,
+            light_level: 'bright_indirect',
+            current_interval: 10,
+            water_description: 'Every 10 days',
+          }),
+        } as Response;
+      }
+      return { ok: true, json: async () => [] } as Response;
+    }) as unknown as typeof fetch;
+
+    renderAddPlantWithRoutes();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    // Type to trigger typeahead
+    const input = screen.getByLabelText(/Plant species or type/i);
+    await user.type(input, 'mon');
+
+    // Select from typeahead — this sets catalogSlug state
+    const option = await screen.findByRole('option', { name: /Monstera deliciosa/i });
+    await user.click(option);
+
+    // Fill remaining required fields
+    await user.selectOptions(screen.getByLabelText(/Pot size/i), 'Medium');
+    await user.type(screen.getByLabelText(/Location/i), 'Living room');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /Light level/i }),
+      'bright_indirect',
+    );
+
+    await user.click(screen.getByRole('button', { name: /Add Plant/i }));
+
+    // Should route to success branch — "We found" heading, NOT the no-match copy
+    await screen.findByRole('dialog', { name: /Monstera deliciosa/i }, { timeout: 5000 });
+    expect(screen.getByText(/We found/i)).toBeInTheDocument();
+    expect(screen.queryByText(/We don.?t have detailed info yet/i)).not.toBeInTheDocument();
+  });
+});

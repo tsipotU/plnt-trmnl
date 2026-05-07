@@ -241,8 +241,13 @@ export function AddPlant() {
       setSplashPlantId(plant.id);
       setSplashTypedName(name.trim());
 
-      const hasCatalogPayload = !!(plant.species && plant.illustration_path);
-      if (hasCatalogPayload) {
+      // #204 — branch on catalogSlug (client-side state set by the typeahead)
+      // rather than plant.illustration_path from the server response. Many
+      // catalog species don't have an illustration yet (gated on #138), so
+      // checking illustration_path incorrectly sends typeahead-resolved plants
+      // into the enriching/no-match branch. catalogSlug is the source of truth
+      // for "the user explicitly picked a catalog entry".
+      if (catalogSlug) {
         await showSuccessSplash(plant.id, name.trim());
         return;
       }
