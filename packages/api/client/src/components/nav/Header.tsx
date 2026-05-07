@@ -35,7 +35,6 @@ export function Header() {
         data-scrolled={scrolled || undefined}
       >
         <Link to="/" aria-label="p7l home" className="p7l-nav-header__brand">
-          <span aria-hidden="true" className="p7l-nav-header__logo">🪴</span>
           <span>p7l</span>
         </Link>
         <HamburgerMenu
