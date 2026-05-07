@@ -8,18 +8,50 @@ For shipped work, see [`CHANGELOG.md`](CHANGELOG.md). For the current snapshot, 
 
 ## Status
 
-- **Waves 1–10 + 12 + 13 + 15 + 17 shipped.** Catalog at 444 species across 12 categories. Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing, AddPlant polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding, calibration UX, Wave 17 dog-food + design-system burndown, Wave 15 PWA install + offline all in.
-- **Repo is public** (flipped 2026-05-05). Storybook catalog live at https://tsipotU.github.io/plnt-trmnl/. Branch protection on `main` with required status checks + squash-merge + auto-merge. `PLNT` wordmark consolidated to `p7l` (PR #151, 2026-05-06). v1.0.0 not yet tagged — **gated on user satisfaction, not work remaining** (no functional waves left).
+- **Waves 1–10 + 12 + 13 + 15 + 17 + 19 shipped.** Catalog at 444 species across 12 categories. Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing, AddPlant polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding, calibration UX, Wave 17 dog-food + design-system burndown, Wave 15 PWA install + offline, Wave 19 dog-food round 2 (chip/toast desync, splash branching, mother-plant filter, /add validation + UX cluster, emoji sweep round 2, Header polish) — all in.
+- **Repo is public** (flipped 2026-05-05). Storybook catalog live at https://tsipotU.github.io/plnt-trmnl/. Branch protection on `main` with required status checks + squash-merge + auto-merge. `PLNT` wordmark consolidated to `p7l` (PR #151, 2026-05-06). v1.0.0 not yet tagged — **gated on the illustration pipeline ([#138](https://github.com/tsipotU/plnt-trmnl/issues/138))**, not on user satisfaction as the prior wrap implied. Per Emiel's directive 2026-05-07: "we need images for every plant before i will label it v1." Catalog has 444 species, only 1 has `image_path` today.
+- **Wave 19 closed 2026-05-07** — 8 dog-food issues shipped via 9 PRs (one fix-up PR for missing test coverage). Watering chip/toast desync fixed by combining "Schedule" cell ([#202](https://github.com/tsipotU/plnt-trmnl/issues/202)); mother-plant picker now filters to same species ([#208](https://github.com/tsipotU/plnt-trmnl/issues/208)); EnrichmentSplash branches on client `catalogSlug` state instead of derived `illustration_path` ([#204](https://github.com/tsipotU/plnt-trmnl/issues/204)); /add form validation with required signals + inline errors + ARIA ([#207](https://github.com/tsipotU/plnt-trmnl/issues/207)); /add placeholders concrete ([#205](https://github.com/tsipotU/plnt-trmnl/issues/205)); pot-size labels Tiny/Huge + tooltip absolute-scope clarification ([#206](https://github.com/tsipotU/plnt-trmnl/issues/206)); emoji sweep round 2 on auto-log + EnrichmentSplash ([#203](https://github.com/tsipotU/plnt-trmnl/issues/203)); Header drops emoji + wordmark font verified ([#201](https://github.com/tsipotU/plnt-trmnl/issues/201)). Cross-wave review filed [#221](https://github.com/tsipotU/plnt-trmnl/issues/221) as a follow-up for emoji surfaces outside #203's explicit scope. Spec + plan at `docs/specs/2026-05-07-wave-19-design.md` and `docs/plans/2026-05-07-wave-19-plan.md`.
 - **Wave 17 closed 2026-05-06** — all 18 issues resolved across two burndown sessions. Vacation mode sunset, nav-surface design pass + undefined-token sweep, humanized water-state labels, plant-image lightbox + dashboard rendering, archive flow polish, iOS auto-zoom fix, tooltip overflow-clipping fix, calendar today-cell alignment, dynamic version display, native PTR disabled, BackBar narrow-viewport fix, FilterRail stray-line fix, feedback FAB restyle, add-note empty-state button.
 - **Wave 14 deferred entirely (2026-05-07)** — design surfaced a brand-bridge gap: Storybook is the canonical brand catalog for the web/PWA surface but does not extend onto the TRMNL rendering surface. [#7](https://github.com/tsipotU/plnt-trmnl/issues/7) (template redesign), [#138](https://github.com/tsipotU/plnt-trmnl/issues/138) (illustration pipeline), and [#55](https://github.com/tsipotU/plnt-trmnl/issues/55) (TRMNL-X dual-res, formerly Wave 15) all moved to v1.1 backlog. **New issue [#197](https://github.com/tsipotU/plnt-trmnl/issues/197)** opened for the broader bridge work.
 - **Wave 15 closed 2026-05-07** — [#59](https://github.com/tsipotU/plnt-trmnl/issues/59) PWA install + offline shipped (PR [#199](https://github.com/tsipotU/plnt-trmnl/pull/199)). Refreshed the issue first to drop the obsolete 🪴-emoji icon approach and ground the work in the design system: `ApothecaryStamp` is the single source of truth, exported via `prebuild` script to bone (light) + slate (dark) plate variants. Workbox SW with precache + SWR + Background Sync queues for water/calibration/archive mutations. Wave 15 milestone renamed to "Wave 15 — PWA" (TRMNL-X dropped).
 - **Wave 16 closed 2026-05-07** — [#40](https://github.com/tsipotU/plnt-trmnl/issues/40) (holistic design pass) closed as obsolete-by-incremental-delivery; the design system + Waves 6/13/17 already covered every acceptance criterion. Per-section PlantDetail redesigns scoped to Wave 18 (post-v1.0).
-- **Now:** v1.0.0 tag candidacy. Pending: on-device verification of #59 (Add to Home Screen, offline read, queue replay, Lighthouse PWA ≥90). User is "still not yet happy" as of 2026-05-07 — tag waits on satisfaction.
+- **Now:** illustration pipeline ([#138](https://github.com/tsipotU/plnt-trmnl/issues/138)) is the actual v1.0.0 blocker. Currently v1.1 backlog with the generator-source decision still open (paid API vs self-hosted vs LLM-SVG vs hand-commissioned). Once a generator ships and the catalog is populated, v1.0.0 is on the table. Pending too: on-device verification of #59 PWA (Add to Home Screen, offline read, queue replay, Lighthouse PWA ≥90).
 - **Open child issues from Wave 13** (bundled into Wave 18): [#139](https://github.com/tsipotU/plnt-trmnl/issues/139), [#140](https://github.com/tsipotU/plnt-trmnl/issues/140), [#141](https://github.com/tsipotU/plnt-trmnl/issues/141), [#142](https://github.com/tsipotU/plnt-trmnl/issues/142), [#143](https://github.com/tsipotU/plnt-trmnl/issues/143), plus [#168](https://github.com/tsipotU/plnt-trmnl/issues/168).
 
-## Shipped waves (1–10 + 12 + 13 + 17)
+## Shipped waves (1–10 + 12 + 13 + 15 + 17 + 19)
 
 For each shipped wave's full scope and outcome, see [`CHANGELOG.md`](CHANGELOG.md). Specs and plans live under [`docs/specs/`](docs/specs/) and [`docs/plans/`](docs/plans/) (current waves) and [`docs/archive/`](docs/archive/) (Waves 1–8). Wave 11 was deferred and re-bundled into Wave 14 below.
+
+## ~~Wave 19 — Dog-food round 2~~ — **shipped 2026-05-07**
+
+**Status:** Closed. 8 issues shipped via 9 PRs (one continuous burndown + one test fix-up). All 11 feedback rows mapped to Wave 19 issues flipped to `done`; Wave 19 milestone closed. Spec at `docs/specs/2026-05-07-wave-19-design.md`; plan at `docs/plans/2026-05-07-wave-19-plan.md`.
+
+**What shipped:**
+
+- Watering chip/toast "desync" fixed by combining "Schedule" cell — `Every 10d · Next: 15 May 2026` ([#202](https://github.com/tsipotU/plnt-trmnl/issues/202)). Root cause was the bin-packer intentionally shifting `next_water_date` ±N days for load balancing; both chip and toast were correct, the fix was to surface the offset.
+- Mother-plant picker filters to same species via `normalizeSpecies` helper, with empty-state and "select a species first" hints ([#208](https://github.com/tsipotU/plnt-trmnl/issues/208)).
+- EnrichmentSplash branches on client-side `catalogSlug` state (the typeahead's source-of-truth signal) instead of the derived `illustration_path` (frequently null until #138 ships) ([#204](https://github.com/tsipotU/plnt-trmnl/issues/204)).
+- /add form validation: `INLINE_REQUIRED_FIELDS = ['name']`, validation gate at top of submit handler, inline error rendering with `aria-required` / `aria-invalid` / `role="alert"`, focus management to first invalid, errors clear on edit ([#207](https://github.com/tsipotU/plnt-trmnl/issues/207)). Aligns with FINE framework.
+- /add placeholders use concrete personal-nickname examples ([#205](https://github.com/tsipotU/plnt-trmnl/issues/205)).
+- Pot-size labels: `Extra Small (8 cm)` → `Tiny (8 cm)`, `Extra Large (30 cm)` → `Huge (30 cm)`. `value` strings + cm values unchanged for back-compat. Tooltip clarifies sizes are absolute (rim diameter) ([#206](https://github.com/tsipotU/plnt-trmnl/issues/206)).
+- Emoji sweep round 2 on care-log icons + EnrichmentSplash ([#203](https://github.com/tsipotU/plnt-trmnl/issues/203)). New `camera` Pictogram catalog entry. Typographic glyphs (✎ ✓ ↔ ⤵) retained per the sweep convention.
+- Header drops 🪴 emoji; wordmark uses `var(--font-display)` (Fraunces, per Foundations/Naming.mdx) ([#201](https://github.com/tsipotU/plnt-trmnl/issues/201)).
+
+**Folded forward to v1.1 backlog:**
+
+- [#209](https://github.com/tsipotU/plnt-trmnl/issues/209) — Distinct profile-pic illustration variant (depends on #138 generator decision).
+- [#210](https://github.com/tsipotU/plnt-trmnl/issues/210) — Add-flow / Enriching screen holistic UX rework (FB#43 flow concern; symptom fixes via #204/#205/#206/#207 cover the worst pain in the meantime).
+- [#211](https://github.com/tsipotU/plnt-trmnl/issues/211) — Generalisable condition-warning acknowledgement / dismiss pattern (architectural commitment, better designed once with all warning kinds in mind).
+
+**Filed as follow-up:**
+
+- [#221](https://github.com/tsipotU/plnt-trmnl/issues/221) — Emoji sweep round 3. Wave 19's #203 was scoped to two surfaces (care-log + EnrichmentSplash); the wave's spec exit criterion ("no decorative emoji") was overspecified vs that scope. PlantCard, Dashboard, ErrorBoundary, CalibrationModal, CalibrationSequence, DidYouMeanSplash, archive emoji in MemorialPlant / ArchivedPlants / PlantDetailSheets all need a per-case decision (Pictogram / remove / semantic-keep).
+
+**Closed milestones (housekeeping during the wave-end gate):** Wave 19 (#21), Wave 17 (#17, overdue), Wave 15 (#15, overdue).
+
+**Test baseline at end of wave:** API 557 + client 241 + renderer 60 = 858 tests pass.
+
+For per-PR details see `CHANGELOG.md` Wave 19 section.
 
 ## ~~Wave 17 — Dog-food polish + sunset~~ — **shipped 2026-05-06**
 
