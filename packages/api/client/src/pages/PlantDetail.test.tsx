@@ -1135,3 +1135,42 @@ describe('PlantDetail #202 — watering chip shows interval + bin-packed next-wa
     expect(screen.queryByText(/Next:/i)).not.toBeInTheDocument();
   });
 });
+
+describe('PlantDetail — emoji sweep (#203)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('renders auto-log entries without decorative emoji', async () => {
+    const mockEvents = [
+      { id: 1, event_type: 'watered', old_value: null, new_value: null, reason: null, created_at: '2026-05-07T10:00:00Z' },
+      { id: 2, event_type: 'fertilized', old_value: null, new_value: null, reason: null, created_at: '2026-05-06T10:00:00Z' },
+      { id: 3, event_type: 'pruned', old_value: null, new_value: null, reason: null, created_at: '2026-05-05T10:00:00Z' },
+      { id: 4, event_type: 'repotted', old_value: null, new_value: null, reason: null, created_at: '2026-05-04T10:00:00Z' },
+      { id: 5, event_type: 'photo', old_value: null, new_value: null, reason: null, created_at: '2026-05-03T10:00:00Z' },
+    ];
+    const fetchImpl = async (url: string) => {
+      if (url.includes('/api/plants/1') && !url.includes('/conditions') && !url.includes('/events')) {
+        return { ok: true, json: () => Promise.resolve(plantFixture()) };
+      }
+      if (url.includes('/conditions')) return { ok: true, json: () => Promise.resolve([]) };
+      if (url.includes('/events')) return { ok: true, json: () => Promise.resolve(mockEvents) };
+      return { ok: false, json: () => Promise.resolve(null) };
+    };
+
+    RenderWithRouter('1', fetchImpl as any);
+
+    // Wait for the log section to appear by looking for the event type label
+    await waitFor(() => {
+      expect(document.querySelector('.p7l-plant-detail__log')).not.toBeNull();
+    });
+
+    // The decorative emoji Unicode ranges must not appear in any rendered text.
+    // Typographic glyphs (✎ ✓ ↔ ⤵) are exempt — they are not in these ranges.
+    const decorativeEmojiPattern = /[\u{1F300}-\u{1F9FF}\u{1FA00}-\u{1FAFF}]/u;
+    const logSection = document.querySelector('.p7l-plant-detail__log');
+    expect(logSection).not.toBeNull();
+    expect(logSection!.textContent).not.toMatch(decorativeEmojiPattern);
+  });
+});
