@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Wave 15 begins — PWA install + offline (2026-05-07)
+
+**[#59](https://github.com/tsipotU/plnt-trmnl/issues/59)** — installable home-screen PWA with the design-system app icon. The original ticket called for a 🪴-emoji-rendered icon and `name: "Plant TRMNL"`; both predated the post-Wave-17 brand system, so the issue was refreshed first and the work is now grounded in the actual design system.
+
+- **Icon export from `ApothecaryStamp` as single source of truth.** New `packages/api/client/scripts/build-app-icons.ts` server-renders the design-system stamp (with `microtextOff`) inside the canonical AppIcon plate, then `sharp` rasterizes to PNG at 192/512/180 for both bone (light) and slate (dark) plate variants — six manifest icons + iOS `apple-touch-icon` covered from one component. Same script also emits a mode-aware `favicon.svg` (CSS `prefers-color-scheme` swaps the ink color) and 16/32 PNG fallbacks. Wired as a `prebuild` step so PNGs always reflect the current React component — no commit-the-PNG drift. Legacy 🪴 emoji assets (`apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `favicon-64.png`) deleted.
+- **`vite-plugin-pwa` integration with brand-aligned manifest.** `name: "p7l"`, `short_name: "p7l"`, `display: "standalone"`, `theme_color: #f5f3ec` (bone-100), `orientation: "portrait"`, full icon set with `media: "(prefers-color-scheme: …)"` so light/dark mode environments install the matching plate. Manifest is generated at build, replacing the hand-edited `public/manifest.webmanifest`.
+- **Service worker via Workbox.** Auto-update mode (silent install on next visit). Precache app shell on first install (24 entries, ~520 KiB). Stale-while-revalidate for GET `/api/plants(/:id)?`, `/api/schedule/week`, `/api/screen` with 24h cache. Background Sync queues for POST water mutations (`/water`, `/undo-water`, `/water-all`, `/undo-batch`), POST calibration, and PUT plant edits (archive flow); 24h max retention. iOS Safari without Background Sync API: queue persists in IndexedDB and replays on next SW activation.
+- **HTML head tightened.** `viewport-fit=cover` so the app flows under iPhone notch / Dynamic Island. Dual `<meta name="theme-color">` with `prefers-color-scheme` light/dark variants pointing at bone-100 / slate-700. Dual `<link rel="apple-touch-icon">` with `media` for iOS 17.4+ mode-aware home-screen icons. `apple-mobile-web-app-capable` + `apple-mobile-web-app-title` for legacy iOS.
+- **Storybook isolated from PWA pipeline.** `.storybook/main.ts` `viteFinal` strips every `vite-plugin-pwa:*` plugin from the Vite config Storybook inherits. Without this, Storybook's own multi-MB `sb-manager/globals-runtime.js` chunk crashed Workbox's 2 MiB precache cap on every build. Storybook is the design surface; the PWA layer doesn't belong there.
+
 ### Wave 17 closes: 12 issues shipped in second burndown (2026-05-06)
 
 The wave finished in this session. All 18 issues in the milestone are closed; the wave-17 design-system + dog-food cluster is fully merged to `main`. Below is one entry per shipped PR, in merge order. Several reports turned out to have a different root cause than the user described — pattern: dog-food bugs describe symptoms, not causes.

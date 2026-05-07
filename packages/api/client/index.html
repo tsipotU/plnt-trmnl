@@ -2,14 +2,44 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover so the app flows under the iPhone notch / Dynamic Island.
+         Safe-area insets handled by CSS env(safe-area-inset-*) where needed. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>p7l</title>
+
+    <!-- Browser-tab icons. favicon.svg is mode-aware via prefers-color-scheme;
+         the 16/32 PNGs are legacy fallbacks for browsers that ignore the SVG. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- iOS home-screen icons. Per the Apple spec, the `media` attribute on
+         apple-touch-icon is honored on iOS 17.4+ — older iOS picks the first
+         matching entry, so bone (light) wins as the default fallback. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/bone-180.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      media="(prefers-color-scheme: dark)"
+      href="/icons/slate-180.png"
+    />
+
+    <!-- iOS PWA chrome — match the platform color in light/dark mode. -->
+    <meta name="theme-color" content="#f5f3ec" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#2c383f" media="(prefers-color-scheme: dark)" />
+
+    <!-- iOS-specific PWA hints. apple-mobile-web-app-capable is the legacy
+         path; iOS prefers `display: standalone` from the web manifest, but
+         this is still required for iOS < 17 + as a hint. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="p7l" />
+
+    <!-- Web App Manifest (generated at build by vite-plugin-pwa). -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#0f172a" />
   </head>
   <body>
     <div id="root"></div>
