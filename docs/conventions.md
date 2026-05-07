@@ -327,6 +327,25 @@ Rules to prevent recurrence:
   `@testing-library/react` + `jest-dom` matchers. Never run client
   `.test.tsx` files under the API runner — they'll crash with
   `ReferenceError: document is not defined`.
+- **PWA: Storybook must strip `vite-plugin-pwa` from its Vite chain**
+  (Wave 15, #59). Storybook 10's `react-vite` framework inherits
+  `vite.config.ts`'s plugin chain by default, so `vite-plugin-pwa`
+  runs during Storybook builds and tries to precache Storybook's own
+  3MB+ `sb-manager/globals-runtime.js` bundle, crashing on Workbox's
+  2 MiB precache cap. Fix lives in `.storybook/main.ts` `viteFinal`:
+  filter out any plugin whose name starts with `vite-plugin-pwa`.
+  Same shape applies to any future Vite plugin that touches the
+  build output (compression, image optimization).
+- **App icons regenerate on every build, never hand-committed.**
+  `packages/api/client/scripts/build-app-icons.ts` server-renders
+  `<ApothecaryStamp microtextOff>` from the design system and
+  `sharp` rasterizes to PNG at 192/512/180 for both bone (light) +
+  slate (dark) plate variants. Wired as the client's `prebuild`
+  script. Same script also emits `favicon.svg` (mode-aware via CSS
+  `prefers-color-scheme`) + 16/32 PNG fallbacks. Never re-introduce
+  hand-edited icon PNGs in `public/` — drift between the design
+  system and the home-screen icon is exactly what this pattern
+  prevents.
 
 ### Renderer & TRMNL
 
@@ -336,6 +355,14 @@ Rules to prevent recurrence:
   pre-renders and serves a static image.
 - `CALIBRATION_DEADLINE_HOUR` controls the cutoff for same-day
   calibration (default: 12 = noon).
+- **TRMNL framework docs are served as markdown** at
+  `https://trmnl.com/framework/docs/3.1/<page>.md` (just append `.md`
+  to any HTML doc URL). Useful for fetching framework reference into
+  this repo or for agent context — bypasses the Tailwind/Stimulus
+  chrome that defeats `WebFetch` summarizers on the HTML version. The
+  cached set lives at `docs/reference/trmnl-framework-3.1/` — re-fetch
+  if a 3.x bump introduces breaking changes. Discovered while
+  researching the deferred TRMNL template redesign (#7 → #197).
 
 ### Assets, images, Docker
 

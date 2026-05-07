@@ -29,9 +29,13 @@ season modifiers stack on top. Plant care data comes from a curated
 ## Status
 
 **Pre-v1.0.** Repo is public, OSS-readiness work is in, design-system
-catalog is live at the Storybook URL below. v1.0.0 ships once the
-remaining functional waves land — TRMNL identity (Wave 14), PWA +
-TRMNL-X (Wave 15), holistic visual pass + Dutch-name audit (Wave 16).
+catalog is live at the Storybook URL below. The PWA install + offline
+support shipped in Wave 15 (#59) — installable home-screen app with
+the design-system app icon + Background Sync queue for offline writes.
+The TRMNL e-ink identity work (#7, Wave 14) was reframed mid-design
+when we surfaced a brand-bridge gap: Storybook is the canonical brand
+catalog for the web/PWA surface but doesn't extend onto the e-ink
+rendering surface. That's tracked as #197 in the v1.1 backlog.
 Battle-tested on a single household with ~100 plants over six months.
 
 - See [`ROADMAP.md`](ROADMAP.md) for what's next.
