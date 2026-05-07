@@ -140,6 +140,16 @@ export function PotSizeTooltip() {
                 fontStyle: 'italic',
               }}
             >
+              Pot sizes are absolute (diameter at the rim). The watering schedule uses your pot's volume — bigger pot, more soil, longer interval.
+            </p>
+            <p
+              style={{
+                fontSize: 13,
+                color: 'var(--ink-2)',
+                marginBottom: 12,
+                fontStyle: 'italic',
+              }}
+            >
               Measure across the top of the pot, edge to edge.
             </p>
             {guides.map((g, i) => (
