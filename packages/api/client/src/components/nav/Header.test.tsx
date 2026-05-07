@@ -35,4 +35,12 @@ describe('Header', () => {
     expect(dialog).toHaveAttribute('aria-hidden', 'false');
     expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
   });
+
+  it('renders the p7l wordmark with no decorative emoji', () => {
+    renderHeader();
+    const brand = screen.getByLabelText(/p7l home/i);
+    expect(brand).toHaveTextContent(/^\s*p7l\s*$/);
+    // Verify no emoji codepoints exist in the brand text
+    expect(brand.textContent).not.toMatch(/[\u{1F300}-\u{1F9FF}\u{1FA00}-\u{1FAFF}]/u);
+  });
 });

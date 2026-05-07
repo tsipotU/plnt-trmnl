@@ -27,14 +27,10 @@
   align-items: center;
   gap: 8px;
   color: var(--ink);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 18px;
   text-decoration: none;
-}
-
-.p7l-nav-header__logo {
-  font-size: 22px;
-  line-height: 1;
 }
 
 /* 1px sentinel placed above the header content. IntersectionObserver
