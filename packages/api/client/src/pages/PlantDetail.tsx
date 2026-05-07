@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { Navigate, useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { CalibrationModal } from '../components/CalibrationModal.js';
 import { NotesLog } from '../components/NotesLog.js';
@@ -168,19 +168,25 @@ function formatPotSize(category: string | null, cm: number | null): string {
   return category ?? '—';
 }
 
-function eventIcon(type: string): string {
-  const icons: Record<string, string> = {
-    watered: '💧',
-    fertilized: '🌿',
-    pruned: '✂️',
-    repotted: '🪴',
+function eventIcon(type: string): ReactNode {
+  // Decorative emoji replaced with Pictogram (#203). Typographic glyphs (✎ ✓ ↔ ⤵) stay.
+  const pictograms: Record<string, string> = {
+    watered: 'drop',
+    fertilized: 'leaf',
+    pruned: 'scissors',
+    repotted: 'pot',
+    photo: 'camera',
+  };
+  const glyphs: Record<string, string> = {
     note: '✎',
-    photo: '📷',
     enrichment_complete: '✓',
     overflow_rebalance: '↔',
     schedule_congested: '⤵',
   };
-  return icons[type] ?? '·';
+  if (pictograms[type]) {
+    return <Pictogram name={pictograms[type] as never} size={16} aria-hidden />;
+  }
+  return glyphs[type] ?? '·';
 }
 
 function lightLabelFor(level: string | null): string {

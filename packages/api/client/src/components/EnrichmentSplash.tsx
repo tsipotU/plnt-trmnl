@@ -18,6 +18,7 @@
  */
 
 import { useState } from 'react';
+import { Pictogram } from './atoms/Pictogram/Pictogram.js';
 
 export interface EnrichmentSplashPreview {
   species: string | null;
@@ -84,7 +85,6 @@ export function EnrichmentSplash({
           padding: '0 16px',
         }}
       >
-        <div style={{ fontSize: 48 }} aria-hidden="true">✨</div>
         <p style={{ fontSize: 18, fontWeight: 600 }}>Enriching {typedName}…</p>
         <p style={{ fontSize: 14, color: 'var(--ink-2)' }}>
           Refining care details — this usually takes a few seconds
@@ -301,7 +301,7 @@ export function EnrichmentSplash({
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         ) : (
-          <span style={{ fontSize: 80 }} aria-hidden="true">🌿</span>
+          <Pictogram name="leaf" size={80} aria-hidden />
         )}
       </div>
 

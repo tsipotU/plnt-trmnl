@@ -68,6 +68,14 @@ export const icons: Record<string, ReactNode> = {
     // (#165) — a + glyph reads as 'add an item', a balloon reads as comms.
     <path d="M5 4 H 19 a 2 2 0 0 1 2 2 V 14 a 2 2 0 0 1 -2 2 H 13 L 8 21 L 9 16 H 5 a 2 2 0 0 1 -2 -2 V 6 a 2 2 0 0 1 2 -2 Z" />
   ),
+  camera: (
+    // Body + lens circle + viewfinder bump. Used for "photo" care-log entries (#203).
+    <>
+      <rect x="2" y="8" width="20" height="13" rx="2" />
+      <circle cx="12" cy="14" r="3" />
+      <path d="M8 8 L 10 5 H 14 L 16 8" />
+    </>
+  ),
 };
 
 export type IconName = keyof typeof icons;
