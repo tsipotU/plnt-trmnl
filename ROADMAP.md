@@ -8,12 +8,14 @@ For shipped work, see [`CHANGELOG.md`](CHANGELOG.md). For the current snapshot, 
 
 ## Status
 
-- **Waves 1–10 + 12 + 13 + 17 shipped.** Catalog at 444 species across 12 categories (expanded from 250 on 2026-04-26). Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing (monstera fixture), AddPlant onboarding polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding (CollapsibleSection, ConditionCard primitives), calibration UX (explanation, progress, convergence/drift), Wave 17 dog-food + design-system burndown all in.
-- **Repo is public** (flipped 2026-05-05). Storybook catalog live at https://tsipotU.github.io/plnt-trmnl/. Branch protection on `main` with required status checks + squash-merge + auto-merge. `PLNT` wordmark consolidated to `p7l` (PR #151, 2026-05-06). v1.0.0 not yet tagged — gated on Waves 14–16. See `CHANGELOG.md`.
+- **Waves 1–10 + 12 + 13 + 15 + 17 shipped.** Catalog at 444 species across 12 categories. Pull-based enrichment API live. Auth gate, ErrorBoundary, plant-image plumbing, AddPlant polish, date-strip rework, memorial page redesign, plant-detail passport-IA scaffolding, calibration UX, Wave 17 dog-food + design-system burndown, Wave 15 PWA install + offline all in.
+- **Repo is public** (flipped 2026-05-05). Storybook catalog live at https://tsipotU.github.io/plnt-trmnl/. Branch protection on `main` with required status checks + squash-merge + auto-merge. `PLNT` wordmark consolidated to `p7l` (PR #151, 2026-05-06). v1.0.0 not yet tagged — **gated on user satisfaction, not work remaining** (no functional waves left).
 - **Wave 17 closed 2026-05-06** — all 18 issues resolved across two burndown sessions. Vacation mode sunset, nav-surface design pass + undefined-token sweep, humanized water-state labels, plant-image lightbox + dashboard rendering, archive flow polish, iOS auto-zoom fix, tooltip overflow-clipping fix, calendar today-cell alignment, dynamic version display, native PTR disabled, BackBar narrow-viewport fix, FilterRail stray-line fix, feedback FAB restyle, add-note empty-state button.
-- **Now:** Wave 14 — TRMNL identity (template + illustrations) is the next functional wave.
-- **Next active waves:** 14 → 15 → 16, in order. v1.0 tag cut at end of Wave 16. Wave 18 (passport IA) follows post-v1.0.
-- **Open child issues from Wave 13** (now bundled into Wave 18): [#139](https://github.com/tsipotU/plnt-trmnl/issues/139), [#140](https://github.com/tsipotU/plnt-trmnl/issues/140), [#141](https://github.com/tsipotU/plnt-trmnl/issues/141), [#142](https://github.com/tsipotU/plnt-trmnl/issues/142), [#143](https://github.com/tsipotU/plnt-trmnl/issues/143), plus dog-food-surfaced [#168](https://github.com/tsipotU/plnt-trmnl/issues/168).
+- **Wave 14 deferred entirely (2026-05-07)** — design surfaced a brand-bridge gap: Storybook is the canonical brand catalog for the web/PWA surface but does not extend onto the TRMNL rendering surface. [#7](https://github.com/tsipotU/plnt-trmnl/issues/7) (template redesign), [#138](https://github.com/tsipotU/plnt-trmnl/issues/138) (illustration pipeline), and [#55](https://github.com/tsipotU/plnt-trmnl/issues/55) (TRMNL-X dual-res, formerly Wave 15) all moved to v1.1 backlog. **New issue [#197](https://github.com/tsipotU/plnt-trmnl/issues/197)** opened for the broader bridge work.
+- **Wave 15 closed 2026-05-07** — [#59](https://github.com/tsipotU/plnt-trmnl/issues/59) PWA install + offline shipped (PR [#199](https://github.com/tsipotU/plnt-trmnl/pull/199)). Refreshed the issue first to drop the obsolete 🪴-emoji icon approach and ground the work in the design system: `ApothecaryStamp` is the single source of truth, exported via `prebuild` script to bone (light) + slate (dark) plate variants. Workbox SW with precache + SWR + Background Sync queues for water/calibration/archive mutations. Wave 15 milestone renamed to "Wave 15 — PWA" (TRMNL-X dropped).
+- **Wave 16 closed 2026-05-07** — [#40](https://github.com/tsipotU/plnt-trmnl/issues/40) (holistic design pass) closed as obsolete-by-incremental-delivery; the design system + Waves 6/13/17 already covered every acceptance criterion. Per-section PlantDetail redesigns scoped to Wave 18 (post-v1.0).
+- **Now:** v1.0.0 tag candidacy. Pending: on-device verification of #59 (Add to Home Screen, offline read, queue replay, Lighthouse PWA ≥90). User is "still not yet happy" as of 2026-05-07 — tag waits on satisfaction.
+- **Open child issues from Wave 13** (bundled into Wave 18): [#139](https://github.com/tsipotU/plnt-trmnl/issues/139), [#140](https://github.com/tsipotU/plnt-trmnl/issues/140), [#141](https://github.com/tsipotU/plnt-trmnl/issues/141), [#142](https://github.com/tsipotU/plnt-trmnl/issues/142), [#143](https://github.com/tsipotU/plnt-trmnl/issues/143), plus [#168](https://github.com/tsipotU/plnt-trmnl/issues/168).
 
 ## Shipped waves (1–10 + 12 + 13 + 17)
 
@@ -49,34 +51,44 @@ For each shipped wave's full scope and outcome, see [`CHANGELOG.md`](CHANGELOG.m
 
 For per-PR details see `CHANGELOG.md` `[Unreleased]` Wave 17 entries.
 
-## Wave 14 — TRMNL identity (template + illustrations)
+## ~~Wave 14 — TRMNL identity~~ — **deferred 2026-05-07**
 
-**Status:** Next functional wave (not yet picked up).
+**Status:** Closed without shipped code. All three issues moved to v1.1 backlog. Trigger: design surfaced that #7's scope (rewrite the Liquid template) was a symptom of a larger gap — the design system covers web/PWA but doesn't extend onto the TRMNL e-ink surface.
 
-**Scope:**
-- [#7](https://github.com/tsipotU/plnt-trmnl/issues/7) — TRMNL template visual redesign matching Lovable mockups. Liquid templates for watering-day-1, watering-day-2, rest-day; title bar + footer; typography hierarchy; calibration prompt with 1–5 scale visual. Touches `docs/trmnl-templates/` only — separate from the SPA.
-- [#138](https://github.com/tsipotU/plnt-trmnl/issues/138) — **Two-variant illustration pipeline** (formerly Wave 11). Generation source must be chosen before this can ship. Build-time dithering script (`packages/api/scripts/process-illustration.ts`) using `sharp`, two committed PNGs per species (`<slug>.trmnl-x.png` 1872×1404 16-grey + `<slug>.trmnl-og.png` 800×480 4-grey), convention-based catalog wiring. Generator-agnostic.
+**Deferred:**
+- [#7](https://github.com/tsipotU/plnt-trmnl/issues/7) → v1.1 — TRMNL template visual redesign.
+- [#138](https://github.com/tsipotU/plnt-trmnl/issues/138) → v1.1 — Two-variant illustration pipeline.
+- [#55](https://github.com/tsipotU/plnt-trmnl/issues/55) → v1.1 (originally Wave 15) — TRMNL-X dual-resolution support.
 
-**Likely outputs:** Liquid templates committed in `docs/trmnl-templates/`, `process-illustration.ts` script, two committed monstera variants as proof-of-pipeline, catalog loader update, SPA + renderer URL helper.
+**Tracking the broader work:** [#197](https://github.com/tsipotU/plnt-trmnl/issues/197) — "Formalize p7l brand identity for TRMNL renderings (Storybook bridge)." Proposed approach: LiquidJS-in-Storybook with the TRMNL framework v3.1 CSS as a decorator, OG + X stories, single source of truth for brand decisions on the TRMNL surface.
 
-## Wave 15 — Capabilities for v1 (PWA + TRMNL-X)
+**Research artifacts kept:**
+- `docs/plans/2026-05-06-issue-7-trmnl-template-design.md` — framework-primitive design plan (carries a deferred-admonition header).
+- `docs/reference/trmnl-framework-3.1/` — full cached TRMNL framework v3.1 documentation (32 markdown files).
+- Two placeholder Storybook stories under "TRMNL screens / Placeholder" claiming the catalog surface for the future bridge.
 
-**Scope:**
-- [#59](https://github.com/tsipotU/plnt-trmnl/issues/59) — PWA: installable home-screen app, service worker for asset cache, web manifest with 🪴 icon, install prompt, offline indicator. Required for v1 mobile feel.
-- [#55](https://github.com/tsipotU/plnt-trmnl/issues/55) — TRMNL-X dual-resolution support. Renderer produces two images at different resolutions; push cron decides which to serve based on device-type query param. Pairs with Wave 14's illustration pipeline (which already produces both variants per species).
+## ~~Wave 15 — PWA~~ — **shipped 2026-05-07**
 
-**Likely outputs:** `docs/plans/<date>-wave-15-plan.md`, `manifest.webmanifest`, service worker, renderer dual-output mode, push-cron device-type routing.
+**Status:** Closed. [#59](https://github.com/tsipotU/plnt-trmnl/issues/59) shipped via PR [#199](https://github.com/tsipotU/plnt-trmnl/pull/199). Originally scoped as "PWA + TRMNL-X" but #55 was deferred alongside Wave 14; milestone renamed to "Wave 15 — PWA" once that landed.
 
-## Wave 16 — Holistic polish + v1.0.0 release
+**What shipped:**
+- Issue #59 was refreshed before implementation — the original ticket called for a 🪴-emoji icon and `name: "Plant TRMNL"`, both predating the post-Wave-17 design system. Replaced with a design-system-grounded approach.
+- Icon export from `ApothecaryStamp` as single source of truth: `packages/api/client/scripts/build-app-icons.ts` server-renders the design-system stamp with `microtextOff` inside canonical AppIcon plates (bone + slate), `sharp` rasterizes to PNG at 192/512/180. Same script also emits a mode-aware `favicon.svg` and 16/32 PNG fallbacks. Wired as `prebuild` so PNGs never drift from the React component.
+- `vite-plugin-pwa` integration: manifest with `name: "p7l"`, `display: "standalone"`, brand-aligned colors, dual `media: "(prefers-color-scheme: …)"` icon entries.
+- Workbox SW: app-shell precache (24 entries), SWR for GET reads, Background Sync queues for water/calibration/archive mutations (24h retention).
+- HTML head: `viewport-fit=cover` for notch flow, dual `<meta name="theme-color">` for light/dark, dual `apple-touch-icon` for iOS 17.4+ mode-aware home-screen icons.
+- Storybook isolated from PWA pipeline via `viteFinal` strip so SB's own multi-MB chunks don't trip Workbox's 2 MiB precache cap.
+- Legacy 🪴 emoji assets deleted: `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `favicon-64.png`, hand-edited `manifest.webmanifest`.
 
-**Goal:** The visual identity pass that turns "shipping pieces" into "one coherent product," then the v1.0.0 tag and announcement.
+**Pending verification (manual, post-deploy):** Add to Home Screen on iPhone (verify stamp icon, dark mode shows slate plate); offline read of `/api/plants` cached; water-mutation queue replay on reconnect; Lighthouse PWA audit ≥ 90.
 
-**Scope:**
-- [#40](https://github.com/tsipotU/plnt-trmnl/issues/40) — Holistic frontend design pass. The *last* thing before tag. By now the IA (Wave 13), TRMNL identity (Wave 14), and capabilities (Wave 15) are all in place. This pass unifies palette/typography/spacing across the SPA, polishes empty states and micro-interactions, defines the visual identity that the previous waves used in placeholder form. Visual only, no functional changes.
-- Native Dutch-name audit on the 444-plant catalog (Emiel).
-- README final pass — every link works, every screenshot reflects shipping reality, every command in `INSTALL.md` runs on a clean machine.
-- Tag v1.0.0, draft GitHub Release notes from CHANGELOG `[Unreleased]` → `[1.0.0]`.
-- Announce: TRMNL Discord, TRMNL forum, /r/houseplants, /r/selfhosted, HN.
+## ~~Wave 16 — Holistic polish + v1.0.0 release~~ — **closed 2026-05-07 (no shipped code)**
+
+**Status:** Closed. [#40](https://github.com/tsipotU/plnt-trmnl/issues/40) (holistic frontend design pass) closed as obsolete-by-incremental-delivery; every acceptance criterion was already addressed by Waves 6 (empty state, manifest), 13 (PlantDetail rework, calibration UX), 17 (archive polish, dashboard rendering, navigational surface design pass) plus the design system itself. Per-section PlantDetail redesigns scoped to Wave 18 (post-v1.0).
+
+**Path to v1.0.0:** no functional waves remain. Tag is gated on user satisfaction, not work. When ready: tag v1.0.0, draft GitHub Release notes from CHANGELOG `[Unreleased]` → `[1.0.0]`, run README + INSTALL final pass, announce on TRMNL Discord, TRMNL forum, /r/houseplants, /r/selfhosted, HN.
+
+**Deferred to a polish lap before tag (informal, not an issue):** Native Dutch-name audit on the 444-plant catalog (Emiel). Walk-the-app phone-on-bedside-table polish — file individual issues for any rough edges that surface.
 
 **Already done** (landed before this wave was picked up):
 - Repo flipped public (2026-05-05). History scrubbed via `git filter-repo`. Pre-flip audit green.
@@ -115,8 +127,9 @@ For per-PR details see `CHANGELOG.md` `[Unreleased]` Wave 17 entries.
 
 Things that shouldn't block v1.0 but should land soon after.
 
+- **TRMNL surface bridge** ([#197](https://github.com/tsipotU/plnt-trmnl/issues/197), [#7](https://github.com/tsipotU/plnt-trmnl/issues/7), [#138](https://github.com/tsipotU/plnt-trmnl/issues/138), [#55](https://github.com/tsipotU/plnt-trmnl/issues/55)) — formalize p7l brand identity for TRMNL renderings via Storybook. **#197** is the seed: render the production Liquid template inside Storybook with LiquidJS + TRMNL framework v3.1 CSS as a decorator, OG + X stories per screen state, brand decisions captured as design tokens. Once landed, **#7** (template visual redesign), **#138** (illustration pipeline + generator pick), and **#55** (TRMNL-X dual-resolution renderer) all flow naturally — a single wave can ship the bridge, the redesigned template, and the X output together. Research artifacts already in repo: `docs/plans/2026-05-06-issue-7-trmnl-template-design.md`, `docs/reference/trmnl-framework-3.1/`.
 - [#144](https://github.com/tsipotU/plnt-trmnl/issues/144) — **Auth modernization — better-auth + passkeys + device list.** Current auth is hand-rolled bcrypt + a single global password + cookie sessions. Adequate (especially after the 2026-04-26 hotfix that scoped the gate to `/api/*` so fresh devices can reach `/login`), but lacks: per-device session visibility, "revoke iPhone" without nuking everything, passkey support (one-tap login via Face ID/Touch ID, iCloud-synced across devices), and any path to MFA later. Plan: migrate to [`better-auth`](https://www.better-auth.com/) — TypeScript-first Express-friendly library with passkeys/password/sessions/device-list out of the box, no extra container. Keeps password as fallback, keeps the bootstrap setup-token flow. Single-tenant remains (no multi-user). Estimated 1 wave (~3-5 commits).
-- **Catalog illustrations rollout.** Catalog is now 444 species but only 1 has an `image_path` (monstera-deliciosa-albo-variegata). Wave 14's #138 illustration pipeline produces the variants per species; v1.1 is when we actually populate the catalog. Auto-backfill `plants.illustration_path` at boot (when a plant's species matches a catalog entry that has `image_path` and the column is NULL) so users with pre-existing plants get images for free as new illustrations land.
+- **Catalog illustrations rollout.** Catalog is now 444 species but only 1 has an `image_path` (monstera-deliciosa-albo-variegata). The deferred [#138](https://github.com/tsipotU/plnt-trmnl/issues/138) illustration pipeline produces the variants per species once a generator is picked; v1.1 is when we actually populate the catalog. Auto-backfill `plants.illustration_path` at boot (when a plant's species matches a catalog entry that has `image_path` and the column is NULL) so users with pre-existing plants get images for free as new illustrations land.
 - **"Drift from mean" calibration model.** Wave 13 added drift detection using the existing convergence-reset logic (a non-3 answer flips `is_converged` 1→0). A richer model that tracks mean dry-days over the last N cycles and flags meaningful deviation is the proper fix.
 - [#148](https://github.com/tsipotU/plnt-trmnl/issues/148) — **Plants list category filter.** Phase 3 visual rebuild ships the state filter rail but not the category rail because `/api/plants` rows don't expose `category`. Resolution: LEFT JOIN catalog into `/api/plants` for `category`. (The vacation half of the original issue is sunset by [#166](https://github.com/tsipotU/plnt-trmnl/issues/166).)
 - [#152](https://github.com/tsipotU/plnt-trmnl/issues/152) — **Calendar subscription feed (iCalendar / `.ics`).** p7l already owns the schedule machinery — surface it as a read-only iCal feed users can subscribe to in Apple Calendar / Google Calendar / Outlook. One per-user secret URL, events for upcoming waterings (and later: propagation milestones — see v2). Spec-light: serve `text/calendar` from `/api/calendar/<token>.ics`, regenerate on read, no two-way sync. Likely a single small wave.
