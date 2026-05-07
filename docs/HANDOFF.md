@@ -2,7 +2,7 @@
 
 Single-file briefing so a new session, contributor, or future-you can pick up work without re-deriving context. **If anything here goes stale, fix it in the same PR that made it stale.**
 
-**Last updated:** 2026-05-06 (**Wave 17 closed end-to-end** — second burndown shipped 12 PRs spanning #161, #166 (vacation sunset), #171 (dynamic version), #167 (humanized labels), #157, #159, #165, #158, #173, #174, #164, #162, #172 + a drive-by tsc fix. All 18 wave-17 issues resolved. **Wave 14 — TRMNL identity** is the next functional wave on the path to v1.0.0.)
+**Last updated:** 2026-05-07 (**Wave 14 deferred entirely.** Issue #7 (TRMNL Liquid template redesign) and #138 (illustration pipeline) moved to v1.1 backlog; Wave 14 milestone closed. Design surfaced a bigger gap than #7's scope: the plnt-trmnl Storybook is the canonical brand catalog for the web/PWA surface but does not extend onto the TRMNL rendering surface at all. New tracking issue **#197** opened for the broader work — make Storybook the home for *all* p7l visual design via LiquidJS rendering the production template inside Storybook with TRMNL framework v3.1 CSS as a decorator. Two placeholder Storybook stories (`TRMNL screens / OG`, `TRMNL screens / X`) added as catalog stand-ins until #197 lands. Design plan `docs/plans/2026-05-06-issue-7-trmnl-template-design.md` headed with a deferred admonition and kept as research artifact. **Wave 15 — PWA + TRMNL-X** is now the next functional wave on the path to v1.0.0.)
 
 ---
 
