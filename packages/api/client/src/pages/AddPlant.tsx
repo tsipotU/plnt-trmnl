@@ -620,7 +620,7 @@ export function AddPlant() {
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="e.g. Hanging basket, Blue pot"
+              placeholder="e.g. the big one, mom's cutting"
               style={{ marginTop: 6 }}
             />
           </div>
@@ -748,7 +748,7 @@ export function AddPlant() {
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Or type your own (e.g. Kitchen windowsill)"
+              placeholder="Or type your own (e.g. living room window)"
               required
             />
           </div>
