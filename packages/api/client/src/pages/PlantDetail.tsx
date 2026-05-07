@@ -642,18 +642,24 @@ export function PlantDetail() {
       {/* Read-only data grid */}
       <DetailDataGrid cols={2}>
         <DataCell label="Last watered" value={formatDate(plant.last_watered_at)} />
-        <DataCell label="Next water" value={formatDate(plant.next_water_date)} />
         <DataCell
-          label="Cycle"
-          value={
-            plant.current_interval
-              ? `${plant.current_interval}d${
+          label="Schedule"
+          value={(() => {
+            const hasInterval = plant.current_interval != null;
+            const hasDate = plant.next_water_date != null;
+            const intervalPart = hasInterval
+              ? `Every ${plant.current_interval}d${
                   plant.base_interval && plant.base_interval !== plant.current_interval
                     ? ` (base ${plant.base_interval})`
                     : ''
                 }`
-              : '—'
-          }
+              : null;
+            const datePart = hasDate ? `Next: ${formatDate(plant.next_water_date)}` : null;
+            if (intervalPart && datePart) return `${intervalPart} · ${datePart}`;
+            if (intervalPart) return intervalPart;
+            if (datePart) return datePart;
+            return '—';
+          })()}
         />
         <DataCell label="Pot" value={formatPotSize(plant.pot_size_category, plant.pot_size_cm)} />
         <DataCell label="Light" value={lightLabelFor(plant.light_level)} />

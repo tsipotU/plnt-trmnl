@@ -1063,3 +1063,75 @@ describe('PlantDetail — post-archive navigation (#135)', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// #202 — Watering interval chip surfaces both configured interval and
+//         bin-packed next-water date so they read as a paired fact.
+// ---------------------------------------------------------------------------
+
+describe('PlantDetail #202 — watering chip shows interval + bin-packed next-water date', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('chip shows both the configured interval and the actual next-water date', async () => {
+    // next_water_date is bin-packer-shifted: interval=10 but date is 2026-05-15
+    // (ideal would have been 2026-05-17 if today is 2026-05-07, shift = -2d)
+    const fetchImpl = buildFetch({
+      plant: plantFixture({
+        current_interval: 10,
+        base_interval: 10,
+        next_water_date: '2026-05-15',
+      }),
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByText(/My Monstera/i)).toBeInTheDocument();
+    });
+
+    // The chip must surface BOTH facts in a paired way.
+    // "Every 10d" and "Next: 15 May 2026" (en-GB formatDate output) must be present.
+    expect(screen.getByText(/Every 10d/i)).toBeInTheDocument();
+    expect(screen.getByText(/Next:.*15.*May/i)).toBeInTheDocument();
+  });
+
+  it('shows only the date when current_interval is null (uncalibrated plant)', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture({
+        current_interval: null,
+        next_water_date: '2026-05-15',
+      }),
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByText(/My Monstera/i)).toBeInTheDocument();
+    });
+
+    // No interval to show — just the date must be visible somewhere
+    expect(screen.getByText(/15 May 2026/i)).toBeInTheDocument();
+    // "Every" should NOT appear (no configured interval)
+    expect(screen.queryByText(/Every \d+d/i)).not.toBeInTheDocument();
+  });
+
+  it('shows only the interval when next_water_date is null (newly added plant)', async () => {
+    const fetchImpl = buildFetch({
+      plant: plantFixture({
+        current_interval: 10,
+        next_water_date: null,
+      }),
+    });
+    RenderWithRouter('1', fetchImpl);
+
+    await waitFor(() => {
+      expect(screen.getByText(/My Monstera/i)).toBeInTheDocument();
+    });
+
+    // Interval present but no date — just the interval
+    expect(screen.getByText(/Every 10d/i)).toBeInTheDocument();
+    // "Next:" should NOT appear (no scheduled date)
+    expect(screen.queryByText(/Next:/i)).not.toBeInTheDocument();
+  });
+});
