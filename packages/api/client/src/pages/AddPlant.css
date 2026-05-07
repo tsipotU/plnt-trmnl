@@ -161,6 +161,15 @@
   z-index: 20;
 }
 
+/* Inline field-level error text (e.g. "Species is required" after a failed submit) */
+.p7l-addplant__field-error {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  color: var(--status-overdue);
+  margin: 4px 0 0;
+  font-weight: 500;
+}
+
 /* Field-label-with-tooltip row */
 .p7l-addplant__label-row {
   display: flex;

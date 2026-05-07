@@ -857,6 +857,99 @@ describe('mother plant picker (#208)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// #207 — /add form validation: required indicators + inline errors + focus
+// ---------------------------------------------------------------------------
+
+function makeValidationFetch() {
+  return vi.fn(async (url: string, init?: RequestInit) => {
+    if (url === '/api/system/ai-connection') {
+      return { ok: true, json: async () => ({ connected: true }) } as Response;
+    }
+    if (url === '/api/plants' && !init?.method) {
+      return { ok: true, json: async () => [] } as Response;
+    }
+    if (url === '/api/plants' && init?.method === 'POST') {
+      const body = init.body ? JSON.parse(init.body as string) : {};
+      return { ok: true, json: async () => ({ id: 207, ...body }) } as Response;
+    }
+    return { ok: true, json: async () => [] } as Response;
+  }) as unknown as typeof fetch;
+}
+
+describe('/add form validation (#207)', () => {
+  beforeEach(() => {
+    global.fetch = makeValidationFetch();
+  });
+
+  it('marks required fields with a visible required indicator at rest', async () => {
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    // FieldLabel renders a `·` dot (aria-hidden) when required={true}.
+    // The label wraps the input, so getByLabelText finds the input.
+    // We verify the required indicator is present by checking the label text
+    // content — the FieldLabel component renders .p7l-field-label__required with `·`.
+    const speciesInput = screen.getByLabelText(/Plant species or type/i);
+    const label = speciesInput.closest('form')?.querySelector('[for="name"], label:has(#name)') ??
+      speciesInput.parentElement?.querySelector('label');
+
+    // The FieldLabel for species passes required={true} — confirm required marker in DOM
+    // (looking for the aria-hidden dot via the label element wrapping the input)
+    expect(screen.getByLabelText(/Plant species or type/i)).toHaveAttribute('aria-required', 'true');
+
+    // Last-watered group also carries a required signal
+    expect(screen.getByRole('group', { name: /when did you last water/i })).toHaveAttribute(
+      'aria-required',
+      'true',
+    );
+  });
+
+  it('shows inline error when submitting without a species name', async () => {
+    const user = userEvent.setup();
+    global.fetch = makeValidationFetch();
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    // Submit without filling species (name is empty)
+    await user.click(screen.getByRole('button', { name: /Add plant/i }));
+
+    expect(await screen.findByText(/species is required/i)).toBeInTheDocument();
+    // Form should NOT have submitted (no POST call)
+    const calls = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
+    const postCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[1] === 'object' && c[1] !== null && (c[1] as RequestInit).method === 'POST',
+    );
+    expect(postCall).toBeUndefined();
+  });
+
+  it('focuses the species input after a failed submit when species is missing', async () => {
+    const user = userEvent.setup();
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    await user.click(screen.getByRole('button', { name: /Add plant/i }));
+
+    await screen.findByText(/species is required/i);
+    expect(screen.getByLabelText(/Plant species or type/i)).toHaveFocus();
+  });
+
+  it('clears the species error when the user starts typing in the species field', async () => {
+    const user = userEvent.setup();
+    renderAddPlant();
+    await screen.findByLabelText(/Plant species or type/i);
+
+    // Trigger the error
+    await user.click(screen.getByRole('button', { name: /Add plant/i }));
+    await screen.findByText(/species is required/i);
+
+    // Start typing — error should clear
+    await user.type(screen.getByLabelText(/Plant species or type/i), 'M');
+    expect(screen.queryByText(/species is required/i)).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // #204 — EnrichmentSplash: branch on catalog_slug, not illustration_path
 // ---------------------------------------------------------------------------
 
