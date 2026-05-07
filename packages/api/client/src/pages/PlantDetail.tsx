@@ -133,11 +133,11 @@ const LIGHT_LABELS: Record<CatalogLightProfile['ideal'], string> = {
 };
 
 const POT_SIZE_CATEGORIES: { value: string; label: string; cm: number | null }[] = [
-  { value: 'Extra Small', label: 'Extra Small (8 cm)', cm: 8 },
+  { value: 'Extra Small', label: 'Tiny (8 cm)', cm: 8 },
   { value: 'Small', label: 'Small (12 cm)', cm: 12 },
   { value: 'Medium', label: 'Medium (18 cm)', cm: 18 },
   { value: 'Large', label: 'Large (24 cm)', cm: 24 },
-  { value: 'Extra Large', label: 'Extra Large (30 cm)', cm: 30 },
+  { value: 'Extra Large', label: 'Huge (30 cm)', cm: 30 },
   { value: 'Other', label: 'Other (custom)', cm: null },
 ];
 
