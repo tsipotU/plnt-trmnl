@@ -1,4 +1,4 @@
-FROM node:22-slim AS builder
+FROM node:26-slim AS builder
 WORKDIR /app
 
 # --- Build the API (TypeScript -> dist/) ---
@@ -38,7 +38,7 @@ WORKDIR /app/client
 RUN npm ci && npm run build
 
 # --- Runtime image ---
-FROM node:22-slim
+FROM node:26-slim
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/catalog ./catalog
