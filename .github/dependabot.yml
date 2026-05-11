@@ -18,6 +18,12 @@ updates:
           - "@vitest/*"
           - "tsx"
           - "typescript"
+      all-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: npm
     directory: /packages/api/client
@@ -35,6 +41,12 @@ updates:
       testing-library:
         patterns:
           - "@testing-library/*"
+      all-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: /
@@ -43,6 +55,10 @@ updates:
     labels:
       - dependencies
       - ci
+    groups:
+      all-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: docker
     directory: /packages/api
