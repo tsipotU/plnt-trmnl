@@ -41,6 +41,14 @@ updates:
       testing-library:
         patterns:
           - "@testing-library/*"
+      dev-tooling:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "jsdom"
+          - "@vitejs/*"
+          - "tsx"
+          - "typescript"
       all-minor-patch:
         patterns:
           - "*"
