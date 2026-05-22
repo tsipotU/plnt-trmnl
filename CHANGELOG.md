@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Dependency hygiene — two Monday batches triaged (2026-05-11, 2026-05-22)
+
+Two Dependabot Mondays cleared end-to-end. The 2026-05-11 batch (#223–#229) plus its same-day follow-on (#233–#239) and the 2026-05-18 batch (#240–#241) — total 16 Dependabot PRs across the two sessions, plus 2 config-tuning PRs and 2 tracking issues.
+
+**Merged (runtime + dev deps):**
+- `pino` 9.14 → 10.3.1 (#227) — only `enrichment/callback.ts` consumes it; pino 10 dropped Node 18 support, Dockerfiles are Node 22, no friction.
+- `node-cron` 3.0.3 → 4.2.1 (#228) — v4 is a TypeScript rewrite; surface API (`cron.schedule(expr, fn)`) preserved. Verified at runtime on next Docker rebuild — the two `cron.schedule(...)` call sites at module load don't get exercised by CI alone.
+- `react-dom` 19.2.4 → 19.2.6 (#224, patch), `react-router-dom` 7.14 → 7.15 (#226, minor), `dotenv` minor (#236) — uncontroversial.
+- `vitest` 3.2.4 → 4.1.5 + `typescript` 5.9.3 → 6.0.3 (#225, dev-tooling group). Repo was already on `strict: true` + `ES2022` + `Node16` resolution — no legacy patterns for TS 6 to flag. Vitest 4 patches followed in #231 (4.1.5 → 4.1.6) and #241.
+- `@types/node` 22.19.17 → 25.6.2 (#223), then 25.6.2 → 25.9.0 (#240). Dev-only type defs.
+- `jsdom` 25 → 29 (#237) — client test-tooling, four-major jump, CI green = sufficient signal for a test-only tool.
+- `@vitejs/plugin-react` 4.7 → 5.2 (#238) — the v5 path that **doesn't** require Vite 8 (Dependabot offered it after we ignored the v6 path; see #230).
+- `vitest` 2.1.9 → 4.1.6 in client (#239) — client package has its own vitest separate from root; closed the version gap.
+- `all-actions` group (#234) — 4 GitHub Actions updates in one PR thanks to the retune below.
+
+**Deferred (filed as issues, ignored as Dependabot PRs):**
+- `@vitejs/plugin-react` 4 → 6 (#229) — would require Vite 6 → 8 cascade through Storybook plugin chain. Tracked as **#230** for v1.1.
+- `node:22-slim` → `node:26-slim` Dockerfiles (#233 renderer, #235 api) — Node 26 is the Current line, not LTS. Tracked as **#242** for an LTS bump to `node:24-slim` (verified manually since `test.yml` doesn't build Docker images).
+
+**Dependabot config tuning:**
+- **#232** — Added `all-minor-patch: { patterns: ["*"], update-types: [minor, patch] }` to both npm sections, plus `all-actions: { patterns: ["*"] }` to the github-actions section. Minor/patch noise now collapses to one PR per ecosystem; majors stay individual (where the review attention belongs).
+- **#243** — Added a `dev-tooling` group to the client section (vitest, @vitest/*, jsdom, @vitejs/*, tsx, typescript). Client had been missing the equivalent of root's dev-tooling group, which is why #237/#238/#239 landed as three separate PRs in the 2026-05-11 batch instead of one.
+
+**Operational lessons captured as memory:**
+- "CI green ≠ Docker green" when `test.yml` doesn't build images — applies to any Dockerfile diff.
+- Dependabot doesn't understand LTS cadence — it tracks newest tags, so Node-major bumps need manual review against the LTS roadmap.
+- `@dependabot ignore this major version` is per-major, not permanent — when the next odd-Node lands it'll be offered again.
+
 ### Wave 19 closes — Dog-food round 2 shipped 9 PRs in one burndown (2026-05-07)
 
 The wave finished in one continuous burndown. 12 in-app feedback rows triaged into 11 GitHub issues (#201–#211), 8 in scope for Wave 19, 3 deferred to v1.1 backlog (#209 profile-pic variant, #210 add-flow holistic rework, #211 acknowledgement pattern). All 9 PRs auto-merged to `main`.

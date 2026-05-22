@@ -401,6 +401,43 @@ Rules to prevent recurrence:
   `docker compose up -d plant-api` to recreate the container against
   the new image. `restart` is only for cycling a container that's
   already on the right image.
+- **CI green ≠ Docker green for Dockerfile changes.** `.github/workflows/test.yml`
+  runs `npm test` directly on the GitHub runner — it does not build
+  the Docker images. So a Dependabot bump on `FROM node:NN-slim` (or
+  any base-image change) passing both CI suites only proves the
+  Dockerfile syntax parses and tests still run on the runner's Node
+  version — it says **nothing** about whether the production
+  container boots on the new base. Always verify with
+  `docker compose up -d --build && docker compose logs -f --tail=30`
+  on the Mac mini before merging. (Banked from the 2026-05-22 round
+  where Dependabot offered `node:22 → node:26`; deferred to #242 for
+  a manual LTS bump to `node:24-slim`.)
+
+### Dependabot
+
+- **Doesn't understand LTS cadence.** Tracks the newest tag on the
+  registry, so Node major bumps offer the latest Current (odd) line
+  rather than the next LTS (even). For production runtime bumps
+  (Dockerfiles), don't accept Dependabot's offer — file a tracking
+  issue for an LTS-targeted manual bump and `@dependabot ignore this
+  major version` on the PR.
+- **`@dependabot ignore this major version` is per-major.** When the
+  next major lands, Dependabot will offer that one. Not a permanent
+  mute.
+- **Grouping is configured in `.github/dependabot.yml`.** Groups in
+  effect: `types` (`@types/*`), `dev-tooling` (vitest, @vitest/*,
+  jsdom, @vitejs/*, tsx, typescript), `testing-library` (client only),
+  `all-minor-patch` (catches everything minor/patch that didn't match
+  a named group), `all-actions` (github-actions ecosystem). Majors
+  outside the named groups still come as individual PRs — that's
+  intentional, the review value is in the major bumps.
+- **CI green for a dev-dependency bump is much stronger signal than
+  for a runtime bump.** Test tools (vitest, jsdom, @vitejs/*) get
+  fully exercised by the test suite — if tests pass on the new
+  version, the bump is genuinely safe. Runtime libraries (node-cron,
+  pino) only get exercised wherever the test suite happens to touch
+  them; a CI-green node-cron bump still needs a Docker rebuild to
+  verify the actual cron callbacks fire at module-load time.
 
 ## Reference
 
